@@ -1,0 +1,82 @@
+server:
+  port: 8080
+
+file:
+  upload-dir: ./uploads
+
+jwt:
+  secret: ${JWT_SECRET:zGrmhqRd5uvsXOUU47XZm6fcmuPGpwJL}
+  expiration: 3600000
+
+python:
+  api:
+    url: ${PYTHON_API_URL:http://localhost:8000}
+
+spring:
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: ${DATABASE_URL:jdbc:oracle:thin:@localhost:1521/XEPDB1}
+    username: ${DATABASE_USERNAME:myproject}
+    password: ${DATABASE_PASSWORD:1234}
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.OracleDialect
+        format_sql: false
+        use_sql_comments: false
+        id:
+          new_generator_mappings: true
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:no.reply.zoop.kr@gmail.com}
+    password: ${MAIL_PASSWORD:vjop irka csvg vphv}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+social:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:714723992076-dm6hcint1cm3uthpriiljk0gdc7cqhtk.apps.googleusercontent.com}
+    client-secret: ${GOOGLE_CLIENT_SECRET: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}
+    redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:3000/google-auth}
+    token-uri: https://oauth2.googleapis.com/token
+    user-info-uri: https://www.googleapis.com/oauth2/v2/userinfo
+
+  github:
+    client-id: ${GITHUB_CLIENT_ID:Iv23lifHLoovJWxUx7hn}
+    client-secret: ${GITHUB_CLIENT_SECRET:CrNtn91chUmlD+oa2LpgTcykLAQxCYG8JC9FN3Ii4QI=}
+    redirect-uri: ${GITHUB_REDIRECT_URI:http://localhost:3000/github-auth}
+    token-uri: https://github.com/login/oauth/access_token
+    user-info-uri: https://api.github.com/user
+    scope: rerad:user user:email
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY:AKIAX5JA2R5F7A7RHPMM}
+      secret-key: ${AWS_SECRET_KEY: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}
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: ${AWS_S3_BUCKET:zoop-seoul-bucket}
+
+logging:
+  level:
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO
+    org.springframework.transaction: INFO
+    com.zoop.backend.service.CandidateNotificationService: INFO 

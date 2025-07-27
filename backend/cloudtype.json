@@ -6,12 +6,17 @@
     "output": "target/backend-0.0.1-SNAPSHOT.jar"
   },
   "run": {
-    "command": "java -jar target/backend-0.0.1-SNAPSHOT.jar"
+    "command": "java -jar target/backend-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod"
   },
   "env": {
     "SPRING_PROFILES_ACTIVE": "prod",
-    "DATABASE_URL": "your-database-url",
-    "JWT_SECRET": "your-jwt-secret"
+    "DATABASE_URL": "jdbc:oracle:thin:@your-oracle-host:1521/your-service-name",
+    "DATABASE_USERNAME": "your-oracle-username",
+    "DATABASE_PASSWORD": "your-oracle-password",
+    "JWT_SECRET": "your-jwt-secret-key",
+    "PYTHON_API_URL": "https://your-python-api-url.cloudtype.app",
+    "GOOGLE_REDIRECT_URI": "https://your-frontend-url.cloudtype.app/google-auth",
+    "GITHUB_REDIRECT_URI": "https://your-frontend-url.cloudtype.app/github-auth"
   },
   "ports": [
     8080
