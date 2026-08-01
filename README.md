@@ -1,287 +1,188 @@
-# ZOOP - AI 기반 채용 플랫폼
+# ZOOP — AI-Powered Recruiting Platform
 
 <div align="center">
-  <img src="frontend/public/logo_zoop.png" alt="ZOOP Logo" width="200"/>
-  
-  [![React](https://img.shields.io/badge/React-19.1.0-blue.svg)](https://reactjs.org/)
-  [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-green.svg)](https://spring.io/projects/spring-boot)
-  [![Python](https://img.shields.io/badge/Python-3.8+-yellow.svg)](https://www.python.org/)
-  [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+  <img src="frontend/public/logo_zoop.png" alt="ZOOP logo" width="200" />
+
+  [![React](https://img.shields.io/badge/React-19.1.0-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+  [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.5-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+  [![Java](https://img.shields.io/badge/Java-17-007396?logo=openjdk&logoColor=white)](https://openjdk.org/)
+  [![Python](https://img.shields.io/badge/Python-AI%20Services-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+
+  **A full-stack recruiting platform that combines GitHub analytics, AI-assisted interviews, and portfolio-to-job matching.**
+
+  [English Presentation](https://drive.google.com/file/d/1-5ybBe50r1s6Oom1Vlb1Wb0mai9e6vrY/view?usp=sharing) ·
+  [Korean Presentation](https://drive.google.com/file/d/1VE9tTy6UxbMjZI4V_2zuv2BueVTo3uRG/view?usp=sharing)
 </div>
 
-## 📋 목차
+## Overview
 
-- [프로젝트 개요](#프로젝트-개요)
-- [주요 기능](#주요-기능)
-- [기술 스택](#기술-스택)
-- [프로젝트 구조](#프로젝트-구조)
-- [설치 및 실행](#설치-및-실행)
-- [API 문서](#api-문서)
-- [개발 가이드](#개발-가이드)
-- [배포](#배포)
-- [기여하기](#기여하기)
-- [라이선스](#라이선스)
+ZOOP connects software candidates and employers through an explainable, data-driven recruiting workflow. The platform analyzes GitHub activity, ranks candidates against role requirements, generates tailored interview questions, evaluates interview responses, and matches portfolios to job descriptions.
 
-## 🎯 프로젝트 개요
+The project was developed by a **4-person team** as a Korea Software Industry Association (KOSA) capstone project from **June to August 2025** and received the **KOSA Excellence Award**.
 
-ZOOP는 AI 기술을 활용한 혁신적인 채용 플랫폼입니다. GitHub 분석, AI 면접, 포트폴리오 매칭 등 다양한 기능을 통해 구직자와 기업을 연결합니다.
+## Project Results
 
-### 핵심 가치
-- 🤖 **AI 기반 매칭**: GitHub 활동 분석을 통한 정확한 인재 매칭
-- 🎥 **AI 면접**: 실시간 AI 면접으로 효율적인 선발 프로세스
-- 📊 **데이터 기반**: 객관적인 데이터를 통한 공정한 평가
-- 🚀 **사용자 친화적**: 직관적이고 편리한 사용자 경험
+- Processed **100+ candidate profiles** for ranking, portfolio-to-JD matching, and interview automation.
+- Generated **500+ tailored interview questions**, with at least five questions produced per candidate.
+- Reduced estimated first-round screening effort by **90%** by replacing resume-by-resume triage with AI-ranked candidate shortlists.
+- Delivered an integrated workflow spanning the React frontend, Spring Boot application server, Python AI services, relational databases, and object storage.
 
-## ✨ 주요 기능
+## Core Features
 
-### 👤 구직자 기능
-- **GitHub 연동**: GitHub 활동 자동 분석 및 포트폴리오 생성
-- **AI 면접**: 실시간 AI 면접 시스템 (TTS 지원)
-- **맞춤 공고 추천**: AI 기반 개인화된 채용 공고 추천
-- **포트폴리오 관리**: 프로젝트 및 경력 관리
-- **면접 일정 관리**: 면접 일정 확인 및 관리
+### Candidate Experience
 
-### 🏢 기업 기능
-- **AI 면접 관리**: 면접 일정 및 결과 관리
-- **후보자 분석**: GitHub 기반 후보자 능력 분석
-- **채용 공고 관리**: 공고 등록 및 관리
-- **면접 평가**: AI 면접 결과 분석 및 평가
+- GitHub account analysis and automated portfolio generation
+- Personalized job recommendations based on skills and activity
+- AI-assisted interviews with text-to-speech prompts and browser-based recording
+- Portfolio, application, and interview schedule management
 
-### 🤖 AI 서비스
-- **GitHub 분석**: 코드 활동, 기여도, 기술 스택 분석
-- **면접 질문 생성**: 포지션별 맞춤 면접 질문 생성
-- **면접 분석**: 답변 내용 분석 및 평가
-- **포트폴리오 매칭**: 기업 요구사항과 포트폴리오 매칭
+### Employer Experience
 
-## 🛠 기술 스택
-
-### Frontend
-- **React 19.1.0** - 사용자 인터페이스
-- **React Router** - 라우팅
-- **CSS3** - 스타일링
-- **Web Speech API** - TTS 기능
-- **MediaRecorder API** - 면접 녹화
-
-### Backend
-- **Spring Boot 3.x** - REST API 서버
-- **Spring Security** - 인증 및 권한 관리
-- **Spring Data JPA** - 데이터베이스 접근
-- **MySQL** - 메인 데이터베이스
-- **JWT** - 토큰 기반 인증
+- Job posting and interview schedule management
+- Candidate ranking based on GitHub activity, language distribution, contribution signals, and role requirements
+- Candidate portfolio and technical-profile review
+- AI-generated interview questions and answer analysis
 
 ### AI Services
-- **Python 3.8+** - AI 서비스 개발
-- **OpenAI GPT** - 자연어 처리
-- **GitHub API** - GitHub 데이터 분석
-- **FastAPI** - AI 서비스 API
 
-### DevOps
-- **Docker** - 컨테이너화
-- **Maven** - Java 빌드 도구
-- **npm** - Node.js 패키지 관리
+- **GitHub analysis:** extracts repository activity, languages, contribution signals, and portfolio evidence
+- **Interview question generation:** creates role- and candidate-specific questions
+- **Interview analysis:** evaluates answer content and produces structured feedback
+- **Portfolio matching:** compares candidate experience with job-description requirements
 
-## 📁 프로젝트 구조
+## System Architecture
 
+```mermaid
+flowchart LR
+    U[Candidate / Employer] --> FE[React Frontend]
+    FE --> BE[Spring Boot REST API]
+    BE --> DB[(Oracle / H2)]
+    BE --> S3[AWS S3]
+    BE --> AI[Python / FastAPI Services]
+    AI --> GH[GitHub API]
+    AI --> LLM[OpenAI API]
 ```
-zoop/
-├── frontend/                 # React 프론트엔드
-│   ├── public/              # 정적 파일
+
+The Spring Boot backend owns authentication, authorization, recruiting workflows, and persistence. Independent Python services handle GitHub analysis, interview generation and evaluation, portfolio matching, and other AI workloads.
+
+## Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React 19.1, React Router, Tailwind CSS, styled-components, Recharts, Web Speech API, MediaRecorder API |
+| Backend | Java 17, Spring Boot 3.4.5, Spring Security, JWT, Spring Data JPA, Spring WebFlux |
+| AI Services | Python, FastAPI, OpenAI API, GitHub API |
+| Data & Storage | Oracle Database, H2, AWS S3 |
+| Tooling | Docker, Maven, npm, Git |
+
+## Repository Structure
+
+```text
+zoop.kr/
+├── frontend/
+│   ├── public/
 │   ├── src/
-│   │   ├── components/      # 공통 컴포넌트
-│   │   ├── pages/          # 페이지 컴포넌트
-│   │   │   ├── candidate/  # 구직자 페이지
-│   │   │   ├── company/    # 기업 페이지
-│   │   │   └── info/       # 정보 페이지
-│   │   ├── context/        # React Context
-│   │   ├── api/            # API 통신
-│   │   └── utils/          # 유틸리티 함수
+│   │   ├── components/
+│   │   ├── pages/
+│   │   │   ├── candidate/
+│   │   │   ├── company/
+│   │   │   └── info/
+│   │   ├── context/
+│   │   ├── api/
+│   │   └── utils/
 │   └── package.json
-├── backend/                 # Spring Boot 백엔드
-│   ├── src/main/java/
-│   │   └── com/zoop/backend/
-│   │       ├── controller/ # REST API 컨트롤러
-│   │       ├── service/    # 비즈니스 로직
-│   │       ├── repository/ # 데이터 접근 계층
-│   │       ├── domain/     # 엔티티 및 DTO
-│   │       └── config/     # 설정 클래스
-│   ├── python-api/         # Python AI 서비스
-│   │   ├── chatbot/        # 챗봇 서비스
-│   │   ├── github_search/  # GitHub 분석 서비스
-│   │   ├── interview_analysis/ # 면접 분석 서비스
-│   │   ├── portfolio_matching/ # 포트폴리오 매칭
-│   │   └── interview_questions/ # 면접 질문 생성
+├── backend/
+│   ├── src/main/java/com/zoop/backend/
+│   │   ├── controller/
+│   │   ├── service/
+│   │   ├── repository/
+│   │   ├── domain/
+│   │   └── config/
+│   ├── python-api/
+│   │   ├── chatbot/
+│   │   ├── github_search/
+│   │   ├── interview_analysis/
+│   │   ├── portfolio_matching/
+│   │   └── interview_questions/
 │   └── pom.xml
 └── README.md
 ```
 
-## 🚀 설치 및 실행
+## Getting Started
 
-### 사전 요구사항
+### Prerequisites
+
 - Node.js 18+
 - Java 17+
 - Python 3.8+
-- MySQL 8.0+
+- Maven or the included Maven wrapper
+- A configured relational database
 - Git
 
-### 1. 프로젝트 클론
+### 1. Clone the Repository
+
 ```bash
-git clone https://github.com/your-username/zoop.git
-cd zoop
+git clone https://github.com/mck0124/zoop.kr.git
+cd zoop.kr
 ```
 
-### 2. Frontend 설정
+### 2. Run the Frontend
+
 ```bash
 cd frontend
 npm install
 npm start
 ```
-- Frontend 서버: http://localhost:3000
 
-### 3. Backend 설정
+The development server runs at `http://localhost:3000` and proxies API requests to `http://localhost:8081`.
+
+### 3. Run the Spring Boot Backend
+
+Configure the database connection and required credentials in your local Spring configuration, then run:
+
 ```bash
 cd backend
-# MySQL 데이터베이스 설정
-# application.properties 파일에서 데이터베이스 연결 정보 수정
-
-# Spring Boot 실행
 ./mvnw spring-boot:run
 ```
-- Backend 서버: http://localhost:8081
 
-### 4. AI 서비스 설정
+The backend runs at `http://localhost:8081` by default.
+
+### 4. Run the Required AI Services
+
+AI services are located under `backend/python-api`. Install the dependencies for the service you need and run its entry point from the corresponding directory.
+
 ```bash
-cd backend/python-api
-
-# 각 AI 서비스 설치 및 실행
-cd chatbot
+cd backend/python-api/<service-directory>
 pip install -r requirements.txt
-python chatbot_api.py
-
-cd ../github_search
-pip install -r requirements.txt
-python main.py
-
-cd ../interview_analysis
-pip install -r requirements.txt
-python interview_analysis_api.py
-
-cd ../portfolio_matching
-pip install -r requirements.txt
-python portfolio_matching_api.py
-
-cd ../interview_questions
-pip install -r requirements.txt
-python interview_questions_api.py
+python <service-entry-point>.py
 ```
 
-### 5. 환경 변수 설정
-```bash
-# Frontend (.env)
-REACT_APP_API_URL=http://localhost:8081
-REACT_APP_OPENAI_API_KEY=your_openai_api_key
+Keep API keys and other credentials in local environment variables or untracked configuration files. Do not expose OpenAI or database credentials in frontend code.
 
-# Backend (application.properties)
-spring.datasource.url=jdbc:mysql://localhost:3306/zoop
-spring.datasource.username=your_username
-spring.datasource.password=your_password
-```
+## Representative API Areas
 
-## 📚 API 문서
+| Area | Example Responsibilities |
+|---|---|
+| Authentication | Sign-up, login, logout, JWT-based authorization |
+| Candidates | Job recommendations, portfolios, applications, interviews |
+| Employers | Job postings, candidate review, interview scheduling |
+| GitHub Analysis | Repository and contribution analysis, candidate ranking |
+| AI Interviews | Question generation, recording workflow, answer analysis |
+| Portfolio Matching | Candidate portfolio and job-description comparison |
 
-### 주요 API 엔드포인트
+## Presentations
 
-#### 인증
-- `POST /api/auth/login` - 로그인
-- `POST /api/auth/signup` - 회원가입
-- `POST /api/auth/logout` - 로그아웃
+- [View the English presentation](https://drive.google.com/file/d/1-5ybBe50r1s6Oom1Vlb1Wb0mai9e6vrY/view?usp=sharing)
+- [View the Korean presentation](https://drive.google.com/file/d/1VE9tTy6UxbMjZI4V_2zuv2BueVTo3uRG/view?usp=sharing)
 
-#### 구직자
-- `GET /api/candidates/{id}/job-postings` - 지원 공고 목록
-- `POST /api/candidates/portfolio` - 포트폴리오 등록
-- `GET /api/interviews/{id}` - 면접 정보 조회
+## Recognition
 
-#### 기업
-- `POST /api/companies/posts` - 채용 공고 등록
-- `GET /api/companies/{id}/candidates` - 지원자 목록
-- `POST /api/interview-schedules` - 면접 일정 등록
+**KOSA Excellence Award (2025)** — awarded for the project's innovation and technical execution.
 
-#### AI 서비스
-- `POST /api/github/analyze` - GitHub 분석
-- `POST /api/interview/questions` - 면접 질문 생성
-- `POST /api/interview/analyze` - 면접 답변 분석
-- `POST /api/portfolio/match` - 포트폴리오 매칭
+## Contributors
 
-## 💻 개발 가이드
-
-### 코드 컨벤션
-- **Frontend**: ESLint + Prettier 사용
-- **Backend**: Google Java Style Guide 준수
-- **Python**: PEP 8 스타일 가이드 준수
-
-### 브랜치 전략
-- `main`: 프로덕션 브랜치
-- `develop`: 개발 브랜치
-- `feature/*`: 기능 개발 브랜치
-- `hotfix/*`: 긴급 수정 브랜치
-
-### 커밋 메시지 규칙
-```
-type(scope): description
-
-feat: 새로운 기능
-fix: 버그 수정
-docs: 문서 수정
-style: 코드 스타일 변경
-refactor: 코드 리팩토링
-test: 테스트 추가/수정
-chore: 빌드 프로세스 또는 보조 도구 변경
-```
-
-## 🚀 배포
-
-### Docker 배포
-```bash
-# Docker 이미지 빌드
-docker build -t zoop-frontend ./frontend
-docker build -t zoop-backend ./backend
-
-# Docker Compose 실행
-docker-compose up -d
-```
-
-### 클라우드 배포
-- **Frontend**: Vercel, Netlify
-- **Backend**: AWS EC2, Google Cloud Platform
-- **Database**: AWS RDS, Google Cloud SQL
-
-## 🤝 기여하기
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 라이선스
-
-이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
-
-## 📞 문의
-
-- **이메일**: support@zoop.com
-- **GitHub Issues**: [이슈 등록](https://github.com/your-username/zoop/issues)
-- **문서**: [Wiki](https://github.com/your-username/zoop/wiki)
-
-## 🙏 감사의 말
-
-- [React](https://reactjs.org/) - 프론트엔드 프레임워크
-- [Spring Boot](https://spring.io/projects/spring-boot) - 백엔드 프레임워크
-- [OpenAI](https://openai.com/) - AI 서비스
-- [GitHub API](https://docs.github.com/en/rest) - GitHub 데이터 분석
+ZOOP was developed as a four-person KOSA capstone project. Contributions covered frontend development, backend architecture, AI-service development, data modeling, and deployment integration.
 
 ---
 
-<div align="center">
-  <p>Made with ❤️ by ZOOP Team</p>
-  <p>© 2024 ZOOP. All rights reserved.</p>
-</div>
+For questions or technical discussion, use the repository's [GitHub Issues](https://github.com/mck0124/zoop.kr/issues).
