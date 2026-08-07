@@ -66,6 +66,13 @@ class InterviewAnalysisResponse(BaseModel):
     analysis_data: Optional[str] = None
     error: Optional[str] = None
 
+def _quote_is_in_transcripts(quote: str, transcripts: List[str]) -> bool:
+    """Keep evidence honest: an AI-generated quote must be found in source answers."""
+    normalized_quote = re.sub(r"\s+", " ", quote).strip().casefold()
+    if not normalized_quote:
+        return False
+    return any(normalized_quote in re.sub(r"\s+", " ", transcript or "").strip().casefold() for transcript in transcripts)
+
 def extract_audio_from_video(video_path: str) -> str:
     """비디오에서 오디오 추출"""
     try:
@@ -142,7 +149,7 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
       "good_example": "...",
       "bad_example": "...",
       "improvement": "...",
-      "evidence": [{"source":"answer|question|missing", "claim":"실제 답변에서 확인한 내용", "confidence":0.0}],
+      "evidence": [{"source":"answer|question|missing", "answer_index":1, "quote":"답변에서 그대로 확인되는 짧은 구절", "claim":"실제 답변에서 확인한 내용", "confidence":0.0}],
       "confidence": 0.0,
       "tags": ["...", "..."]
     }},
@@ -198,8 +205,38 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                 category["max_score"] = maximum
                 category["score"] = normalized_score
                 category.setdefault("reason", "확인된 답변 근거가 부족합니다.")
-                category.setdefault("evidence", [{"source": "missing", "claim": "확인된 근거 없음", "confidence": 0.0}])
-                category.setdefault("confidence", 0.0)
+                raw_evidence = category.get("evidence", [])
+                normalized_evidence = []
+                for item in raw_evidence if isinstance(raw_evidence, list) else []:
+                    if not isinstance(item, dict):
+                        continue
+                    quote = str(item.get("quote", "")).strip()
+                    claim = str(item.get("claim", "확인된 근거 없음")).strip()
+                    source = str(item.get("source", "missing")).strip()
+                    answer_index = item.get("answer_index")
+                    try:
+                        answer_index = int(answer_index) if answer_index is not None else None
+                    except (TypeError, ValueError):
+                        answer_index = None
+                    try:
+                        confidence = float(item.get("confidence", 0) or 0)
+                    except (TypeError, ValueError):
+                        confidence = 0.0
+                    if quote and not _quote_is_in_transcripts(quote, transcripts):
+                        source = "unverified"
+                        confidence *= 0.5
+                    normalized_evidence.append({
+                        "source": source,
+                        "answer_index": answer_index,
+                        "quote": quote,
+                        "claim": claim,
+                        "confidence": max(0.0, min(1.0, confidence)),
+                    })
+                category["evidence"] = normalized_evidence or [{"source": "missing", "answer_index": None, "quote": "", "claim": "확인된 근거 없음", "confidence": 0.0}]
+                try:
+                    category["confidence"] = max(0.0, min(1.0, float(category.get("confidence", 0) or 0)))
+                except (TypeError, ValueError):
+                    category["confidence"] = 0.0
                 normalized_categories.append(category)
             analysis_data["categories"] = normalized_categories
             score = sum(category["score"] for category in normalized_categories)

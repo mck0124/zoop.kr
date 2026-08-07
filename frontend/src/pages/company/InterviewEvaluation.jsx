@@ -426,7 +426,8 @@ export default function InterviewEvaluation() {
                             <b>답변에서 확인한 근거</b>
                             {cat.evidence.slice(0, 3).map((item, evidenceIndex) => (
                               <div key={`${cat.name}-evidence-${evidenceIndex}`} style={{ marginTop: 5 }}>
-                                · {item.claim || '확인된 근거 없음'} <span style={{ color: '#9ca3af' }}>({item.source || 'missing'})</span>
+                                · {item.claim || '확인된 근거 없음'} <span style={{ color: item.source === 'unverified' ? '#dc2626' : '#9ca3af' }}>({item.source || 'missing'}{item.answer_index ? ` · 답변 ${item.answer_index}` : ''})</span>
+                                {item.quote && <div style={{ margin: '4px 0 0 12px', color: item.source === 'unverified' ? '#b91c1c' : '#64748b', fontStyle: 'italic' }}>“{item.quote}”</div>}
                               </div>
                             ))}
                           </div>
