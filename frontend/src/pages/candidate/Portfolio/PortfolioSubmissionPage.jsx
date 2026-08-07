@@ -4,6 +4,7 @@ import { useAuth } from '../../../context/AuthContext';
 import PortfolioNavbar from './PortfolioNavbar';
 import { Sidebar } from '../Sidebar';
 import './PortfolioSubmissionPage.css';
+import { apiUrl } from '../../../api/config';
 
 function PortfolioSubmissionPage() {
   const { postId } = useParams();
@@ -78,7 +79,7 @@ function PortfolioSubmissionPage() {
         console.log(`포트폴리오 제출 페이지 로드 - 공고 ID: ${postId}, 사용자 ID: ${candidateId}`);
         
         // 공고 정보 가져오기
-        const response = await fetch(`http://localhost:8081/api/postings/info/${postId}`);
+        const response = await fetch(apiUrl(`/api/postings/info/${postId}`));
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -89,7 +90,7 @@ function PortfolioSubmissionPage() {
         // 회사 정보 가져오기
         if (data.companyId) {
           try {
-            const companyResponse = await fetch(`http://localhost:8081/api/companies/${data.companyId}`);
+            const companyResponse = await fetch(apiUrl(`/api/companies/${data.companyId}`));
             if (companyResponse.ok) {
               const companyData = await companyResponse.json();
               setCompanyName(companyData.companyName || '회사명을 불러올 수 없습니다');
@@ -262,7 +263,7 @@ function PortfolioSubmissionPage() {
     const fetchUserName = async () => {
       try {
         if (!authState.userId) return;
-        const userResponse = await fetch(`http://localhost:8081/api/candidates/${authState.userId}`);
+          const userResponse = await fetch(apiUrl(`/api/candidates/${authState.userId}`));
         if (userResponse.ok) {
           const userData = await userResponse.json();
           setUserName(userData.candidateName || '사용자');

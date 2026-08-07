@@ -16,6 +16,7 @@ import {
 } from '../Modals';
 import { InterviewSchedulerModal } from '../Interview';
 import InterviewPreparationModal from '../../../components/InterviewPreparationModal';
+import { apiUrl } from '../../../api/config';
 
 import './CandidateDashboard.css';
 
@@ -153,14 +154,14 @@ function CandidateDashboard() {
     const fetchUserDataAndJobPostings = async () => {
       try {
         // 1. 사용자 정보 가져오기
-        const userResponse = await fetch(`http://localhost:8081/api/candidates/${candidateId}`);
+        const userResponse = await fetch(apiUrl(`/api/candidates/${candidateId}`));
         if (userResponse.ok) {
           const userData = await userResponse.json();
           setUserName(userData.candidateName || '사용자');
         }
 
         // 2. 공고 목록 가져오기
-        const postingsResponse = await fetch(`http://localhost:8081/api/candidates/${candidateId}/job-postings`);
+        const postingsResponse = await fetch(apiUrl(`/api/candidates/${candidateId}/job-postings`));
         if (postingsResponse.ok) {
           const postingsData = await postingsResponse.json();
           setJobPostings(postingsData);
@@ -218,7 +219,7 @@ function CandidateDashboard() {
     
     // 1. 서버에서 최신 데이터를 다시 가져와서 상태 동기화
     try {
-      const response = await fetch(`http://localhost:8081/api/candidates/${candidateId}/job-postings`);
+      const response = await fetch(apiUrl(`/api/candidates/${candidateId}/job-postings`));
       if (response.ok) {
         const updatedJobPostings = await response.json();
         setJobPostings(updatedJobPostings);
@@ -226,7 +227,7 @@ function CandidateDashboard() {
         
         // 2. 면접 일정 정보를 백엔드에서 가져와서 scheduledInterviews에 저장
         try {
-          const interviewResponse = await fetch(`http://localhost:8081/api/interviews/by-post-candidate?postId=${postId}&candidateId=${candidateId}`);
+          const interviewResponse = await fetch(apiUrl(`/api/interviews/by-post-candidate?postId=${postId}&candidateId=${candidateId}`));
           if (interviewResponse.ok) {
             const interviewData = await interviewResponse.json();
             console.log("면접 정보 조회 성공:", interviewData);
@@ -307,7 +308,7 @@ function CandidateDashboard() {
       }
 
       // 3. 백엔드 API 호출 URL 수정
-      const response = await fetch(`http://localhost:8081/api/interviews/by-post-candidate?postId=${postId}&candidateId=${candidateId}`);
+      const response = await fetch(apiUrl(`/api/interviews/by-post-candidate?postId=${postId}&candidateId=${candidateId}`));
       if (!response.ok) {
         const errorText = await response.text();
         console.error("API 응답 오류:", response.status, errorText);
@@ -422,7 +423,7 @@ function CandidateDashboard() {
   // 사용자 설정을 DB에 저장하는 함수
   const savePreferencesToDB = async (preferences) => {
     try {
-      const response = await fetch(`http://localhost:8081/api/candidates/${candidateId}/preferences`, {
+      const response = await fetch(apiUrl(`/api/candidates/${candidateId}/preferences`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -446,7 +447,7 @@ function CandidateDashboard() {
   // 사용자 설정을 DB에서 불러오는 함수
   const loadPreferencesFromDB = async () => {
     try {
-      const response = await fetch(`http://localhost:8081/api/candidates/${candidateId}/preferences`);
+      const response = await fetch(apiUrl(`/api/candidates/${candidateId}/preferences`));
       if (response.ok) {
         const preferences = await response.json();
         
@@ -488,7 +489,7 @@ function CandidateDashboard() {
   const loadExistingInterviewSchedules = async () => {
     try {
       // 각 공고별로 면접 일정 정보를 가져오기
-      const jobPostingsResponse = await fetch(`http://localhost:8081/api/candidates/${candidateId}/job-postings`);
+      const jobPostingsResponse = await fetch(apiUrl(`/api/candidates/${candidateId}/job-postings`));
       if (jobPostingsResponse.ok) {
         const jobPostings = await jobPostingsResponse.json();
         
@@ -497,7 +498,7 @@ function CandidateDashboard() {
           .filter(post => post.jobCandCurrStage === '3n')
           .map(async (post) => {
             try {
-              const interviewResponse = await fetch(`http://localhost:8081/api/interviews/by-post-candidate?postId=${post.postId}&candidateId=${candidateId}`);
+              const interviewResponse = await fetch(apiUrl(`/api/interviews/by-post-candidate?postId=${post.postId}&candidateId=${candidateId}`));
               if (interviewResponse.ok) {
                 const interviewData = await interviewResponse.json();
                 return {
@@ -543,7 +544,7 @@ function CandidateDashboard() {
   // 대시보드 마운트 시 항상 최신 데이터 fetch
   const fetchJobPostings = async () => {
     try {
-      const response = await fetch(`http://localhost:8081/api/candidates/${candidateId}/job-postings`);
+      const response = await fetch(apiUrl(`/api/candidates/${candidateId}/job-postings`));
       if (response.ok) {
         const data = await response.json();
         setJobPostings(data);
