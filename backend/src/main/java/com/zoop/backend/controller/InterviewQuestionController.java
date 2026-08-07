@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,8 +47,10 @@ public class InterviewQuestionController {
     public ResponseEntity<Map<String, Object>> generateQuestions(
         @Parameter(description = "공고 ID", required = true, example = "123")
         @PathVariable Long postId,
-        @Parameter(description = "후보자 ID", required = true, example = "456")  
-        @PathVariable Long candidateId
+        @Parameter(description = "후보자 ID", required = true, example = "456")
+        @PathVariable Long candidateId,
+        @Parameter(description = "면접 준비 화면 언어 (en, ko, zh)")
+        @RequestParam(defaultValue = "en") String language
     ) {
         
         Map<String, Object> response = new HashMap<>();
@@ -62,7 +65,7 @@ public class InterviewQuestionController {
             log.info("면접 예상질문 생성 API 호출: postId={}, candidateId={}", postId, candidateId);
             
             // 면접 예상질문 생성
-            List<String> questions = interviewQuestionService.generateInterviewQuestions(postId, candidateId);
+            List<String> questions = interviewQuestionService.generateInterviewQuestions(postId, candidateId, language);
             
             // 성공 응답
             response.put("success", true);

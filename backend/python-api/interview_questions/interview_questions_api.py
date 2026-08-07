@@ -51,11 +51,28 @@ class InterviewQuestionsResponse(BaseModel):
     error: str = None
 
 
-def normalize_generated_questions(raw_text: str, minimum: int, maximum: int, require_tags: bool = False) -> List[str]:
+def normalize_language(language: str) -> str:
+    """Keep the generated interview experience aligned with the UI language."""
+    return language if language in {"en", "ko", "zh"} else "en"
+
+
+LANGUAGE_INSTRUCTIONS = {
+    "en": "Write every question and explanation in natural English.",
+    "ko": "모든 질문과 설명을 자연스러운 한국어로 작성하세요.",
+    "zh": "请用自然流畅的中文撰写所有问题和说明。",
+}
+
+
+def normalize_generated_questions(raw_text: str, minimum: int, maximum: int, require_tags: bool = False, language: str = "en") -> List[str]:
     """LLM의 번호·마크다운·빈 줄 변형을 화면이 소비할 수 있는 목록으로 정규화한다."""
     questions = []
     seen = set()
-    categories = ["근거검증", "기술깊이", "문제해결", "협업", "성장"]
+    category_sets = {
+        "en": ["Evidence", "Technical depth", "Problem solving", "Collaboration", "Growth"],
+        "ko": ["근거검증", "기술깊이", "문제해결", "협업", "성장"],
+        "zh": ["证据验证", "技术深度", "问题解决", "协作", "成长"],
+    }
+    categories = category_sets.get(normalize_language(language), category_sets["en"])
     for raw_line in str(raw_text or "").splitlines():
         line = re.sub(r"^\s*(?:[-*•]|\d+[.)]|질문\s*\d+\s*[:.)])\s*", "", raw_line).strip()
         line = line.strip("` \t")
@@ -94,7 +111,7 @@ def call_openai_chat(messages, max_tokens=800, temperature=0.3):
 def generate_interview_questions(post_title: str, post_description: str, 
                                programming_language: str, ideal_candidate: str, 
                                location: str, salary_range: str, headcount: int, 
-                               portfolio_analysis: str = "") -> List[str]:
+                               portfolio_analysis: str = "", language: str = "en") -> List[str]:
     """OpenAI를 사용하여 면접 질문 생성"""
     
     # 포트폴리오 분석 결과가 있는 경우 프롬프트에 포함
@@ -107,8 +124,11 @@ def generate_interview_questions(post_title: str, post_description: str,
 이 분석 결과를 참고하여 지원자의 강점과 약점을 파악하고, 그에 맞는 맞춤형 질문을 생성해주세요.
 """
 
+    language = normalize_language(language)
     prompt = f"""
 당신은 전문적인 AI 면접관입니다. 아래 채용 공고 정보와 지원자의 포트폴리오 분석 결과를 종합하여 해당 직무에 적합한 면접 질문 3개를 생성해주세요.
+
+언어 지침: {LANGUAGE_INSTRUCTIONS[language]}
 
 === 채용 공고 정보 ===
 공고 제목: {post_title}
@@ -152,7 +172,7 @@ def generate_interview_questions(post_title: str, post_description: str,
         
         questions_text = response.choices[0].message.content.strip()
         
-        return normalize_generated_questions(questions_text, minimum=3, maximum=3)
+        return normalize_generated_questions(questions_text, minimum=3, maximum=3, language=language)
         
     except Exception as e:
         print(f"OpenAI 질문 생성 오류: {e}")
@@ -166,7 +186,7 @@ def generate_interview_questions(post_title: str, post_description: str,
 def generate_preparation_questions(post_title: str, post_description: str, 
                                   programming_language: str, ideal_candidate: str, 
                                   location: str, salary_range: str, headcount: int, 
-                                  portfolio_analysis: str = "") -> List[str]:
+                                  portfolio_analysis: str = "", language: str = "en") -> List[str]:
     """면접 준비를 위한 예상질문 생성 (실제 면접질문과는 다른 일반적인 질문들)"""
     
     # 포트폴리오 분석 결과가 있는 경우 프롬프트에 포함
@@ -179,8 +199,11 @@ def generate_preparation_questions(post_title: str, post_description: str,
 이 분석 결과를 참고하여 지원자가 준비할 수 있는 일반적인 예상질문을 생성해주세요.
 """
 
+    language = normalize_language(language)
     prompt = f"""
 당신은 '근거 추적형 면접 코치'입니다. 지원자가 면접을 준비할 수 있도록 예상 질문 10개를 생성해주세요.
+
+언어 지침: {LANGUAGE_INSTRUCTIONS[language]}
 
 ⭐ 목적: 면접 준비 도움 (실제 면접에서 나올 법한 유형의 일반적인 질문들)
 ⭐ 특징: 포트폴리오 분석의 확인된 근거와 아직 확인되지 않은 가설을 구분하는 질문
@@ -237,7 +260,7 @@ def generate_preparation_questions(post_title: str, post_description: str,
         
         questions_text = response.choices[0].message.content.strip()
         
-        return normalize_generated_questions(questions_text, minimum=10, maximum=10, require_tags=True)
+        return normalize_generated_questions(questions_text, minimum=10, maximum=10, require_tags=True, language=language)
         
     except Exception as e:
         print(f"예상질문 생성 오류: {e}")
@@ -252,7 +275,8 @@ async def generate_questions_endpoint(
     location: str = Form(...),
     salary_range: str = Form(""),
     headcount: int = Form(1),
-    portfolio_analysis: str = Form("")
+    portfolio_analysis: str = Form(""),
+    language: str = Form("en")
 ):
     """면접 질문 생성 API"""
     try:
@@ -260,7 +284,7 @@ async def generate_questions_endpoint(
         
         questions = generate_interview_questions(
             post_title, post_description, programming_language,
-            ideal_candidate, location, salary_range, headcount, portfolio_analysis
+            ideal_candidate, location, salary_range, headcount, portfolio_analysis, language
         )
         
         print(f"생성된 질문: {len(questions)}개")
@@ -286,7 +310,8 @@ async def generate_preparation_questions_endpoint(
     location: str = Form(...),
     salary_range: str = Form(""),
     headcount: int = Form(1),
-    portfolio_analysis: str = Form("")
+    portfolio_analysis: str = Form(""),
+    language: str = Form("en")
 ):
     """면접 예상질문 생성 API (면접 준비용)"""
     try:
@@ -308,7 +333,7 @@ async def generate_preparation_questions_endpoint(
         
         questions = generate_preparation_questions(
             post_title, post_description, programming_language,
-            ideal_candidate, location, salary_range, headcount, portfolio_analysis
+            ideal_candidate, location, salary_range, headcount, portfolio_analysis, language
         )
         
         print(f"예상질문 생성 완료: {len(questions)}개")

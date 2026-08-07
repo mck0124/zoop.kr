@@ -1,15 +1,24 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiUrl } from '../../../api/config';
+import { useLanguage } from '../../../context/LanguageContext';
 
 // InterviewSession.jsx: 2-column layout (left: question/timer, right: video), auto think/answer phase with timer and recording
 
 const THINK_TIME = 30;  // 생각시간: 30초
 const ANSWER_TIME = 60; // 답변시간: 2분 (120초)
 
+const SESSION_COPY = {
+  en: { invalidId: 'This interview schedule ID is invalid.', loadFailed: 'Could not load the interview questions.', noQuestions: 'No interview questions were generated. Please ask the interviewer to try again.', unsupported: 'This browser cannot access the camera or microphone. Please use a modern browser.', denied: 'Camera and microphone access was denied. Allow access in your browser settings.', missing: 'No camera or microphone was found. Check that your devices are connected.', mediaFailed: 'Could not access your media devices: ', recorder: 'This browser does not support interview recording. Use the latest Chrome, Safari, or Edge.', recordingFailed: 'Could not start recording. Check your camera permission and browser settings.', uploadFailed: 'Upload failed.', preparing: 'Get ready to answer.', recordingStatus: 'Recording your answer...', preparingRecording: 'Preparing to record...', uploading: 'Uploading...', uploadReady: 'Preparing upload...', done: 'Interview complete!', progress: 'Question progress', loading: 'Loading question...', listen: 'Listen again', listening: 'Playing question', think: 'Preparation time', answer: 'Answer time', upload: 'Uploading', complete: 'Complete', seconds: 's', finish: 'Returning to your dashboard...' },
+  ko: { invalidId: '유효하지 않은 면접 일정 ID입니다.', loadFailed: '질문을 불러오지 못했습니다.', noQuestions: '생성된 면접 질문이 없습니다. 면접 담당자에게 질문 생성을 다시 요청해주세요.', unsupported: '이 브라우저에서는 카메라와 마이크를 사용할 수 없습니다. 최신 브라우저에서 다시 시도해주세요.', denied: '카메라와 마이크 접근이 거부되었습니다. 브라우저에서 권한을 허용해주세요.', missing: '카메라나 마이크를 찾을 수 없습니다. 장치가 연결되어 있는지 확인해주세요.', mediaFailed: '미디어 접근에 실패했습니다: ', recorder: '이 브라우저에서는 면접 녹화를 지원하지 않습니다. 최신 Chrome, Safari 또는 Edge를 사용해주세요.', recordingFailed: '면접 녹화를 시작하지 못했습니다. 카메라 권한과 브라우저 설정을 확인해주세요.', uploadFailed: '업로드 실패', preparing: '답변을 준비하세요.', recordingStatus: '답변을 녹화 중입니다...', preparingRecording: '녹화 준비 중...', uploading: '업로드 중...', uploadReady: '업로드 준비 중...', done: '면접이 완료되었습니다!', progress: '질문 진행', loading: '질문을 불러오는 중...', listen: '질문 다시 듣기', listening: '읽는 중...', think: '준비 시간', answer: '답변 시간', upload: '업로드 중', complete: '완료', seconds: '초', finish: '잠시 후 대시보드로 이동합니다...' },
+  zh: { invalidId: '面试安排 ID 无效。', loadFailed: '无法加载面试问题。', noQuestions: '尚未生成面试问题，请联系面试负责人重新生成。', unsupported: '此浏览器无法使用摄像头和麦克风，请使用最新版本的浏览器。', denied: '摄像头和麦克风权限被拒绝，请在浏览器设置中允许访问。', missing: '找不到摄像头或麦克风，请确认设备已连接。', mediaFailed: '无法访问媒体设备：', recorder: '此浏览器不支持面试录制，请使用最新版本的 Chrome、Safari 或 Edge。', recordingFailed: '无法开始录制，请检查摄像头权限和浏览器设置。', uploadFailed: '上传失败。', preparing: '请准备回答。', recordingStatus: '正在录制回答……', preparingRecording: '正在准备录制……', uploading: '正在上传……', uploadReady: '准备上传……', done: '面试已完成！', progress: '问题进度', loading: '正在加载问题……', listen: '再次听题', listening: '正在播放', think: '准备时间', answer: '回答时间', upload: '上传中', complete: '完成', seconds: '秒', finish: '即将返回控制面板……' }
+};
+
 const InterviewSession = () => {
   const { scheduleId } = useParams();
   const navigate = useNavigate();
+  const { language } = useLanguage();
+  const copy = useMemo(() => SESSION_COPY[language] || SESSION_COPY.en, [language]);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const recorderRef = useRef(null);
@@ -33,14 +42,14 @@ const InterviewSession = () => {
   }, []);
 
   // TTS로 질문 읽기
-  const speakQuestion = (text) => {
+  const speakQuestion = useCallback((text) => {
     if (!speechRef.current || !text) return;
     
     // 이전 음성 중지
     speechRef.current.cancel();
     
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'ko-KR';
+    utterance.lang = language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US';
     utterance.rate = 0.9; // 속도 조절 (0.1 ~ 10)
     utterance.pitch = 1; // 음높이 조절 (0 ~ 2)
     utterance.volume = 1; // 볼륨 (0 ~ 1)
@@ -50,7 +59,7 @@ const InterviewSession = () => {
     utterance.onerror = () => setIsSpeaking(false);
     
     speechRef.current.speak(utterance);
-  };
+  }, [language]);
 
   // 질문 다시 듣기
   const replayQuestion = () => {
@@ -66,24 +75,24 @@ const InterviewSession = () => {
     // scheduleId가 유효한 숫자인지 확인
     const scheduleIdNum = parseInt(scheduleId);
     if (isNaN(scheduleIdNum)) {
-      setError('유효하지 않은 면접 일정 ID입니다.');
+      setError(copy.invalidId);
       return;
     }
     
-    fetch(apiUrl(`/api/interview-videos/questions/${scheduleIdNum}`))
+    fetch(apiUrl(`/api/interview-videos/questions/${scheduleIdNum}?language=${encodeURIComponent(language)}`))
       .then(res => {
-        if (!res.ok) throw new Error('질문을 불러오지 못했습니다');
+        if (!res.ok) throw new Error(copy.loadFailed);
         return res.json();
       })
       .then(data => {
         if (!Array.isArray(data) || data.length === 0) {
-          throw new Error('생성된 면접 질문이 없습니다. 면접 담당자에게 질문 생성을 다시 요청해주세요.');
+          throw new Error(copy.noQuestions);
         }
         setError('');
         setQuestions(data);
       })
       .catch(e => setError(e.message));
-  }, [scheduleId]);
+  }, [scheduleId, language, copy]);
 
   // 질문 변경 시 TTS 재생
   useEffect(() => {
@@ -95,14 +104,14 @@ const InterviewSession = () => {
       
       return () => clearTimeout(timer);
     }
-  }, [currentIdx, phase, questions]);
+  }, [currentIdx, phase, questions, speakQuestion]);
 
   // 카메라 프리뷰 연결
   useEffect(() => {
     if (!questions.length) return undefined;
     let isMounted = true;
     if (!navigator.mediaDevices?.getUserMedia) {
-      setError('이 브라우저에서는 카메라와 마이크를 사용할 수 없습니다. 최신 브라우저에서 다시 시도해주세요.');
+      setError(copy.unsupported);
       return undefined;
     }
     navigator.mediaDevices.getUserMedia({ 
@@ -126,11 +135,11 @@ const InterviewSession = () => {
       .catch((err) => {
         console.error('미디어 접근 오류:', err);
         if (err.name === 'NotAllowedError') {
-          setError('카메라와 마이크 접근이 거부되었습니다. 브라우저에서 권한을 허용해주세요.');
+          setError(copy.denied);
         } else if (err.name === 'NotFoundError') {
-          setError('카메라나 마이크를 찾을 수 없습니다. 장치가 연결되어 있는지 확인해주세요.');
+          setError(copy.missing);
         } else {
-          setError('미디어 접근에 실패했습니다: ' + err.message);
+          setError(copy.mediaFailed + err.message);
         }
       });
     return () => {
@@ -140,7 +149,7 @@ const InterviewSession = () => {
       }
       speechRef.current?.cancel();
     };
-  }, [questions.length]);
+  }, [questions.length, copy]);
 
   // phase & timer 관리
   useEffect(() => {
@@ -163,7 +172,7 @@ const InterviewSession = () => {
     if (phase === 'answer') {
       if (streamRef.current) {
         if (!window.MediaRecorder) {
-          setError('이 브라우저에서는 면접 녹화를 지원하지 않습니다. 최신 Chrome, Safari 또는 Edge를 사용해주세요.');
+          setError(copy.recorder);
           return;
         }
         const clonedStream = streamRef.current.clone();
@@ -190,7 +199,7 @@ const InterviewSession = () => {
           setRecording(true);
         } catch {
           clonedStream.getTracks().forEach(track => track.stop());
-          setError('면접 녹화를 시작하지 못했습니다. 카메라 권한과 브라우저 설정을 확인해주세요.');
+          setError(copy.recordingFailed);
         }
       }
     } else if (phase === 'upload') {
@@ -221,7 +230,7 @@ const InterviewSession = () => {
         method: 'POST',
         body: formData,
       });
-      if (!res.ok) throw new Error('업로드 실패');
+      if (!res.ok) throw new Error(copy.uploadFailed);
       // 다음 질문으로
       if (currentIdx < questions.length - 1) {
         setCurrentIdx(idx => idx + 1);
@@ -249,10 +258,10 @@ const InterviewSession = () => {
 
   // 안내 메시지
   let statusMsg = '';
-  if (phase === 'think') statusMsg = '답변을 준비하세요.';
-  else if (phase === 'answer') statusMsg = recording ? '답변을 녹화 중입니다...' : '녹화 준비 중...';
-  else if (phase === 'upload') statusMsg = uploading ? '업로드 중...' : '업로드 준비 중...';
-  else if (phase === 'done') statusMsg = '면접이 완료되었습니다!';
+  if (phase === 'think') statusMsg = copy.preparing;
+  else if (phase === 'answer') statusMsg = recording ? copy.recordingStatus : copy.preparingRecording;
+  else if (phase === 'upload') statusMsg = uploading ? copy.uploading : copy.uploadReady;
+  else if (phase === 'done') statusMsg = copy.done;
 
   return (
     <div style={{ minHeight: '100vh', background: '#f4f8fb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -261,7 +270,7 @@ const InterviewSession = () => {
         <div style={{ flex: 1, padding: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f8f9fa', position: 'relative' }}>
           {/* 진행 바 */}
           <div style={{ width: '100%', marginBottom: 32 }}>
-            <div style={{ fontWeight: 600, fontSize: 16, color: '#30C59B', marginBottom: 8, letterSpacing: 1 }}>질문 진행</div>
+            <div style={{ fontWeight: 600, fontSize: 16, color: '#30C59B', marginBottom: 8, letterSpacing: 1 }}>{copy.progress}</div>
             <div style={{ width: '100%', height: 8, background: '#e0e0e0', borderRadius: 4, overflow: 'hidden', marginBottom: 8 }}>
               <div style={{ width: `${questions.length ? ((currentIdx+1)/questions.length)*100 : 0}%`, height: '100%', background: 'linear-gradient(90deg,#30C59B 60%,#6ee7b7 100%)', borderRadius: 4, transition: 'width 0.3s' }} />
             </div>
@@ -270,7 +279,7 @@ const InterviewSession = () => {
           
           {/* 질문 */}
           <div style={{ fontWeight: 700, fontSize: 22, marginBottom: 18, color: '#222', textAlign: 'center', minHeight: 48 }}>
-            {questions[currentIdx] || '질문을 불러오는 중...'}
+            {questions[currentIdx] || copy.loading}
           </div>
           
           {/* TTS 컨트롤 */}
@@ -295,11 +304,11 @@ const InterviewSession = () => {
               >
                 {isSpeaking ? (
                   <>
-                    <span>🔊</span> 읽는 중...
+                    <span>🔊</span> {copy.listening}
                   </>
                 ) : (
                   <>
-                    <span>🔊</span> 질문 다시 듣기
+                    <span>🔊</span> {copy.listen}
                   </>
                 )}
               </button>
@@ -309,13 +318,13 @@ const InterviewSession = () => {
           {/* 타이머/상태 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 18 }}>
             {phase !== 'done' && (
-              <div style={{ fontSize: 44, fontWeight: 800, color: '#30C59B', letterSpacing: 1, minWidth: 80, textAlign: 'center' }}>{timer}초</div>
+              <div style={{ fontSize: 44, fontWeight: 800, color: '#30C59B', letterSpacing: 1, minWidth: 80, textAlign: 'center' }}>{timer}{copy.seconds}</div>
             )}
             <div style={{ fontSize: 16, color: '#fff', background: phase === 'think' ? '#30C59B' : phase === 'answer' ? '#1976d2' : phase === 'upload' ? '#fbc02d' : '#aaa', borderRadius: 16, padding: '6px 18px', fontWeight: 600, letterSpacing: 1, boxShadow: '0 2px 8px #30C59B22' }}>
-              {phase === 'think' && '준비 시간'}
-              {phase === 'answer' && '답변 시간'}
-              {phase === 'upload' && '업로드 중'}
-              {phase === 'done' && '완료'}
+              {phase === 'think' && copy.think}
+              {phase === 'answer' && copy.answer}
+              {phase === 'upload' && copy.upload}
+              {phase === 'done' && copy.complete}
             </div>
           </div>
           {/* 안내 메시지 */}

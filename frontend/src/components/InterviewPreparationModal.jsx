@@ -1,15 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { apiUrl } from '../api/config';
+import { useLanguage } from '../context/LanguageContext';
+
+const MODAL_COPY = {
+  en: { title: 'Interview prep questions', subtitle: 'Personalized questions to help you prepare', close: 'Close interview prep questions', loading: 'Generating personalized questions...', wait: 'Please wait a moment.', failed: 'We could not generate questions. No placeholder questions were shown.', empty: 'No questions were generated. Check the position details and submission analysis, then try again.', retry: 'Try again', intro: 'These questions connect the position with evidence that still needs verification. Start with the evidence checks.', cheer: 'You’ve got this!', closeButton: 'Close', fallbackCategory: 'Interview prep' },
+  ko: { title: '면접 예상질문', subtitle: '면접 준비를 위한 맞춤형 질문들', close: '면접 예상질문 닫기', loading: '맞춤형 면접 예상질문을 생성중입니다...', wait: '잠시만 기다려주세요.', failed: '맞춤 질문을 생성하지 못했습니다. 현재 결과를 임의의 질문으로 대체하지 않았습니다.', empty: '생성된 질문이 없습니다. 포지션 정보와 제출물 분석을 확인한 뒤 다시 시도해주세요.', retry: '다시 생성하기', intro: '포지션과 제출물의 확인 필요 지점을 연결한 맞춤형 질문입니다. 근거검증 질문부터 답변을 준비해 보세요.', cheer: '면접 준비 화이팅!', closeButton: '닫기', fallbackCategory: '면접 준비' },
+  zh: { title: '面试准备问题', subtitle: '帮助你准备面试的个性化问题', close: '关闭面试准备问题', loading: '正在生成个性化面试问题……', wait: '请稍候。', failed: '无法生成问题，未使用虚构问题替代。', empty: '尚未生成问题，请检查职位信息和提交材料分析后重试。', retry: '重新生成', intro: '这些问题将职位要求与仍需验证的证据连接起来，请先准备证据验证类问题。', cheer: '祝你面试顺利！', closeButton: '关闭', fallbackCategory: '面试准备' }
+};
 
 const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { language } = useLanguage();
+  const copy = useMemo(() => MODAL_COPY[language] || MODAL_COPY.en, [language]);
 
   const parseQuestion = (question) => {
     const match = String(question || '').match(/^\s*\[([^\]]+)\]\s*(.*)$/);
     return {
-      category: match?.[1] || '면접 준비',
+      category: match?.[1] || copy.fallbackCategory,
       text: match?.[2] || String(question || ''),
     };
   };
@@ -29,7 +38,7 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
     
     try {
       const response = await fetch(
-        apiUrl(`/api/interview-questions/generate/${postId}/${candidateId}`),
+        apiUrl(`/api/interview-questions/generate/${postId}/${candidateId}?language=${encodeURIComponent(language)}`),
         { method: 'GET' }
       );
       
@@ -37,7 +46,7 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
         const data = await response.json();
         setQuestions(data.questions || []);
       } else {
-        throw new Error('면접 예상질문을 가져오는데 실패했습니다.');
+        throw new Error(copy.failed);
       }
     } catch (err) {
       console.error('면접 예상질문 API 오류:', err);
@@ -55,7 +64,7 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
     }
     // The fetch action intentionally remains stable for the modal lifecycle.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, postId, candidateId]);
+  }, [isOpen, postId, candidateId, language, copy]);
 
   // 모달이 닫혀있으면 렌더링하지 않음
   if (!isOpen) return null;
@@ -115,15 +124,15 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
                   <LightbulbIcon />
                 </div>
                 <div>
-                  <h3 id="interview-preparation-title" className="text-xl font-bold text-white">면접 예상질문</h3>
-                  <p className="text-yellow-100 text-sm">면접 준비를 위한 맞춤형 질문들</p>
+                  <h3 id="interview-preparation-title" className="text-xl font-bold text-white">{copy.title}</h3>
+                  <p className="text-yellow-100 text-sm">{copy.subtitle}</p>
                 </div>
               </div>
               {/* 닫기 버튼 */}
               <button
                 onClick={onClose}
                 type="button"
-                aria-label="면접 예상질문 닫기"
+                aria-label={copy.close}
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-white bg-opacity-30 text-white hover:bg-opacity-50 transition-colors"
                 style={{ fontWeight: 700, fontSize: 22 }}
               >
@@ -139,8 +148,8 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mb-4"></div>
                 <p className="text-gray-600 text-center">
-                  맞춤형 면접 예상질문을 생성중입니다...<br/>
-                  <span className="text-sm text-gray-500">잠시만 기다려주세요.</span>
+                  {copy.loading}<br/>
+                  <span className="text-sm text-gray-500">{copy.wait}</span>
                 </p>
               </div>
             ) : error ? (
@@ -150,19 +159,19 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
                   {/* 에러 상태 아이콘 */}
                   <span><AlertIcon /></span>
                   <p className="text-amber-700 text-sm">
-                    맞춤 질문을 생성하지 못했습니다. 현재 결과를 임의의 질문으로 대체하지 않았습니다.
+                    {copy.failed}
                   </p>
                 </div>
                 <p className="text-sm text-gray-600">{error}</p>
-                <button onClick={fetchInterviewQuestions} className="rounded-full bg-gradient-to-r from-yellow-400 to-amber-400 px-5 py-2 text-sm font-bold text-white">다시 생성하기</button>
+                <button onClick={fetchInterviewQuestions} className="rounded-full bg-gradient-to-r from-yellow-400 to-amber-400 px-5 py-2 text-sm font-bold text-white">{copy.retry}</button>
               </div>
             ) : !questions.length ? (
               <div className="space-y-4">
                 <div className="flex items-center space-x-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <span><AlertIcon /></span>
-                  <p className="text-amber-700 text-sm">생성된 질문이 없습니다. 포지션 정보와 제출물 분석을 확인한 뒤 다시 시도해주세요.</p>
+                  <p className="text-amber-700 text-sm">{copy.empty}</p>
                 </div>
-                <button type="button" onClick={fetchInterviewQuestions} className="rounded-full bg-gradient-to-r from-yellow-400 to-amber-400 px-5 py-2 text-sm font-bold text-white">다시 생성하기</button>
+                <button type="button" onClick={fetchInterviewQuestions} className="rounded-full bg-gradient-to-r from-yellow-400 to-amber-400 px-5 py-2 text-sm font-bold text-white">{copy.retry}</button>
               </div>
             ) : (
               // 정상 상태
@@ -171,7 +180,7 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
                   {/* 정상 상태 아이콘 */}
                   <span><CheckCircleIcon /></span>
                   <p className="text-yellow-700 text-sm">
-                    포지션과 제출물의 확인 필요 지점을 연결한 맞춤형 질문입니다. <b>근거검증</b> 질문부터 답변을 준비해 보세요.
+                  {copy.intro}
                   </p>
                 </div>
                 <div className="space-y-3">
@@ -208,13 +217,13 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 {/* 푸터 아이콘 */}
                 <span><ThumbsUpIcon /></span>
-                <span>면접 준비 화이팅!</span>
+                <span>{copy.cheer}</span>
               </div>
               <button
                 onClick={onClose}
                 className="rounded-full bg-gradient-to-r from-yellow-400 to-amber-400 px-7 py-2 text-sm font-bold text-white hover:from-yellow-500 hover:to-amber-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 transition-all duration-200"
               >
-                닫기
+                {copy.closeButton}
               </button>
             </div>
           </div>

@@ -68,7 +68,9 @@ public class AiInterviewVideoController {
     @GetMapping("/questions/{scheduleId}")
     public ResponseEntity<List<String>> getQuestionsByScheduleId(
             @Parameter(description = "면접 일정 ID", required = true)
-            @PathVariable Integer scheduleId) {
+            @PathVariable Integer scheduleId,
+            @Parameter(description = "면접 화면 언어 (en, ko, zh)")
+            @RequestParam(defaultValue = "en") String language) {
         try {
             // 면접 일정 조회
             InterviewScheduleResponseDto scheduleResponse = aiInterviewScheduleService.getInterviewSchedule(scheduleId.longValue());
@@ -100,7 +102,7 @@ public class AiInterviewVideoController {
             }
             
             // AI를 사용하여 공고 정보, 인재상, 포트폴리오 분석 결과를 바탕으로 질문 생성
-            List<String> questions = generateInterviewQuestions(post, portfolioAnalysis);
+            List<String> questions = generateInterviewQuestions(post, portfolioAnalysis, language);
             return ResponseEntity.ok(questions);
         } catch (Exception e) {
             e.printStackTrace();
@@ -108,16 +110,16 @@ public class AiInterviewVideoController {
         }
     }
     
-    private List<String> generateInterviewQuestions(Post post, String portfolioAnalysis) {
+    private List<String> generateInterviewQuestions(Post post, String portfolioAnalysis, String language) {
         try {
             // Python AI API를 호출하여 질문 생성
-            return callPythonAIForQuestions(post, portfolioAnalysis);
+            return callPythonAIForQuestions(post, portfolioAnalysis, language);
         } catch (Exception e) {
             throw new IllegalStateException("AI 면접 질문 생성에 실패했습니다.", e);
         }
     }
     
-    private List<String> callPythonAIForQuestions(Post post, String portfolioAnalysis) {
+    private List<String> callPythonAIForQuestions(Post post, String portfolioAnalysis, String language) {
         try {
             // Python AI API URL
             String pythonApiUrl = pythonQuestionsApiUrl + "/generate-questions";
@@ -136,7 +138,7 @@ public class AiInterviewVideoController {
             
             // HTTP 요청을 위한 데이터 준비 (포트폴리오 분석 결과 포함)
             String requestBody = String.format(
-                "post_title=%s&post_description=%s&programming_language=%s&ideal_candidate=%s&location=%s&salary_range=%s&headcount=%d&portfolio_analysis=%s",
+                "post_title=%s&post_description=%s&programming_language=%s&ideal_candidate=%s&location=%s&salary_range=%s&headcount=%d&portfolio_analysis=%s&language=%s",
                 java.net.URLEncoder.encode(postTitle, "UTF-8"),
                 java.net.URLEncoder.encode(postDescription, "UTF-8"),
                 java.net.URLEncoder.encode(programmingLanguage, "UTF-8"),
@@ -144,7 +146,8 @@ public class AiInterviewVideoController {
                 java.net.URLEncoder.encode(location, "UTF-8"),
                 java.net.URLEncoder.encode(salaryRange, "UTF-8"),
                 headcount,
-                java.net.URLEncoder.encode(portfolioAnalysis, "UTF-8")
+                java.net.URLEncoder.encode(portfolioAnalysis, "UTF-8"),
+                java.net.URLEncoder.encode(language == null ? "en" : language, "UTF-8")
             );
             
             // HTTP 연결 설정

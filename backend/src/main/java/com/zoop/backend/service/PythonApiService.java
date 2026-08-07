@@ -41,9 +41,10 @@ public class PythonApiService {
             String programmingLanguage, 
             String idealCandidate, 
             String location, 
-            String salaryRange, 
-            Integer headcount, 
-            String portfolioAnalysis) {
+            String salaryRange,
+            Integer headcount,
+            String portfolioAnalysis,
+            String language) {
         
         try {
             log.info("Python API 호출 시작: {}/generate-preparation-questions", pythonInterviewApiUrl);
@@ -59,6 +60,7 @@ public class PythonApiService {
             formData.add("salary_range", salaryRange != null ? salaryRange : "");
             formData.add("headcount", headcount != null ? String.valueOf(headcount) : "1");
             formData.add("portfolio_analysis", portfolioAnalysis != null ? portfolioAnalysis : "");
+            formData.add("language", language != null ? language : "en");
 
             // HTTP 헤더 설정
             HttpHeaders headers = new HttpHeaders();

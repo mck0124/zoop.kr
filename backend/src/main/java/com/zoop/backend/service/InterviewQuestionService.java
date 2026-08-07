@@ -4,6 +4,7 @@ import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,8 +54,9 @@ public class InterviewQuestionService {
      * 면접 예상질문 생성 (캐싱 포함)
      */
     @Transactional
-    public List<String> generateInterviewQuestions(Long postId, Long candidateId) {
+    public List<String> generateInterviewQuestions(Long postId, Long candidateId, String language) {
         log.info("면접 예상질문 생성 요청: postId={}, candidateId={}", postId, candidateId);
+        String normalizedLanguage = Set.of("en", "ko", "zh").contains(language) ? language : "en";
 
         try {
             // 1. 필요한 데이터 수집
@@ -63,7 +65,7 @@ public class InterviewQuestionService {
             String portfolioAnalysis = getPortfolioAnalysis(jobCandidateId);
 
             // 2. 컨텐츠 해시 생성 (변경 감지용)
-            String contentHash = generateContentHash(post, portfolioAnalysis);
+            String contentHash = generateContentHash(post, portfolioAnalysis, normalizedLanguage);
             log.debug("생성된 컨텐츠 해시: {}", contentHash);
 
             // 3. 기존 질문 확인
@@ -78,14 +80,14 @@ public class InterviewQuestionService {
                 } else {
                     // 컨텐츠 변경됨 - 기존 질문 수정
                     log.info("컨텐츠 변경 감지 - 기존 질문 수정");
-                    List<String> newQuestions = generateNewQuestions(post, portfolioAnalysis);
+                    List<String> newQuestions = generateNewQuestions(post, portfolioAnalysis, normalizedLanguage);
                     updateExistingQuestions(postId, jobCandidateId, newQuestions, contentHash);
                     return newQuestions;
                 }
             }
 
             // 4. 새로운 질문 생성
-            List<String> newQuestions = generateNewQuestions(post, portfolioAnalysis);
+            List<String> newQuestions = generateNewQuestions(post, portfolioAnalysis, normalizedLanguage);
 
             // 5. 생성된 질문 저장 (면접 마감시간 포함)
             LocalDateTime interviewDeadline = getInterviewDeadline(jobCandidateId);
@@ -139,7 +141,7 @@ public class InterviewQuestionService {
     /**
      * 컨텐츠 해시 생성 (변경 감지용)
      */
-    private String generateContentHash(Post post, String portfolioAnalysis) {
+    private String generateContentHash(Post post, String portfolioAnalysis, String language) {
         StringBuilder content = new StringBuilder();
         content.append(post.getPostTitle() != null ? post.getPostTitle() : "");
         content.append(post.getPostDescription() != null ? post.getPostDescription() : "");
@@ -147,6 +149,7 @@ public class InterviewQuestionService {
         content.append(post.getPostIdealCandidate() != null ? post.getPostIdealCandidate() : "");
         content.append(post.getPostLocation() != null ? post.getPostLocation() : "");
         content.append(portfolioAnalysis);
+        content.append(language);
 
         return DigestUtils.md5DigestAsHex(content.toString().getBytes());
     }
@@ -154,7 +157,7 @@ public class InterviewQuestionService {
     /**
      * 새로운 질문 생성 (Python API 호출)
      */
-    private List<String> generateNewQuestions(Post post, String portfolioAnalysis) {
+    private List<String> generateNewQuestions(Post post, String portfolioAnalysis, String language) {
         String salaryRange = buildSalaryRange(post.getPostSalaryStart(), post.getPostSalaryEnd());
         
         return pythonApiService.generatePreparationQuestions(
@@ -165,7 +168,8 @@ public class InterviewQuestionService {
             post.getPostLocation(),
             salaryRange,
             post.getPostHeadcount(),
-            portfolioAnalysis
+            portfolioAnalysis,
+            language
         );
     }
 
