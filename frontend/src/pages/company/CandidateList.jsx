@@ -720,6 +720,89 @@ const extractScore = (analysisText) => {
   
   return 0;
 };
+
+const getAnalysisPayload = (candidate, analysisResult) => {
+  const analysisText = analysisResult?.analysisData || candidate?.portfolioAnalysis || candidate?.analysis || '';
+  let payload = null;
+  try {
+    const parsed = typeof analysisText === 'string' ? JSON.parse(analysisText) : analysisText;
+    if (parsed && typeof parsed === 'object') payload = parsed;
+  } catch (_) {
+    // 구버전 자연어 분석은 아래의 보수적인 기본값으로 표시한다.
+  }
+  const candidateScore = Number(candidate?.analysisScore ?? candidate?.parsed_score);
+  const fallbackScore = Number.isFinite(candidateScore) && candidateScore > 0 ? candidateScore : extractScore(analysisText);
+  const rawScore = payload?.score_calibration?.calibrated_score ?? payload?.score ?? fallbackScore;
+  const score = Number(rawScore);
+  const coverageRaw = payload?.evidence_coverage ?? payload?.evidenceCoverage;
+  const coverageNumber = Number(coverageRaw);
+  const coverage = Number.isFinite(coverageNumber) ? Math.round(Math.max(0, Math.min(100, coverageNumber <= 1 ? coverageNumber * 100 : coverageNumber))) : null;
+  const confidenceRaw = Number(payload?.confidence);
+  const confidence = Number.isFinite(confidenceRaw) ? Math.round(Math.max(0, Math.min(100, confidenceRaw <= 1 ? confidenceRaw * 100 : confidenceRaw))) : null;
+  const directEvidence = Array.isArray(payload?.evidence) ? payload.evidence : Array.isArray(payload?.verified_evidence) ? payload.verified_evidence : [];
+  const dimensionEvidence = Array.isArray(payload?.dimensions) ? payload.dimensions.flatMap(dimension => Array.isArray(dimension?.evidence) ? dimension.evidence : []) : [];
+  const evidence = [...directEvidence, ...dimensionEvidence];
+  const hasStructuredEvidence = payload?.version === 'github-evidence-v1' || payload?.version === 'portfolio-evidence-v1';
+  const decision = payload?.decision || (hasStructuredEvidence && coverage !== null && coverage >= 70 ? 'review' : 'not_enough_evidence');
+  return {
+    analysisText,
+    score: Number.isFinite(score) ? Math.max(0, Math.min(100, Math.round(score))) : null,
+    coverage,
+    confidence,
+    evidenceCount: evidence.length,
+    decision,
+    hasStructuredEvidence,
+    gaps: Array.isArray(payload?.gaps) ? payload.gaps : []
+  };
+};
+
+const DecisionLens = ({ candidates, aiAnalysisResults }) => {
+  const rows = candidates.map(candidate => {
+    const result = aiAnalysisResults.find(item => item.githubSearchResultId === candidate.githubSearchResultId);
+    return { candidate, ...getAnalysisPayload(candidate, result) };
+  });
+  const scored = rows.filter(row => row.score !== null);
+  const grounded = rows.filter(row => row.hasStructuredEvidence && row.evidenceCount > 0);
+  const needsReview = rows.filter(row => row.coverage === null || row.coverage < 70 || row.decision === 'not_enough_evidence');
+  const ranked = [...rows].sort((a, b) => (b.score ?? -1) - (a.score ?? -1)).slice(0, 3);
+  if (!rows.length) return null;
+
+  const badge = (label, value, tone) => (
+    <div style={{ flex: '1 1 150px', minWidth: 145, padding: '14px 16px', borderRadius: 14, background: tone.background, border: `1px solid ${tone.border}` }}>
+      <div style={{ color: tone.label, fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{label}</div>
+      <div style={{ color: '#172033', fontSize: 24, fontWeight: 850, marginTop: 3 }}>{value}</div>
+    </div>
+  );
+
+  return (
+    <section aria-labelledby="decision-lens-title" style={{ margin: '0 0 2rem', padding: '1.35rem', borderRadius: 22, background: 'linear-gradient(135deg, #102c25 0%, #174438 100%)', color: '#ecfdf5', boxShadow: '0 14px 34px rgba(15, 41, 35, 0.16)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ color: '#86efac', fontSize: 11, fontWeight: 850, letterSpacing: '0.12em' }}>EVIDENCE LEDGER · DECISION LENS</div>
+          <h2 id="decision-lens-title" style={{ color: '#fff', margin: '6px 0 5px', fontSize: '1.35rem' }}>점수보다 먼저, 판단 가능한 근거를 확인하세요</h2>
+          <p style={{ margin: 0, color: '#c7f9df', lineHeight: 1.55, fontSize: 13 }}>상위 점수는 우선순위일 뿐입니다. 근거가 부족한 후보자는 자동 탈락시키지 않고 다음 검증 대상으로 분리합니다.</p>
+        </div>
+        <span style={{ padding: '7px 11px', borderRadius: 999, background: 'rgba(167,243,208,.13)', border: '1px solid rgba(167,243,208,.3)', color: '#d1fae5', fontSize: 12, fontWeight: 800 }}>AI 보조 판단</span>
+      </div>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
+        {badge('분석 완료', `${scored.length}/${rows.length}`, { background: '#ecfdf5', border: '#a7f3d0', label: '#047857' })}
+        {badge('원문 근거 있음', `${grounded.length}명`, { background: '#eff6ff', border: '#bfdbfe', label: '#1d4ed8' })}
+        {badge('추가 검토 필요', `${needsReview.length}명`, { background: '#fffbeb', border: '#fde68a', label: '#b45309' })}
+      </div>
+      <div style={{ marginTop: 16, padding: '12px 14px', borderRadius: 14, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)' }}>
+        <div style={{ color: '#bbf7d0', fontSize: 11, fontWeight: 850, letterSpacing: '0.06em', marginBottom: 8 }}>검토 우선순위</div>
+        <div style={{ display: 'grid', gap: 7 }}>
+          {ranked.map((row, index) => {
+            const name = row.candidate.githubLogin || row.candidate.login || '이름 미확인';
+            const status = row.coverage === null ? '근거 확인 필요' : row.coverage < 70 ? `커버리지 ${row.coverage}% · 추가 확인` : `근거 커버리지 ${row.coverage}%`;
+            return <div key={`${name}-${index}`} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap', fontSize: 13 }}><span style={{ color: '#fff', fontWeight: 750 }}>{index + 1}. {name}</span><span style={{ color: '#d1fae5' }}>{row.score === null ? '점수 대기' : `${row.score}점`} · {status}</span></div>;
+          })}
+        </div>
+      </div>
+    </section>
+  );
+};
+
 function getStackArray(langs) {
   if (!langs) return [];
   if (Array.isArray(langs)) return langs;
@@ -1269,6 +1352,10 @@ export default function CandidateList({ activeTab = 'all' }) {
               </PostDesc>
             )}
           </PostInfoCard>
+        )}
+
+        {candidates.length > 0 && (
+          <DecisionLens candidates={candidates} aiAnalysisResults={aiAnalysisResults} />
         )}
 
         {/* 후보자 헤더 */}
