@@ -41,6 +41,15 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
     });
   }, [open, candPortfolioId, postId]);
 
+  useEffect(() => {
+    if (!open) return undefined;
+    const handleEscape = event => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [open, onClose]);
+
   // 면접초대 함수
   const handleInterviewInvitation = async () => {
     if (!jobCandidateId) {
@@ -75,10 +84,10 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
   if (!open) return null;
 
   return (
-    <div style={{ position: 'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.45)', zIndex: 2000, display:'flex', alignItems:'center', justifyContent:'center' }} onClick={onClose}>
-      <div style={{ maxWidth: 800, width: '95vw', background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(48,197,155,0.10)', padding: '2.5rem 2.5rem 2rem 2.5rem', position:'relative' }} onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} style={{ position:'absolute', top:18, right:18, background:'none', border:'none', fontSize:28, color:'#aaa', cursor:'pointer', fontWeight:700 }}>&times;</button>
-        <h1 style={{ color: '#30c59b', fontWeight: 900, fontSize: '2rem', marginBottom: 32 }}>매칭 상세 결과</h1>
+    <div role="presentation" style={{ position: 'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.45)', zIndex: 2000, display:'flex', alignItems:'center', justifyContent:'center', padding: 12 }} onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-labelledby="matching-detail-title" style={{ maxWidth: 800, width: '95vw', maxHeight: 'calc(100vh - 24px)', overflowY: 'auto', background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(48,197,155,0.10)', padding: '2.5rem 2.5rem 2rem 2.5rem', position:'relative' }} onClick={e => e.stopPropagation()}>
+        <button type="button" aria-label="매칭 상세 닫기" onClick={onClose} style={{ position:'absolute', top:18, right:18, background:'none', border:'none', fontSize:28, color:'#aaa', cursor:'pointer', fontWeight:700 }}>&times;</button>
+        <h1 id="matching-detail-title" style={{ color: '#30c59b', fontWeight: 900, fontSize: '2rem', marginBottom: 32 }}>매칭 상세 결과</h1>
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center' }}>불러오는 중...</div>
         ) : error ? (
@@ -117,6 +126,34 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                     <div style={{ display: 'flex', gap: 16, alignItems: 'baseline', flexWrap: 'wrap' }}>
                       <span><b>현재 매칭 점수:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{score}</span></span>
                       {selectedCounterfactuals.length > 0 && <span style={{ color: '#6d28d9', fontWeight: 800 }}>검증 후 예상: {projectedScore.toFixed(0)}점</span>}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const receipt = {
+                            version: 'zoop-decision-receipt-v1',
+                            generatedAt: new Date().toISOString(),
+                            score,
+                            projectedScore: selectedCounterfactuals.length > 0 ? projectedScore : null,
+                            decision: reasonPayload?.decision || 'review',
+                            summary,
+                            dimensions,
+                            gaps,
+                            verificationPlan,
+                            riskFlags,
+                            fairnessGuard,
+                            decisionTrace,
+                          };
+                          const url = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' }));
+                          const anchor = document.createElement('a');
+                          anchor.href = url;
+                          anchor.download = `zoop-decision-receipt-${candPortfolioId}-${postId}.json`;
+                          anchor.click();
+                          URL.revokeObjectURL(url);
+                        }}
+                        style={{ marginLeft: 'auto', border: '1px solid #a7f3d0', borderRadius: 999, background: '#ecfdf5', color: '#047857', padding: '7px 12px', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}
+                      >
+                        판단 영수증 저장
+                      </button>
                     </div>
                     <div style={{ marginTop: 10 }}><b>매칭 이유:</b></div>
                     <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, whiteSpace: 'pre-wrap', maxHeight: 240, overflow: 'auto' }}>{summary}</pre>
