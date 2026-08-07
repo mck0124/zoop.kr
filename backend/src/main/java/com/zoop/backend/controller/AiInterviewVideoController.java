@@ -119,8 +119,6 @@ public class AiInterviewVideoController {
     
     private List<String> callPythonAIForQuestions(Post post, String portfolioAnalysis) {
         try {
-            System.out.println("[AiInterviewVideoController] Python AI API 호출 시작");
-            
             // Python AI API URL
             String pythonApiUrl = pythonQuestionsApiUrl + "/generate-questions";
             
@@ -136,12 +134,6 @@ public class AiInterviewVideoController {
             }
             Integer headcount = post.getPostHeadcount() != null ? post.getPostHeadcount() : 1;
             
-            System.out.println("[AiInterviewVideoController] 공고 정보:");
-            System.out.println("  - 제목: " + postTitle);
-            System.out.println("  - 기술: " + programmingLanguage);
-            System.out.println("  - 인재상: " + idealCandidate);
-            System.out.println("  - 포트폴리오 분석: " + (portfolioAnalysis.isEmpty() ? "없음" : "있음"));
-            
             // HTTP 요청을 위한 데이터 준비 (포트폴리오 분석 결과 포함)
             String requestBody = String.format(
                 "post_title=%s&post_description=%s&programming_language=%s&ideal_candidate=%s&location=%s&salary_range=%s&headcount=%d&portfolio_analysis=%s",
@@ -155,26 +147,24 @@ public class AiInterviewVideoController {
                 java.net.URLEncoder.encode(portfolioAnalysis, "UTF-8")
             );
             
-            System.out.println("[AiInterviewVideoController] Python API URL: " + pythonApiUrl);
-            
             // HTTP 연결 설정
             java.net.URL url = new java.net.URL(pythonApiUrl);
             java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            connection.setRequestProperty("Content-Length", String.valueOf(requestBody.length()));
+            byte[] input = requestBody.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            connection.setRequestProperty("Content-Length", String.valueOf(input.length));
+            connection.setConnectTimeout(15000);
+            connection.setReadTimeout(45000);
             connection.setDoOutput(true);
             
             // 요청 데이터 전송
             try (java.io.OutputStream os = connection.getOutputStream()) {
-                byte[] input = requestBody.getBytes("UTF-8");
                 os.write(input, 0, input.length);
             }
             
             // 응답 읽기
             int responseCode = connection.getResponseCode();
-            System.out.println("[AiInterviewVideoController] Python API 응답 코드: " + responseCode);
-            
             if (responseCode == 200) {
                 try (java.io.BufferedReader br = new java.io.BufferedReader(
                         new java.io.InputStreamReader(connection.getInputStream(), "UTF-8"))) {
@@ -183,7 +173,6 @@ public class AiInterviewVideoController {
                     while ((responseLine = br.readLine()) != null) {
                         response.append(responseLine.trim());
                     }
-                    System.out.println("[AiInterviewVideoController] Python API 응답 수신 완료");
                     return parseQuestionsFromJson(response.toString());
                 }
             } else {
@@ -211,8 +200,6 @@ public class AiInterviewVideoController {
     
     private List<String> parseQuestionsFromJson(String jsonResponse) {
         try {
-            System.out.println("[AiInterviewVideoController] Python API 응답: " + jsonResponse);
-            
             // Jackson ObjectMapper 사용
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             com.fasterxml.jackson.databind.JsonNode rootNode = mapper.readTree(jsonResponse);
@@ -228,8 +215,6 @@ public class AiInterviewVideoController {
                     }
                 }
             }
-            
-            System.out.println("[AiInterviewVideoController] 파싱된 질문: " + questions);
             
             if (questions.isEmpty()) {
                 throw new IllegalStateException("AI 응답에 면접 질문이 없습니다.");

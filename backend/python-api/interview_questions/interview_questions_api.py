@@ -1,6 +1,7 @@
 import os
 import requests
 import json
+import re
 from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -48,6 +49,29 @@ class InterviewQuestionsResponse(BaseModel):
     success: bool
     questions: List[str] = []
     error: str = None
+
+
+def normalize_generated_questions(raw_text: str, minimum: int, maximum: int, require_tags: bool = False) -> List[str]:
+    """LLM의 번호·마크다운·빈 줄 변형을 화면이 소비할 수 있는 목록으로 정규화한다."""
+    questions = []
+    seen = set()
+    categories = ["근거검증", "기술깊이", "문제해결", "협업", "성장"]
+    for raw_line in str(raw_text or "").splitlines():
+        line = re.sub(r"^\s*(?:[-*•]|\d+[.)]|질문\s*\d+\s*[:.)])\s*", "", raw_line).strip()
+        line = line.strip("` \t")
+        if not line or line.casefold() in {"질문", "questions"}:
+            continue
+        if require_tags and not re.match(r"^\s*\[[^\]]+\]", line):
+            line = f"[{categories[len(questions) % len(categories)]}] {line}"
+        key = line.casefold()
+        if key not in seen:
+            seen.add(key)
+            questions.append(line)
+        if len(questions) >= maximum:
+            break
+    if len(questions) < minimum:
+        raise RuntimeError("AI가 충분한 맞춤 질문을 생성하지 못했습니다.")
+    return questions
 
 def call_openai_chat(messages, max_tokens=800, temperature=0.3):
     """OpenAI API 호출 함수"""
@@ -128,14 +152,7 @@ def generate_interview_questions(post_title: str, post_description: str,
         
         questions_text = response.choices[0].message.content.strip()
         
-        # 질문을 줄바꿈으로 분리하고 빈 줄 제거
-        questions = [q.strip() for q in questions_text.split('\n') if q.strip()]
-        
-        if len(questions) < 3:
-            raise RuntimeError("AI가 충분한 맞춤 질문을 생성하지 못했습니다.")
-        
-        # 최대 3개까지만 반환
-        return questions[:3]
+        return normalize_generated_questions(questions_text, minimum=3, maximum=3)
         
     except Exception as e:
         print(f"OpenAI 질문 생성 오류: {e}")
@@ -220,14 +237,7 @@ def generate_preparation_questions(post_title: str, post_description: str,
         
         questions_text = response.choices[0].message.content.strip()
         
-        # 질문을 줄바꿈으로 분리하고 빈 줄 제거
-        questions = [q.strip() for q in questions_text.split('\n') if q.strip()]
-        
-        if len(questions) < 10:
-            raise RuntimeError("AI가 충분한 맞춤 예상질문을 생성하지 못했습니다.")
-        
-        # 최대 10개까지만 반환
-        return questions[:10]
+        return normalize_generated_questions(questions_text, minimum=10, maximum=10, require_tags=True)
         
     except Exception as e:
         print(f"예상질문 생성 오류: {e}")
