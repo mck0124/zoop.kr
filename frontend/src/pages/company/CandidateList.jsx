@@ -936,6 +936,8 @@ export default function CandidateList({ activeTab = 'all' }) {
   const [selected, setSelected] = useState([]);
   const [postInfo, setPostInfo] = useState(null);
   const [loading, setLoading] = useState(!location.state?.candidates);
+  const [loadError, setLoadError] = useState('');
+  const [reloadToken, setReloadToken] = useState(0);
   const [selectedAnalysis, setSelectedAnalysis] = useState(null);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [modalScore, setModalScore] = useState(0);
@@ -1094,6 +1096,7 @@ export default function CandidateList({ activeTab = 'all' }) {
 
   // 실제 데이터 fetch (네가 쓰던 코드 그대로!)
   useEffect(() => {
+    setLoadError('');
     // 공고 정보 조회
     fetch(apiUrl(`/api/postings/info/${postId}`))
       .then(res => {
@@ -1148,6 +1151,7 @@ export default function CandidateList({ activeTab = 'all' }) {
         setCandidates([...emailFirst, ...noEmail]);
         setLoading(false);
       } catch (error) {
+        setLoadError('후보자 목록을 불러오지 못했습니다. 백엔드 연결 상태를 확인한 뒤 다시 시도해 주세요.');
         setCandidates([]);
         setLoading(false);
       }
@@ -1160,7 +1164,7 @@ export default function CandidateList({ activeTab = 'all' }) {
       return;
     }
     fetchCandidates();
-  }, [postId, location.state]);
+  }, [postId, location.state, reloadToken]);
 
   // 2. Add useEffect to update companyAdminId when postInfo changes
   useEffect(() => {
@@ -1220,6 +1224,24 @@ export default function CandidateList({ activeTab = 'all' }) {
 
   if (loading) {
     return <Wrapper><Navbar /><Container>후보자 목록을 불러오는 중...</Container></Wrapper>;
+  }
+
+  if (loadError) {
+    return (
+      <Wrapper>
+        <Navbar />
+        <Container>
+          <div role="alert" style={{ maxWidth: 640, margin: '5rem auto', padding: '2.5rem 2rem', border: '1px solid #fecaca', borderRadius: 20, background: '#fff7f7', textAlign: 'center' }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>⚠️</div>
+            <h1 style={{ margin: 0, color: '#991b1b', fontSize: '1.35rem' }}>후보자 데이터를 불러오지 못했습니다</h1>
+            <p style={{ color: '#7f1d1d', lineHeight: 1.6 }}>{loadError}</p>
+            <button type="button" onClick={() => { setLoading(true); setReloadToken(value => value + 1); }} style={{ border: 0, borderRadius: 999, padding: '0.8rem 1.4rem', background: '#16b886', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>
+              다시 시도
+            </button>
+          </div>
+        </Container>
+      </Wrapper>
+    );
   }
 
   return (
