@@ -138,7 +138,8 @@ export default function InterviewEvaluation() {
               totalScore: parsed.analysis.visualization?.score_distribution?.current || parsed.score || null,
               totalFeedback: parsed.analysis.total_feedback || null,
               visualization: parsed.analysis.visualization || null,
-              consistencyAudit: parsed.analysis.consistency_audit || null
+              consistencyAudit: parsed.analysis.consistency_audit || null,
+              scoreCalibration: parsed.analysis.score_calibration || parsed.score_calibration || null
           };
         }
         
@@ -149,7 +150,8 @@ export default function InterviewEvaluation() {
             totalScore: parsed.visualization?.score_distribution?.current || parsed.score || null,
             totalFeedback: parsed.total_feedback || null,
             visualization: parsed.visualization || null,
-            consistencyAudit: parsed.consistency_audit || null
+            consistencyAudit: parsed.consistency_audit || null,
+            scoreCalibration: parsed.score_calibration || null
           };
         }
       }
@@ -371,6 +373,38 @@ export default function InterviewEvaluation() {
                       AI 면접 종합 평가
                     </div>
                   </div>
+
+                  {parsedAnalysis.scoreCalibration && (
+                    <div style={{
+                      background: '#eff6ff',
+                      border: '1.5px solid #bfdbfe',
+                      borderRadius: 14,
+                      padding: '1.15rem 1.3rem',
+                      marginBottom: '2rem',
+                      color: '#1e3a8a'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0 }}>근거 보정 점수</h3>
+                        <span style={{ background: '#dbeafe', borderRadius: 999, padding: '4px 10px', fontSize: 12, fontWeight: 700 }}>
+                          답변 원문 검증 적용
+                        </span>
+                      </div>
+                      <p style={{ margin: '0.65rem 0 0.9rem', fontSize: '0.92rem', lineHeight: 1.55 }}>
+                        AI가 먼저 산출한 점수와 실제 답변에서 확인된 인용 근거를 분리합니다. 검증된 근거가 부족한 항목은 최종 점수에 보수적으로 반영됩니다.
+                      </p>
+                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                        <span style={{ background: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 13 }}>
+                          모델 초안 <b>{parsedAnalysis.scoreCalibration.model_score ?? '-'}점</b>
+                        </span>
+                        <span style={{ background: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 13 }}>
+                          검증 후 <b>{parsedAnalysis.scoreCalibration.calibrated_score ?? parsedAnalysis.totalScore ?? '-'}점</b>
+                        </span>
+                        <span style={{ background: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 13 }}>
+                          루브릭 <b>{parsedAnalysis.scoreCalibration.max_score ?? 100}점</b>
+                        </span>
+                      </div>
+                    </div>
+                  )}
 
                   {/* 카테고리별 상세 카드 */}
                   <div style={{
