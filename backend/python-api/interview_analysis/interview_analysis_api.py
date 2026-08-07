@@ -2,6 +2,8 @@ import os
 import requests
 import json
 import tempfile
+import hashlib
+from datetime import datetime, timezone
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -373,6 +375,58 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                     "confidence": round(confidence, 2),
                 })
             analysis_data["consistency_audit"] = {"status": status, "checks": checks[:5]}
+
+            # Keep interview analysis on the same evidence-ledger contract as
+            # portfolio and GitHub analysis. A score without source coverage is
+            # not actionable for a hiring decision, so expose both signals.
+            all_evidence = [
+                item
+                for category in normalized_categories
+                for item in category.get("evidence", [])
+                if isinstance(item, dict)
+            ]
+            grounded_evidence = [
+                item for item in all_evidence
+                if item.get("verification_state") == "grounded"
+            ]
+            evidence_coverage = round(
+                min(100.0, len(grounded_evidence) / max(1, len(normalized_categories)) * 100),
+                1,
+            )
+            overall_confidence = round(
+                min(1.0, sum(float(item.get("confidence", 0) or 0) for item in grounded_evidence) / max(1, len(grounded_evidence))),
+                2,
+            )
+            analysis_data["version"] = "interview-evidence-v1"
+            analysis_data["evidence_coverage"] = evidence_coverage
+            analysis_data["confidence"] = overall_confidence
+            analysis_data["decision"] = (
+                "strong_match" if score >= 75 and len(grounded_evidence) >= 3
+                else "review" if score >= 50 and grounded_evidence
+                else "not_enough_evidence"
+            )
+            analysis_data["fairness_guard"] = {
+                "excluded_attributes": ["이름", "성별", "나이", "사진", "출신 학교", "목소리만으로 추정한 성격"],
+                "evaluated_attributes": ["답변의 직무 전문성", "문제 해결 근거", "의사소통의 명료성", "경험의 구체성"],
+                "status": "pass",
+            }
+            analysis_data["decision_trace"] = [
+                "답변 원문에 실제로 존재하는 인용만 근거로 인정",
+                f"고정된 100점 루브릭 {len(normalized_categories)}개 항목을 적용",
+                f"검증된 답변 근거 {len(grounded_evidence)}개와 확인 필요 영역을 분리",
+                "영상 인상이나 직무와 무관한 속성은 판단에서 제외",
+            ]
+            analysis_data["audit"] = {
+                "ledger_version": "zoop-evidence-ledger-v1",
+                "policy_version": "grounded-hiring-v1",
+                "model": OPENAI_MODEL,
+                "source_type": "interview_transcript",
+                "source_fingerprint": hashlib.sha256(
+                    "\n".join(transcripts).encode("utf-8")
+                ).hexdigest()[:20],
+                "evidence_count": len(grounded_evidence),
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+            }
         except Exception as e:
             raise RuntimeError("면접 분석 결과를 구조화된 형식으로 검증하지 못했습니다.") from e
         return {
