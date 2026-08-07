@@ -5,6 +5,7 @@ import CompanySidebar from '../../components/CompanySidebar';
 import CandidateModal from '../../components/CandidateModal';
 import SEO from '../../components/SEO';
 import AIAnalysisSummary from '../../components/AIAnalysisSummary';
+import { apiUrl } from '../../api/config';
 
 import { pdfjs } from "react-pdf";
 pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL}/pdf.worker.min.mjs`;
@@ -24,7 +25,6 @@ export default function StatePage() {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   const handleDetail = async (r) => {
-    console.log("상세보기 :", r);
     setSelectedCandidate(r);
     setModalOpen(true);
 
@@ -32,11 +32,10 @@ export default function StatePage() {
     const stagesNeedingFile = ['2y', '3n', '3y', '4n', '4y'];
     if (stagesNeedingFile.includes(r.jobCandCurrStage)) {
       try {
-        const res = await fetch(`http://localhost:8081/api/portfolios/${r.jobCandidateId}/file-path`);
+        const res = await fetch(apiUrl(`/api/portfolios/${r.jobCandidateId}/file-path`));
         if (!res.ok) throw new Error("포트폴리오 경로 요청 실패");
         const data = await res.json();         // 👈 JSON으로 받아야 함     
         const filePath = data.filePath;        // 👈 실제 경로 추출
-        console.log("filePath : ", filePath);
         setSelectedCandidate((prev) => ({ ...prev, filePath })); // 기존 r에 filePath 추가
       } catch (err) {
         console.error("파일 경로 불러오기 오류:", err);
@@ -50,7 +49,7 @@ export default function StatePage() {
   };
 
   useEffect(() => {
-    fetch(`http://localhost:8081/api/github-search/${postId}/states`)
+    fetch(apiUrl(`/api/github-search/${postId}/states`))
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
@@ -59,7 +58,6 @@ export default function StatePage() {
       })
       .then((data) => {
         setSearchResults(data);
-        console.log(data);
         if (data.length > 0 && data[0].companyAdminId) {
           setCompanyAdminId(data[0].companyAdminId);
         }
@@ -80,42 +78,22 @@ export default function StatePage() {
    * 메일 보내기
    */
   const handleSendEmail = async () => {
-    console.log(searchResults);
-    const targets = searchResults.filter(r => selected.includes(r.githubLogin));
+    const targets = searchResults.filter(r => selected.includes(r.githubLogin) && r.candidateEmail);
+    if (targets.length === 0) {
+      alert('연락 가능한 후보자를 한 명 이상 선택해주세요.');
+      return;
+    }
     setSending(true); // 👉 버튼 비활성화 시작
 
-    // 실제 서비스에선 아래 코드 사용.
-    // const payloads = targets.map(r => ({
-    //   postId: parseInt(postId),
-    //   githubLogin: r.githubLogin,
-    //   companyAdminId: r.companyAdminId, // 실제 관리자 ID로 대체 필요
-    //   candidateEmail: r.candidateEmail,
-    // }));
-
-    // ✅ 테스트용 이메일 3개 넣기
-    const payloads = [
-      {
-        postId: parseInt(postId),
-        githubLogin: "testuser1",
-        companyAdminId: companyAdminId,
-        candidateEmail: "ezenkenneth93@gmail.com"
-      },
-      {
-        postId: parseInt(postId),
-        githubLogin: "testuser2",
-        companyAdminId: companyAdminId,
-        candidateEmail: "kenneth_lyu@naver.com"
-      },
-      {
-        postId: parseInt(postId),
-        githubLogin: "testuser3",
-        companyAdminId: companyAdminId,
-        candidateEmail: "kenneth93@naver.com"
-      }
-    ];
+    const payloads = targets.map(candidate => ({
+      postId: parseInt(postId),
+      githubLogin: candidate.githubLogin,
+      companyAdminId,
+      candidateEmail: candidate.candidateEmail,
+    }));
 
     try {
-      const res = await fetch("http://localhost:8081/api/invitations/send-multiple", {
+      const res = await fetch(apiUrl('/api/invitations/send-multiple'), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -125,8 +103,6 @@ export default function StatePage() {
 
       if (res.ok) {
         alert("📨 메일을 성공적으로 보냈습니다.");
-        console.log("누구한테 보냈게? : ", JSON.stringify(payloads));
-        console.log("선택된 사람은 누구게? : ", JSON.stringify(targets));
       } else {
         alert("❌ 메일 전송 실패");
       }

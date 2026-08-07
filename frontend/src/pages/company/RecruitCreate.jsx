@@ -6,6 +6,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ko } from "date-fns/locale";
 import SEO from "../../components/SEO";
+import { apiUrl } from "../../api/config";
 
 const chipStyle = (selected) => ({
   border: selected ? "none" : "1.5px solid #e0e3e7",
@@ -143,7 +144,7 @@ export default function RecruitCreate() {
     try {
       // 사용자 정보 가져오기
       const userId = localStorage.getItem('userId');
-      const userInfoResponse = await fetch(`http://localhost:8081/api/companyadmins/info/${userId}`, {
+      const userInfoResponse = await fetch(apiUrl(`/api/companyadmins/info/${userId}`), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
         },
@@ -170,7 +171,7 @@ export default function RecruitCreate() {
         postStatus: "ACTIVE",
       };
 
-      const response = await fetch("http://localhost:8081/api/postings", {
+      const response = await fetch(apiUrl('/api/postings'), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

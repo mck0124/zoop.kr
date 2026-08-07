@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { apiUrl } from '../api/config';
 
 export default function CompanySidebar() {
   const [posts, setPosts] = useState([]);
@@ -14,14 +15,13 @@ export default function CompanySidebar() {
   });
 
   const navigate = useNavigate();
-  const location = useLocation();
   const { authState } = useAuth();
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         if (!authState.userId) return;
-        const res = await axios.get(`http://localhost:8081/api/posts/company/${authState.userId}`);
+        const res = await axios.get(apiUrl(`/api/posts/company/${authState.userId}`));
         setPosts(res.data);
       } catch (err) {
         console.error('공고 목록 조회 실패:', err);
@@ -43,7 +43,6 @@ export default function CompanySidebar() {
   };
 
   const ongoingPosts = posts.filter((post) => post.postStatus === 'OPEN' || post.postStatus === 'draft');
-  const closedPosts = posts.filter((post) => post.postStatus === 'closed');
 
   const sectionClass = (section) =>
     `cursor-pointer font-medium rounded-md px-3 py-2 transition-all text-base

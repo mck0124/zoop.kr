@@ -205,17 +205,6 @@ const Navbar = ({ onLangChange, hideAuth }) => {
     }
   };
 
-  // 알림 개수 주기적 업데이트 (로그인한 모든 회원)
-  useEffect(() => {
-    if (authState.token && authState.userId) {
-      fetchUnreadCount();
-      
-      // 30초마다 읽지 않은 알림 개수 업데이트
-      const interval = setInterval(fetchUnreadCount, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [authState.token, authState.userId]);
-
   // CSS 애니메이션 스타일 추가 (한 번만)
   useEffect(() => {
     // 이미 스타일이 있는지 확인
@@ -253,7 +242,7 @@ const Navbar = ({ onLangChange, hideAuth }) => {
     console.log('마감일 임박 공고 가져오기 시작:', { userId: authState.userId, userType: authState.userType });
     
     try {
-      const response = await fetch(`http://localhost:8081/api/postings/company`, {
+      const response = await fetch(apiUrl('/api/postings/company'), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
         },
@@ -537,6 +526,8 @@ const Navbar = ({ onLangChange, hideAuth }) => {
       const interval = setInterval(fetchUnreadCount, 30000);
       return () => clearInterval(interval);
     }
+  // fetchUnreadCount is intentionally kept stable for the interval lifecycle.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authState.token, authState.userId]);
 
   const handleMenuItemClick = (path) => {
