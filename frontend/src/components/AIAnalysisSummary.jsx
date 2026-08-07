@@ -41,8 +41,8 @@ function EvidenceBlock({ evidence }) {
           <div key={`${index}-${item.evidence_id || item.source || item.claim}`} className="rounded-lg border border-emerald-100 bg-white/70 p-2 text-sm text-gray-700">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium">{item.claim || item.source || '검증 근거'}</span>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${item.verification_state === 'verified' || item.verification_state === 'grounded' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                {item.verification_state === 'verified' || item.verification_state === 'grounded' ? '원문 확인' : '확인 필요'}
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${item.verification_state === 'verified' || item.verification_state === 'grounded' ? 'bg-emerald-100 text-emerald-700' : item.verification_state === 'context_only' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                {item.verification_state === 'verified' || item.verification_state === 'grounded' ? '후보자 원문 확인' : item.verification_state === 'context_only' ? '공고 맥락' : '확인 필요'}
               </span>
             </div>
             {item.quote && <div className="mt-1 text-gray-500">“{item.quote}”</div>}

@@ -553,7 +553,7 @@ def analyze_candidate_with_prompt(candidate, details):
             dimensions.append({"name": name, "score": score, "max": maximum, "evidence": evidence or [{"evidence_id": _evidence_id("github", name, "missing"), "source": "missing", "claim": "확인된 근거 없음", "verification_state": "needs_verification", "confidence": 0.0}]})
         if not dimensions:
             raise ValueError("GitHub 분석 차원이 비어 있습니다.")
-        grounded = [item for dimension in dimensions for item in dimension["evidence"] if item["source"] != "missing"]
+        grounded = [item for dimension in dimensions for item in dimension["evidence"] if item["source"] not in {"missing", "unknown"} and item["claim"] != "확인된 근거 없음"]
         result.update({
             "version": "github-evidence-v1",
             "dimensions": dimensions,

@@ -653,7 +653,7 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
                     "evidence_id": _evidence_id("match", name, item.get("source", "missing"), item.get("claim", "")),
                     "source": str(item.get("source", "missing")),
                     "claim": str(item.get("claim", "확인된 근거 없음")),
-                    "verification_state": "grounded" if str(item.get("source", "missing")) not in {"missing", "unknown"} else "needs_verification",
+                    "verification_state": "grounded" if str(item.get("source", "missing")) in {"portfolio", "portfolio_analysis", "resume", "github"} else "context_only" if str(item.get("source", "missing")) == "job" else "needs_verification",
                     "confidence": max(0.0, min(1.0, confidence)),
                 })
             dimensions.append({
@@ -664,9 +664,10 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
             })
 
         score = max(0.0, min(100.0, sum(item["score"] for item in dimensions)))
+        candidate_sources = {"portfolio", "portfolio_analysis", "resume", "github"}
         evidence_count = sum(
             1 for dimension in dimensions for item in dimension["evidence"]
-            if item["source"] not in {"missing", "unknown"} and item["claim"] != "확인된 근거 없음"
+            if item["source"] in candidate_sources and item["claim"] != "확인된 근거 없음"
         )
         decision = "strong_match" if score >= 75 and evidence_count >= 3 else "review" if score >= 50 and evidence_count >= 1 else "not_enough_evidence"
         structured["dimensions"] = dimensions
@@ -702,13 +703,13 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
         }
         total_possible = sum(item["max"] for item in dimensions) or 100
         evidence_items = [item for dimension in dimensions for item in dimension["evidence"]]
-        grounded_items = [item for item in evidence_items if item["source"] not in {"missing", "unknown"} and item["claim"] != "확인된 근거 없음"]
+        grounded_items = [item for item in evidence_items if item["source"] in candidate_sources and item["claim"] != "확인된 근거 없음"]
         structured["evidence_coverage"] = round(min(100.0, len(grounded_items) / max(1, len(dimensions)) * 100), 1)
         structured["confidence"] = round(min(1.0, sum(item["confidence"] for item in grounded_items) / max(1, len(grounded_items))), 2)
         structured["decision_trace"] = [
             "직무와 무관한 개인정보 신호를 평가에서 제외",
             f"{len(dimensions)}개 직무 기준을 포트폴리오 근거와 대조",
-            f"{len(grounded_items)}개 확인 가능한 근거와 미확인 영역을 분리",
+            f"후보자 원문 근거 {len(grounded_items)}개와 공고 설명/미확인 영역을 분리",
             "점수보다 검증 행동과 불확실성을 함께 제시",
         ]
         structured["audit"] = _audit_metadata(
