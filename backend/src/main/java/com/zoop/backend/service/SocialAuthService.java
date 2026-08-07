@@ -235,6 +235,9 @@ public class SocialAuthService {
         String socialId = (String) userInfo.get("id"); // Google에서 받은 고유 ID (String)
         String email = (String) userInfo.get("email"); // Google에서 받은 이메일 (없을 수도 있음)
         String name = (String) userInfo.get("name"); // Google에서 받은 이름 (없을 수도 있음)
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Google 계정의 이메일을 확인할 수 없어 가입을 진행할 수 없습니다.");
+        }
 
         // 1. 데이터베이스에서 해당 Google ID로 기존 Candidate 사용자를 찾습니다.
         // CandidateRepository에 findByGoogleId 메소드가 필요합니다.
@@ -244,9 +247,16 @@ public class SocialAuthService {
         if (existingCandidate.isPresent()) {
             // 2. 이미 우리 서비스에 해당 Google 계정으로 가입된 사용자입니다. -> 로그인 처리
             candidate = existingCandidate.get();
-            // TODO: 소셜 서비스에서 변경된 사용자 정보(이메일, 이름, 프로필 이미지 등)가 있다면 Candidate 엔티티 업데이트
-            // 예: candidate.setCandidateName(name);
-            // 예: candidate.setCandidateEmail(email); // 이메일 업데이트 시 기존 이메일 계정과의 충돌 발생 가능성 고려
+            if (name != null && !name.isBlank() && !name.equals(candidate.getCandidateName())) {
+                candidate.setCandidateName(name);
+            }
+            if (!email.equals(candidate.getCandidateEmail())) {
+                Optional<Candidate> emailOwner = candidateRepository.findByCandidateEmail(email);
+                if (emailOwner.isPresent() && !emailOwner.get().getCandidateId().equals(candidate.getCandidateId())) {
+                    throw new IllegalArgumentException("Google 이메일이 다른 계정에 이미 연결되어 있습니다.");
+                }
+                candidate.setCandidateEmail(email);
+            }
             candidate.setCandidateUpdatedAt(LocalDateTime.now()); // 최종 업데이트 시간 기록
             // candidateRepository.save(candidate); // @Transactional 어노테이션이 있으면 자동 저장될 수 있습니다.
 
@@ -276,22 +286,20 @@ public class SocialAuthService {
                      throw new RuntimeException("이미 가입된 이메일 주소입니다: " + email);
                  }
                 candidate.setCandidateEmail(email); // 이메일 설정
-            } else {
-                // Google에서 이메일을 제공하지 않은 경우 처리 (이메일이 필수라면 추가 정보 입력 요구 또는 가입 거부)
-                // 이메일 필수 컬럼이 아니라면 임시 이메일 또는 null 허용
-                // candidate.setCandidateEmail(null); // DB 컬럼이 nullable=true인 경우
-                candidate.setCandidateEmail(provider.toLowerCase() + "_" + socialId + "@zoop.social.user"); // 예시: 임시 이메일 생성
             }
 
             // 이름 설정 (Google에서 제공된 경우)
-            candidate.setCandidateName(name != null && !name.isEmpty() ? name : "Google User"); // 이름 없으면 기본값 "Google User" 사용
+            candidate.setCandidateName(name != null && !name.isEmpty() ? name : null);
 
             // github_login 필드 설정 (Google 소셜 로그인 시에는 조합된 ID 사용)
              // ✅ 중요: github_login 필드는 UNIQUE 제약 조건이 있으므로, 이미 존재하는 값인 경우 처리 로직 필요 (예: 뒤에 숫자 추가)
              // Google 소셜 사용자의 github_login 값을 어떻게 설정할지 결정합니다.
              // 예: google_ + socialId
-             candidate.setGithubLogin(provider.toLowerCase() + "_" + socialId);
-             // TODO: findByGithubLogin(조합된 값) 으로 이미 존재하는지 확인 후 중복 처리 로직 구현 필요
+             String socialLogin = provider.toLowerCase() + "_" + socialId;
+             if (candidateRepository.existsByGithubLogin(socialLogin)) {
+                 throw new IllegalArgumentException("소셜 계정 식별자가 이미 사용 중입니다. 고객센터에 문의해 주세요.");
+             }
+             candidate.setGithubLogin(socialLogin);
 
 
             // 소셜 계정은 비밀번호 로그인을 사용하지 않지만 DB의 NOT NULL 제약을
