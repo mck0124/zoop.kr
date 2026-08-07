@@ -1,27 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import styled, { css, keyframes } from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import Navbar from '../../components/Navbar';
-import { FaGithub, FaExpandAlt, FaTimes, FaStar, FaCode, FaEnvelope } from 'react-icons/fa';
+import { FaTimes } from 'react-icons/fa';
 import SEO from '../../components/SEO';
-import MatchingDetailModal from './MatchingDetailModal';
 import { apiUrl } from '../../api/config';
+import AIAnalysisSummary from '../../components/AIAnalysisSummary';
 
 // =========== Styled Components ===========
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(60px) scale(0.98);}
   to   { opacity: 1; transform: translateY(0) scale(1);}
-`;
-
-const slideIn = keyframes`
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
-`;
-
-const chartAnimation = keyframes`
-  from { width: 0; }
-  to { width: var(--final-width); }
 `;
 
 const Wrapper = styled.div`
@@ -103,27 +93,6 @@ const SectionTitle = styled.h2`
   align-items: center;
   gap: 0.5rem;
   white-space: nowrap;
-`;
-
-const MailButton = styled.button`
-  background: #30c59b;
-  color: #fff;
-  border: none;
-  border-radius: 1.6rem;
-  padding: 0.7rem 1.8rem;
-  font-size: 1.08rem;
-  font-weight: 700;
-  box-shadow: 0 2px 16px rgba(40,150,110,0.12);
-  transition: background 0.15s, transform 0.12s;
-  margin-bottom: 1rem;
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  position: absolute;
-  top: -55px; right: 0;
-  z-index: 11;
-  &:hover { background: #279a7e; transform: scale(1.04);}
 `;
 
 const PosterScrollWrap = styled.div`
@@ -249,29 +218,6 @@ const TossCard = styled.div`
 `;
 
 // Liquid glass glow behind avatar
-const AnimatedGlow = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 140px;
-  height: 140px;
-  transform: translate(-50%, -60%) scale(${props => props.scale || 1});
-  filter: blur(${props => props.blur || 18}px) brightness(${props => props.brightness || 1.1});
-  background: radial-gradient(
-    circle at 50% 50%, 
-    rgba(174, 239, 255, 0.4) 0%, 
-    rgba(48, 197, 155, 0.3) 40%, 
-    rgba(107, 232, 200, 0.2) 70%, 
-    transparent 100%
-  );
-  opacity: 0.6;
-  z-index: 1;
-  pointer-events: none;
-  transition: all 0.45s cubic-bezier(.22,1.04,.38,1.01);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-`;
-
 const Avatar = styled.img`
   width: 92px;
   height: 92px;
@@ -288,145 +234,6 @@ const Avatar = styled.img`
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-`;
-
-const SmallAvatar = styled.img`
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 4px solid #fff;
-  box-shadow: 0 4px 16px #30c59b55;
-  object-fit: cover;
-  display: block;
-  background: #fff;
-`;
-
-const TossCardInfo = styled.div`
-  width: 100%;
-  padding: 0 1.6rem 2.2rem 1.6rem;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  /* align-items: flex-start; */
-`;
-
-const TossCardName = styled.div`
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: rgba(255, 255, 255, 0.95);
-  margin-bottom: 0.3rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-`;
-const TossCardSub = styled.div`
-  font-size: 1.01rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 500;
-  margin-bottom: 0.7rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-`;
-const TossCardMeta = styled.div`
-  display: flex;
-  gap: 0.7rem;
-  margin-bottom: 0.7rem;
-`;
-const TossMetaTag = styled.span`
-  background: rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-  font-size: 0.97rem;
-  padding: 0.24rem 1.1rem;
-  border-radius: 14px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-`;
-
-// Placeholder for Toss-style glassy 3D object
-const Toss3DObject = ({ style }) => (
-  <svg width="180" height="180" viewBox="0 0 180 180" style={style}>
-    <defs>
-      <radialGradient id="g1" cx="50%" cy="50%" r="80%">
-        <stop offset="0%" stopColor="#aeefff" stopOpacity="0.7"/>
-        <stop offset="100%" stopColor="#1a1446" stopOpacity="0.1"/>
-      </radialGradient>
-    </defs>
-    <ellipse cx="90" cy="90" rx="80" ry="80" fill="url(#g1)" filter="blur(1.5px)"/>
-    <ellipse cx="90" cy="90" rx="55" ry="55" fill="#3bb2f8" fillOpacity="0.18"/>
-    <ellipse cx="90" cy="90" rx="35" ry="35" fill="#fff" fillOpacity="0.08"/>
-    <ellipse cx="90" cy="90" rx="25" ry="25" fill="#30c59b" fillOpacity="0.13"/>
-  </svg>
-);
-
-const ScoreBarWrap = styled.div`
-  width: 94%;
-  margin: 0.5rem 0 1.15rem 0;
-`;
-
-const ScoreLabel = styled.div`
-  font-weight: 700;
-  font-size: 1.08rem;
-  color: #434d67;
-  margin-bottom: 0.15rem;
-  text-align: center;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-`;
-
-const ScoreBar = styled.div`
-  background: #e8f5e8;
-  border-radius: 12px;
-  width: 100%; height: 15px; overflow: hidden;
-`;
-
-const ScoreFill = styled.div`
-  background: linear-gradient(90deg, #30c59b 60%, #41d99a 100%);
-  height: 100%;
-  border-radius: 12px;
-  width: ${props => props.score > 100 ? 100 : props.score}%;
-  transition: width 0.38s cubic-bezier(0.19,1,0.42,1);
-`;
-
-const TechStack = styled.div`
-  font-size: 0.99rem;
-  color: #5a6277;
-  margin: 0.9rem 0 0.45rem 0;
-  text-align: center;
-  line-height: 1.42;
-  max-width: 250px;
-  word-break: break-all;
-  font-weight: 500;
-  & b { font-weight: 700; color: #0e7761; }
-`;
-
-const MoreStack = styled.span`
-  color: #b8b8b8; font-size: 0.92rem; font-weight: 600; margin-left: 0.4rem;
-`;
-
-const AnalysisPreview = styled.div`
-  margin-top: 1.13rem;
-  font-size: 0.99rem;
-  color: #58617b;
-  font-style: italic;
-  line-height: 1.6;
-  min-height: 44px;
-  margin-bottom: 1.12rem;
-`;
-
-const ShowAnalysisBtn = styled.button`
-  background: #30c59b;
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  padding: 0.55rem 1.3rem;
-  font-size: 0.97rem;
-  font-weight: 700;
-  margin-bottom: 0.2rem;
-  margin-top: auto;
-  cursor: pointer;
-  transition: background 0.17s;
-  display: flex; align-items: center; gap: 0.5rem;
-  &:hover { background: #299c7e;}
 `;
 
 // Add styled-component for Toss-style button
@@ -510,45 +317,6 @@ const ModalHeader = styled.div`
   margin-bottom: 0;
 `;
 
-const ModalScoreBarWrap = styled.div`
-  margin-bottom: 2.3rem;
-`;
-
-const ModalScoreValue = styled.div`
-  font-size: 1.11rem;
-  font-weight: 700;
-  color: #37dfa7;
-  display: flex; align-items: center; gap: 0.5rem;
-  margin-bottom: 0.4rem;
-`;
-
-const ModalScoreBar = styled.div`
-  width: 100%;
-  background: #f1f5f9;
-  height: 12px;
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-`;
-
-const ModalScoreFill = styled.div`
-  background: linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
-  height: 100%;
-  width: ${props => props.score > 100 ? 100 : props.score}%;
-  border-radius: 6px;
-  transition: width 0.8s cubic-bezier(0.17,1,0.33,1);
-  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
-`;
-
-const ModalBody = styled.div`
-  font-size: 1.08rem;
-  color: #222b38;
-  line-height: 1.75;
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin-bottom: 1.8rem;
-`;
-
 // 모달 액션 버튼 (Toss 스타일)
 const ModalActionBtn = styled.button`
   background: #30c59b;
@@ -569,52 +337,6 @@ const ModalActionBtn = styled.button`
 // ==========================================
 
 
-
-// Bar Chart Component for component scores
-const MiniBarChart = ({ scores, height = 80, width = 200 }) => {
-  const maxScore = Math.max(...Object.values(scores), 1);
-  const barWidth = (width - 20) / Object.keys(scores).length;
-  
-  return (
-    <svg width={width} height={height} style={{ display: 'block', margin: '0 auto' }}>
-      <defs>
-        <linearGradient id="barGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#30c59b" />
-          <stop offset="100%" stopColor="#6be8c8" />
-        </linearGradient>
-      </defs>
-      {Object.entries(scores).map(([label, score], index) => {
-        const barHeight = (score / maxScore) * (height - 20);
-        const x = 10 + index * barWidth;
-        const y = height - 10 - barHeight;
-        
-        return (
-          <g key={label}>
-            <rect
-              x={x + 2}
-              y={y}
-              width={barWidth - 4}
-              height={barHeight}
-              fill="url(#barGradient)"
-              rx="2"
-              opacity="0.8"
-            />
-            <text
-              x={x + barWidth / 2}
-              y={height - 2}
-              textAnchor="middle"
-              fontSize="8"
-              fill="#30c59b"
-              fontWeight="600"
-            >
-              {label.slice(0, 2)}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-};
 
 // Technology Stack Visualization
 const TechStackVisual = ({ languages, size = 120 }) => {
@@ -739,7 +461,6 @@ const TargetIcon = (props) => (
 // Radar chart SVG for 6 component scores
 const radarLabels = ['팔로워 수','공개 저장소 수','언어 다양성','최근 활동성','프로젝트 품질','기술적 깊이'];
 const radarMax = [10, 15, 15, 20, 20, 20]; // 각 항목별 만점
-const radarTotal = 100;
 function RadarChartSVG({ scores = {}, size = 90, totalScore, showLabels = false, showScores = false }) {
   const cx = size / 2, cy = size / 2, r = size * 0.41;
   const radarShortLabels = ['팔로워', '저장소', '언어', '활동', '품질', '깊이'];
@@ -880,29 +601,6 @@ function RadarChartSVG({ scores = {}, size = 90, totalScore, showLabels = false,
   );
 }
 
-// Add TopRow and NameText styled components for avatar+name row
-const TopRow = styled.div`
-  display: flex;
-  align-items: center;
-  width: 100%;
-  min-height: 48px; /* 아바타+이름 높이 고정 */
-  margin-bottom: 0.2rem;
-  position: relative;
-`;
-const NameText = styled.span`
-  font-size: 1.18rem;
-  font-weight: 800;
-  color: #fff;
-  margin-left: 0.7rem;
-  min-height: 1.5em;
-  max-width: 120px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: flex;
-  align-items: center;
-`;
-
 // Move these utility functions above TossCandidateCard so they are in scope
 const parsePortfolioEvidence = (analysisText) => {
   if (!analysisText || typeof analysisText !== 'string') return null;
@@ -922,17 +620,6 @@ const parseGithubEvidence = (analysisText) => {
   } catch (_) {
     return null;
   }
-};
-
-const extractSummary = (analysisText) => {
-  if (!analysisText) return '';
-  const structured = parsePortfolioEvidence(analysisText);
-  if (structured) return structured.summary || '제출물 근거가 부족합니다.';
-  const github = parseGithubEvidence(analysisText);
-  if (github) return github.summary || 'GitHub 공개 근거가 부족합니다.';
-  const summaryMatch = analysisText.match(/종합요약:\s*([^\n]+(?:\n[^\n]+)*)/);
-  if (summaryMatch) return summaryMatch[1].trim();
-  return analysisText.length > 85 ? analysisText.substring(0, 85) + '...' : analysisText;
 };
 
 const extractKeywords = (analysisText) => {
@@ -1132,12 +819,6 @@ function getCandidateLanguages(candidate) {
   // 확인 가능한 언어가 없으면 추정하지 않는다.
   return [];
 }
-function formatTechStack(langs) {
-  const arr = getStackArray(langs);
-  if (arr.length <= 5) return arr.join(' · ');
-  return arr.slice(0, 5).join(' · ') + <span style={{color:'#b8b8b8', fontSize:'0.92rem', fontWeight:600, marginLeft:'0.4rem'}}>+외 {arr.length - 5}개</span>;
-}
-
 // Improved parseComponentScores: more flexible patterns
 function parseComponentScores(analysisText, candidate) {
   // Prefer direct fields if available
@@ -1261,11 +942,7 @@ export default function CandidateList({ activeTab = 'all' }) {
 
   const [selectedCandidate, setSelectedCandidate] = useState(null);
 
-  // ============ [CURRENT 버전에서 추가된 기능] ============
-  // 개별 이메일 전송을 위한 로딩 상태 관리
-  const [loadingId, setLoadingId] = useState(null);
   const [companyAdminId, setCompanyAdminId] = useState(null);
-  // ============ [CURRENT 버전에서 추가된 기능 끝] ============
 
   // 1. 이메일 템플릿 정의 (CompanyDashboard에서 복사)
   const emailTemplates = {
@@ -1303,7 +980,6 @@ export default function CandidateList({ activeTab = 'all' }) {
     if (!candidate) {
       candidate = { githubLogin: '후보자', candidateEmail: '' };
     }
-    const template = emailTemplates[templateKey];
     const postTitle = postInfo?.postTitle || '채용 공고';
     const postDescription = postInfo?.postDescription || '';
     const githubLogin = candidate.githubLogin || '후보자';
@@ -1514,48 +1190,6 @@ export default function CandidateList({ activeTab = 'all' }) {
     setSelectedCandidate(null);
   };
 
-  // ============ [CURRENT 버전에서 추가된 기능] ============
-  // 개별 이메일 전송 기능
-  const sendInvitation = async (postId, githubLogin, companyAdminId, candidateEmail) => {
-    if (!companyAdminId) {
-      alert('회사 관리자 정보를 확인하지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
-      return;
-    }
-    const payload = {
-      postId: parseInt(postId),
-      githubLogin,
-      companyAdminId,
-      candidateEmail,
-    };
-
-    try {
-      setLoadingId(githubLogin); // 👉 로딩 시작
-
-      const res = await fetch(apiUrl('/api/invitations/send'), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        alert("📨 초대 메일을 전송했습니다!");
-      } else {
-        alert("❌ 전송 실패");
-      }
-    } catch (err) {
-      console.error("메일 전송 오류:", err);
-      alert("⚠️ 서버 오류로 전송에 실패했습니다.");
-    } finally {
-      setLoadingId(null); // �� 로딩 종료
-    }
-  };
-  // ============ [CURRENT 버전에서 추가된 기능 끝] ============
-
-  const [showMatchingDetailModal, setShowMatchingDetailModal] = useState(false);
-  const [selectedMatchingCandidate, setSelectedMatchingCandidate] = useState(null);
-
   const comparableScores = candidates
     .map(candidate => {
       const value = candidate?.analysisScore ?? candidate?.score ?? candidate?.aiAnalysis?.analysisScore;
@@ -1633,10 +1267,6 @@ export default function CandidateList({ activeTab = 'all' }) {
                 const analysisResult = aiAnalysisResults.find(
                   ai => ai.githubSearchResultId === candidate.githubSearchResultId
                 );
-                // 보장: candPortfolioId, jobCandidateId, analysisId
-                const candPortfolioId = candidate.candPortfolioId || candidate.portfolioId;
-                const jobCandidateId = candidate.jobCandidateId;
-                const analysisId = (candidate.aiAnalysis && candidate.aiAnalysis.analysisId) || (analysisResult && analysisResult.analysisId);
                 return (
                   <div key={candidate.githubLogin || idx} style={{ marginBottom: 24, background: '#fff', borderRadius: 16, boxShadow: '0 2px 8px #e0f7ef44', padding: 24, display: 'flex', alignItems: 'center', gap: 24 }}>
                     {/* TossCandidateCard 등 기존 후보자 정보 렌더링 */}
@@ -1759,6 +1389,11 @@ export default function CandidateList({ activeTab = 'all' }) {
             <div style={{ padding: '0 32px 32px 32px', maxHeight: '70vh', overflowY: 'auto' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                 <EvidenceTrustPanel candidate={selectedCandidate} analysisText={selectedAnalysis} />
+                <AIAnalysisSummary
+                  analysis={selectedAnalysis}
+                  score={modalScore}
+                  title="Evidence Ledger · 후보자 판단 기록"
+                />
                 {/* 1. 종합 역량 분석 섹션 */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                   {/* 왼쪽: 레이더 차트 */}
@@ -2256,15 +1891,6 @@ export default function CandidateList({ activeTab = 'all' }) {
           </div>
         </div>
       )}
-      {showMatchingDetailModal && selectedMatchingCandidate && (
-        <MatchingDetailModal
-          open={showMatchingDetailModal}
-          onClose={() => setShowMatchingDetailModal(false)}
-          candPortfolioId={selectedMatchingCandidate.candPortfolioId}
-          jobCandidateId={selectedMatchingCandidate.jobCandidateId}
-          analysisId={selectedMatchingCandidate.aiAnalysis?.analysisId}
-        />
-      )}
     </Wrapper>
   );
 }
@@ -2272,22 +1898,15 @@ export default function CandidateList({ activeTab = 'all' }) {
 // Toss-style Candidate Card (with hover state)
 const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openAnalysisModal, toggleSelect }) => {
   const analysisText = candidate.portfolioAnalysis || candidate.analysis || '';
-  const summary = extractSummary(analysisText);
   const score = extractScore(analysisText) || candidate.score || candidate.parsed_score || 0;
   const keywords = extractKeywords(analysisText);
-  const strengths = extractStrengths(analysisText);
-  const weaknesses = extractWeaknesses(analysisText);
-  const suitableJobs = extractSuitableJobs(analysisText);
-  const growthPotential = extractGrowthPotential(analysisText);
   const langsArr = getStackArray(candidate.candidateLanguages || candidate.languages);
-  const email = candidate.candidateEmail || candidate.email;
   const login = candidate.githubLogin || candidate.login;
   const avatarUrl = login ? `https://github.com/${login}.png?size=160` : undefined;
-  const componentScores = parseComponentScores(analysisText, candidate);
   const portfolioEvidence = parsePortfolioEvidence(analysisText);
 
   // 3D hover + animated graph + dynamic lighting
-  const [hoverTransform, setHoverTransform] = React.useState('');
+  const [, setHoverTransform] = React.useState('');
   const [graphTransform, setGraphTransform] = React.useState('');
   const handleMouseMove = e => {
     const card = e.currentTarget;
@@ -2321,7 +1940,7 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
     e.currentTarget.style.setProperty('--mouse-y', '50%');
   };
 
-  const [isHovered, setIsHovered] = React.useState(false);
+  const [, setIsHovered] = React.useState(false);
 
   // Use analysisResult.analysisData if present
   let radarScores, realScore;
@@ -2897,9 +2516,6 @@ const LanguageDistributionChart = ({ candidate, width = 300, height = 300 }) => 
     
     if (Object.keys(skillsAnalysis).length > 0) {
       // 실제 GitHub 데이터가 있는 경우
-      const totalRepos = Object.values(skillsAnalysis).reduce((sum, lang) => sum + lang.count, 0);
-      const totalStars = Object.values(skillsAnalysis).reduce((sum, lang) => sum + lang.stars, 0);
-      
       return Object.entries(skillsAnalysis).map(([lang, stats]) => ({
         language: lang,
         count: stats.count,
