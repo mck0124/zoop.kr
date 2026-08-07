@@ -41,7 +41,6 @@ def extract_email_from_profile_html(username):
     url = f"https://github.com/{username}"
     try:
         res = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
-        print(f"🌐 Fetching profile page: {url}")
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
             email_li = soup.find("li", {"itemprop": "email"})
@@ -52,13 +51,11 @@ def extract_email_from_profile_html(username):
                     if href and isinstance(href, str) and href.startswith("mailto:"):
                         email = href.replace("mailto:", "").strip()
                         if is_valid_email(email):
-                            print(f"📧 Found email in profile: {email}")
                             return email
 
             emails = re.findall(EMAIL_PATTERN, res.text)
             for email in emails:
                 if is_valid_email(email):
-                    print(f"📬 Backup email from HTML: {email}")
                     return email
     except Exception as e:
         print(f"❌ Error fetching profile for {username}: {e}")
@@ -86,7 +83,6 @@ def extract_email_from_readme(username):
         emails = re.findall(EMAIL_PATTERN, decoded_readme)
         for email in emails:
             if is_valid_email(email):
-                print(f"📘 Found email in README: {email}")
                 return email
     except Exception as e:
         print(f"❌ Error reading README for {username}: {e}")
@@ -219,13 +215,11 @@ def enhanced_search_github_candidates(filters, post_id=None):
                             "followers": followers,
                             "public_repos": public_repos
                         }
-                        print(f"[DEBUG] OpenAI 분석 시작: {candidate_obj['login']}")
                         try:
                             analysis = analyze_candidate_with_prompt(candidate_obj, details)
                         except Exception as e:
                             print(f"[WARN] 후보자 분석 실패로 결과에서 제외: {login} - {e}")
                             continue
-                        print(f"[DEBUG] OpenAI 분석 결과: {analysis}")
                         # LLM 점수 파싱 (예: (점수: 92점))
                         llm_score = 0
                         analysis_str = str(analysis) if analysis is not None else ""
@@ -253,14 +247,12 @@ def enhanced_search_github_candidates(filters, post_id=None):
                             if m:
                                 try:
                                     llm_score = int(m.group(1))
-                                    print(f"[DEBUG] 총점 추출 성공: {llm_score} (패턴: {pattern})")
                                     break
                                 except ValueError:
                                     continue
                         
                         # 총점을 찾지 못했다면 각 항목별 점수를 더해서 계산
                         if llm_score == 0:
-                            print(f"[DEBUG] 총점 패턴 실패, 항목별 점수 계산 시작")
                             # 각 항목별 점수 추출
                             item_scores = {
                                 '팔로워': 0,
@@ -287,13 +279,11 @@ def enhanced_search_github_candidates(filters, post_id=None):
                                     try:
                                         score = int(matches[0])
                                         item_scores[item_name] = score
-                                        print(f"[DEBUG] {item_name} 점수: {score}")
                                     except ValueError:
                                         continue
                             
                             # 총점 계산
                             llm_score = sum(item_scores.values())
-                            print(f"[DEBUG] 항목별 점수 합계: {item_scores} = 총점 {llm_score}")
                         
                         if llm_score == 0:
                             print(f"[WARNING] 점수 추출 실패. 분석 텍스트: {analysis_str[:200]}...")
@@ -305,9 +295,6 @@ def enhanced_search_github_candidates(filters, post_id=None):
                             "llm_score": llm_score,
                             "score": llm_score  # 기존 호환성을 위해 score도 추가
                         }
-                        
-                        analysis_preview = str(analysis)[:100] if analysis else "분석 없음"
-                        print(f"[DEBUG] 최종 결과: {login} - 점수: {llm_score}, 분석: {analysis_preview}...")
                         
                         # Spring Boot에서 자동으로 DB에 저장됨 (post_id는 Spring Boot에서 처리)
                         
@@ -491,7 +478,8 @@ def analyze_candidate_with_prompt(candidate, details):
 - 별 수, 저장소 수 같은 공개 신호만으로 실력·성격을 단정하지 말고 evidence에 한계를 적으세요.
 - 모든 claim은 위 데이터의 구체적 필드에 근거해야 합니다.
 
-아래 JSON만 반환하세요:
+    evidence.source는 반드시 다음 중 하나만 사용하세요: languages, skills_analysis, repo, top_repos, recent_events, contribution_stats.
+    아래 JSON만 반환하세요:
 {{
   "score": 0,
   "dimensions": [
@@ -547,13 +535,13 @@ def analyze_candidate_with_prompt(candidate, details):
                     "evidence_id": _evidence_id("github", name, evidence_item.get("source", "unknown"), evidence_item.get("claim", "")),
                     "source": str(evidence_item.get("source", "unknown")),
                     "claim": str(evidence_item.get("claim", "확인된 근거 없음")),
-                    "verification_state": "grounded" if str(evidence_item.get("source", "unknown")) != "missing" else "needs_verification",
-                    "confidence": round(max(0.0, min(1.0, confidence)), 2),
+                    "verification_state": "grounded" if str(evidence_item.get("source", "unknown")) in {"languages", "skills_analysis", "repo", "top_repos", "recent_events", "contribution_stats"} and str(evidence_item.get("claim", "")).strip() else "needs_verification",
+                    "confidence": round(max(0.0, min(1.0, confidence if str(evidence_item.get("source", "unknown")) in {"languages", "skills_analysis", "repo", "top_repos", "recent_events", "contribution_stats"} else confidence * 0.25)), 2),
                 })
             dimensions.append({"name": name, "score": score, "max": maximum, "evidence": evidence or [{"evidence_id": _evidence_id("github", name, "missing"), "source": "missing", "claim": "확인된 근거 없음", "verification_state": "needs_verification", "confidence": 0.0}]})
         if not dimensions:
             raise ValueError("GitHub 분석 차원이 비어 있습니다.")
-        grounded = [item for dimension in dimensions for item in dimension["evidence"] if item["source"] not in {"missing", "unknown"} and item["claim"] != "확인된 근거 없음"]
+        grounded = [item for dimension in dimensions for item in dimension["evidence"] if item["verification_state"] == "grounded" and item["claim"] != "확인된 근거 없음"]
         result.update({
             "version": "github-evidence-v1",
             "dimensions": dimensions,
@@ -587,54 +575,35 @@ def extract_text_from_file(file_path_or_url):
     import requests
     import tempfile
     import os
-    print(f"[분석 시작] 파일 경로/URL: {file_path_or_url}")
-    
     # URL이면 다운로드, 아니면 로컬 파일로 처리
     if file_path_or_url.startswith('http://') or file_path_or_url.startswith('https://'):
-        print(f"[분석] URL에서 파일 다운로드 시작: {file_path_or_url}")
         resp = requests.get(file_path_or_url)
-        print(f"[분석] 다운로드 응답 상태: {resp.status_code}")
         if resp.status_code != 200:
-            print(f"[분석] 다운로드 실패: {resp.status_code} - {resp.text[:200]}")
             raise Exception(f"파일 다운로드 실패: {file_path_or_url}")
         
-        print(f"[분석] 다운로드된 파일 크기: {len(resp.content)} bytes")
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
             tmp.write(resp.content)
             tmp_path = tmp.name
-            print(f"[분석] 임시 파일 생성: {tmp_path}")
     else:
         tmp_path = file_path_or_url
-        print(f"[분석] 로컬 파일 사용: {tmp_path}")
     
     # 파일 타입 판별
     mime, _ = mimetypes.guess_type(tmp_path)
-    print(f"[분석] 파일 타입: {mime}")
     text = ""
     try:
         if mime == 'application/pdf' or tmp_path.lower().endswith('.pdf'):
-            print(f"[분석] PDF 파일 처리 시작")
             reader = PdfReader(tmp_path)
-            print(f"[분석] PDF 페이지 수: {len(reader.pages)}")
             for i, page in enumerate(reader.pages):
                 page_text = page.extract_text() or ""
                 text += page_text
-                print(f"[분석] 페이지 {i+1} 텍스트 길이: {len(page_text)}")
         else:
-            print(f"[분석] 텍스트 파일 처리 시작")
             with open(tmp_path, 'r', encoding='utf-8', errors='ignore') as f:
                 text = f.read()
-                print(f"[분석] 텍스트 파일 길이: {len(text)}")
     except Exception as e:
-        print(f"[분석] 텍스트 추출 오류: {e}")
         text = f"[텍스트 추출 실패: {e}]"
     finally:
         if file_path_or_url.startswith('http') and os.path.exists(tmp_path):
             os.remove(tmp_path)
-            print(f"[분석] 임시 파일 삭제: {tmp_path}")
-    
-    print(f"[분석] 최종 추출된 텍스트 길이: {len(text)}")
-    print(f"[분석] 텍스트 미리보기: {text[:200]}...")
     return text
 
 def analyze_portfolio_file(file_path_or_url, extra_info=None):
@@ -642,15 +611,10 @@ def analyze_portfolio_file(file_path_or_url, extra_info=None):
     포트폴리오 파일을 읽어 GPT-4o-mini로 분석한다.
     extra_info: dict (지원자명, 이메일 등 부가정보)
     """
-    print(f"[분석 시작] 포트폴리오 분석 시작: {file_path_or_url}")
     text = extract_text_from_file(file_path_or_url)
     
     if not text or len(text.strip()) < 10:
-        print(f"[분석] 텍스트가 너무 짧거나 비어있음: {len(text)} 문자")
         return "분석 가능한 포트폴리오 텍스트가 부족합니다. 파일이 비어 있거나 텍스트 추출을 지원하지 않는 형식인지 확인해 주세요."
-    
-    print(f"[분석] 추출된 텍스트 길이: {len(text)} 문자")
-    print(f"[분석] 텍스트 샘플: {text[:300]}...")
     
     prompt = f"""
 아래는 한 지원자의 포트폴리오(이력서/자기소개서 등) 내용입니다. 실제 텍스트 일부 또는 전체가 포함되어 있습니다.
@@ -665,13 +629,10 @@ def analyze_portfolio_file(file_path_or_url, extra_info=None):
 """
     if extra_info:
         prompt = f"지원자 정보: {extra_info}\n" + prompt
-        print(f"[분석] 추가 정보 포함: {extra_info}")
     
-    print(f"[분석] OpenAI API 호출 시작")
     messages = [
         {"role": "system", "content": "너는 이력서/포트폴리오를 정확하게 평가하는 AI 전문가야. 각 지원자의 실제 데이터를 바탕으로 객관적으로 점수를 매겨줘."},
         {"role": "user", "content": prompt}
     ]
     result = call_openai_chat(messages, max_tokens=900, temperature=0.5)
-    print(f"[분석 완료] 분석 결과 길이: {len(result) if result else 0} 문자")
     return result
