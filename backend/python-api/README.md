@@ -4,17 +4,17 @@ ZOOP 백엔드의 Python API 서비스들을 관리하는 디렉토리입니다.
 
 ## 🚀 FastAPI + Uvicorn 서비스
 
-### Interview Analysis API (포트 8001)
+### Interview Analysis API (포트 8002)
 - **기술**: FastAPI + Uvicorn
 - **기능**: AI 면접 영상 분석 및 평가
-- **실행**: `python -m uvicorn interview_analysis_api:app --host 0.0.0.0 --port 8001 --reload`
-- **API 문서**: http://localhost:8001/docs
+- **실행**: `python -m uvicorn interview_analysis_api:app --host 0.0.0.0 --port 8002 --reload`
+- **API 문서**: http://localhost:8002/docs
 
-### Portfolio Matching API (포트 8002)
+### Portfolio Matching API (포트 8003)
 - **기술**: FastAPI + Uvicorn
 - **기능**: 포트폴리오 분석 및 채용공고 매칭
-- **실행**: `python -m uvicorn portfolio_matching_api:app --host 0.0.0.0 --port 8002 --reload`
-- **API 문서**: http://localhost:8002/docs
+- **실행**: `python -m uvicorn portfolio_matching_api:app --host 0.0.0.0 --port 8003 --reload`
+- **API 문서**: http://localhost:8003/docs
 
 ## 🔧 Flask 서비스 (기존)
 
@@ -81,11 +81,11 @@ SPRING_API_URL=http://localhost:8081
 ```bash
 # Interview Analysis API
 cd interview_analysis
-python -m uvicorn interview_analysis_api:app --host 0.0.0.0 --port 8001 --reload
+python -m uvicorn interview_analysis_api:app --host 0.0.0.0 --port 8002 --reload
 
 # Portfolio Matching API
 cd ../portfolio_matching
-python -m uvicorn portfolio_matching_api:app --host 0.0.0.0 --port 8002 --reload
+python -m uvicorn portfolio_matching_api:app --host 0.0.0.0 --port 8003 --reload
 ```
 
 **Flask 서비스:**
@@ -116,8 +116,8 @@ python ocr_api.py
 ## 🔍 API 문서
 
 ### FastAPI 서비스 (자동 생성)
-- Interview Analysis API: http://localhost:8001/docs
-- Portfolio Matching API: http://localhost:8002/docs
+- Interview Analysis API: http://localhost:8002/docs
+- Portfolio Matching API: http://localhost:8003/docs
 
 ### Flask 서비스 (수동 문서)
 각 서비스의 소스 코드에서 엔드포인트 확인
@@ -126,8 +126,8 @@ python ocr_api.py
 
 ```bash
 # 헬스 체크
-curl http://localhost:8001/health  # Interview Analysis API
-curl http://localhost:8002/health  # Portfolio Matching API
+curl http://localhost:8002/health  # Interview Analysis API
+curl http://localhost:8003/health  # Portfolio Matching API
 curl http://localhost:5000/health  # Chatbot API
 curl http://localhost:5001/health  # GitHub Search API
 curl http://localhost:5002/health  # Interview Questions API
@@ -204,8 +204,8 @@ curl http://localhost:5003/health  # OCR API
 ### 포트 충돌
 ```bash
 # 포트 사용 중인 프로세스 확인
-lsof -i :8001
 lsof -i :8002
+lsof -i :8003
 
 # 프로세스 강제 종료
 kill -9 <PID>
@@ -224,4 +224,4 @@ pip install -r requirements.txt
 # 서비스별 로그 확인
 tail -f interview_analysis/logs.txt
 tail -f portfolio_matching/logs.txt
-``` 
+```

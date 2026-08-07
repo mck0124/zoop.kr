@@ -18,6 +18,8 @@ import com.zoop.backend.domain.entity.Post;
 import com.zoop.backend.domain.entity.AiAnalysisResult;
 import com.zoop.backend.repository.CandidatePortfolioRepository;
 import com.zoop.backend.repository.PostRepository;
+import com.zoop.backend.repository.PortfolioJobMatchRepository;
+import com.zoop.backend.domain.entity.PortfolioJobMatch;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,6 +35,9 @@ public class PortfolioMatchingService {
     
     @Autowired
     private AiAnalysisResultService aiAnalysisResultService;
+
+    @Autowired
+    private PortfolioJobMatchRepository portfolioJobMatchRepository;
     
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -189,9 +194,10 @@ public class PortfolioMatchingService {
     /**
      * 특정 공고에 대한 매칭된 포트폴리오 조회
      */
-    public List<Object> getMatchedPortfoliosForJob(Long postId) {
-        // TODO: portfolio_job_matches 테이블에서 매칭 결과 조회
-        // 실제 구현에서는 매칭 점수 순으로 정렬하여 반환
-        return null;
+    public List<PortfolioJobMatch> getMatchedPortfoliosForJob(Long postId) {
+        if (postId == null) {
+            return List.of();
+        }
+        return portfolioJobMatchRepository.findByPostIdOrderByMatchingScoreDesc(postId);
     }
 }

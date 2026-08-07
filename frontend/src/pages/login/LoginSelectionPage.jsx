@@ -82,16 +82,6 @@ function LoginSelectionPage() {
         navigate(window.location.pathname, { replace: true }); // 현재 경로로 이동하며 기록 대체
     }
 
-     // TODO: Google PKCE (Proof Key for Code Exchange) 관련 코드 검증 및 삭제 로직 추가
-     // PKCE는 모바일/SPA 환경에서 Authorization Code Grant Flow를 안전하게 만드는 확장입니다.
-     // 콜백 페이지에서 검증하고 삭제하는 것이 일반적이지만, 여기에서도 필요시 정리할 수 있습니다.
-     // const pkceVerifier = sessionStorage.getItem('pkce_code_verifier');
-     // if (pkceVerifier) {
-     //     // 백엔드에 verifier를 보내 검증했거나, 검증이 필요 없어진 경우 삭제
-     //     sessionStorage.removeItem('pkce_code_verifier');
-     // }
-
-
   }, [searchParams, navigate]); // searchParams와 navigate가 변경될 때마다 이 Effect 재실행 (주소창 URL 변화 감지)
 
   const handleLogin = async (event) => {
@@ -272,22 +262,18 @@ function LoginSelectionPage() {
       authUrl = `${config.authUrl}?response_type=code&client_id=${config.clientId}&redirect_uri=${encodeURIComponent(config.redirectUri)}&state=${state}`;
     } else if (provider === 'google') {
        // Google OAuth 2.0 / OpenID Connect 인증 요청 URL 구성 예시
-       authUrl = `${config.authUrl}?response_type=${config.responseType}&client_id=${config.clientId}&redirect_uri=${encodeURIComponent(config.redirectUri)}&scope=${encodeURIComponent(config.scope)}`;
+       const state = generateRandomString();
+       sessionStorage.setItem('oauth_state', state);
+       authUrl = `${config.authUrl}?response_type=${config.responseType}&client_id=${config.clientId}&redirect_uri=${encodeURIComponent(config.redirectUri)}&scope=${encodeURIComponent(config.scope)}&state=${state}`;
        // 추가 파라미터 (예: access_type=offline, prompt=consent 등)
        if (config.accessType) authUrl += `&access_type=${config.accessType}`;
        if (config.prompt) authUrl += `&prompt=${config.prompt}`;
-
-       // TODO: Google PKCE (Proof Key for Code Exchange) 구현을 위한 파라미터 추가를 강력 권장
-       // const { verifier, challenge } = await generatePkcePair(); // generatePkcePair 함수가 async일 경우 handleSocialLogin도 async로 변경 필요
-       // authUrl += `&code_challenge=${challenge}&code_challenge_method=S256`; // 보통 S256 사용
-       // PKCE 사용 시에도 state 파라미터를 CSRF 방지용으로 포함할 수 있습니다: authUrl += `&state=${generateRandomString()}`;
 
     } else if (provider === 'github') {
         // GitHub OAuth Apps 인증 요청 URL 구성 예시
         const state = generateRandomString(); // CSRF 방지용 state 값 생성
          sessionStorage.setItem('oauth_state', state); // 생성된 state 값을 세션 스토리지에 저장 (콜백 페이지에서 검증)
-        authUrl = `${config.authUrl}?client_id=${config.clientId}&redirect_uri=${encodeURIComponent(config.redirectUri)}&scope=${encodeURIComponent(config.scope)}`;
-         // GitHub도 state 파라미터 지원: authUrl += `&state=${state}`; // 필요시 state 포함
+        authUrl = `${config.authUrl}?client_id=${config.clientId}&redirect_uri=${encodeURIComponent(config.redirectUri)}&scope=${encodeURIComponent(config.scope)}&state=${state}`;
 
     } else {
         // socialConfig에 정의되지 않은 provider 이름이 handleSocialLogin 함수로 넘어온 경우

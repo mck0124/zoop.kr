@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.HttpStatus;
 
 import com.zoop.backend.domain.dto.CandidatePreferencesDto;
 import com.zoop.backend.domain.entity.Candidate;
@@ -39,6 +42,9 @@ public class CandidatePreferencesController {
     public ResponseEntity<CandidatePreferencesDto> getPreferences(
             @PathVariable Long candidateId) {
         try {
+            if (!ownsCandidate(candidateId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
             CandidatePreferencesDto preferences = candidateService.getPreferences(candidateId);
             return ResponseEntity.ok(preferences);
         } catch (RuntimeException e) {
@@ -61,6 +67,9 @@ public class CandidatePreferencesController {
             @PathVariable Long candidateId,
             @RequestBody CandidatePreferencesDto preferencesDto) {
         try {
+            if (!ownsCandidate(candidateId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
             preferencesDto.setCandidateId(candidateId);
             Candidate updatedCandidate = candidateService.updatePreferences(preferencesDto);
             return ResponseEntity.ok(updatedCandidate);
@@ -70,4 +79,15 @@ public class CandidatePreferencesController {
             return ResponseEntity.internalServerError().build();
         }
     }
-} 
+
+    private boolean ownsCandidate(Long candidateId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return false;
+        }
+        return candidateService.findById(candidateId)
+                .map(candidate -> candidate.getGithubLogin() != null
+                        && candidate.getGithubLogin().equals(authentication.getName()))
+                .orElse(false);
+    }
+}

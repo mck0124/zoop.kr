@@ -45,22 +45,14 @@ function GoogleAuthCallback() {
             return; // 이후 로직 실행 중단
         }
 
-         // TODO: Google PKCE (Proof Key for Code Exchange) 관련 검증 로직 추가 (sessionStorage 사용)
-         // Google은 PKCE를 강력 권장하며, 인가 코드 교환 시 code_verifier 검증이 필요합니다.
-         // const storedVerifier = sessionStorage.getItem('pkce_code_verifier');
-         // if (!storedVerifier) {
-         //     console.error('PKCE verifier not found in session storage.');
-         //     setMessage('로그인 오류: 보안 검증 실패 (Verifier 누락)');
-         //     setLoading(false);
-         //     navigate(`/auth/login?error=${encodeURIComponent('PKCE verifier missing.')}`, { replace: true });
-         //     return;
-         // }
-         // sessionStorage.removeItem('pkce_code_verifier'); // 검증에 사용할 verifier는 사용 후 삭제
-
-         // TODO: CSRF 방지 State 검증 (Google은 PKCE 사용 시 state 필수는 아님)
-         // const storedState = sessionStorage.getItem('oauth_state');
-         // if (storedState && state && storedState !== state) { ... }
-         // sessionStorage.removeItem('oauth_state');
+        const storedState = sessionStorage.getItem('oauth_state');
+        sessionStorage.removeItem('oauth_state');
+        if (!state || !storedState || state !== storedState) {
+            setMessage('로그인 오류: 보안 검증에 실패했습니다. 다시 시도해주세요.');
+            setLoading(false);
+            navigate(`/auth/login?error=${encodeURIComponent('Google OAuth state validation failed.')}`, { replace: true });
+            return;
+        }
 
 
         // 2. 인가 코드(code)가 있는지 확인
