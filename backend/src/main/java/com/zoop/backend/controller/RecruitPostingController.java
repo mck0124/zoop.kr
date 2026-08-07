@@ -48,18 +48,23 @@ public class RecruitPostingController {
         @Parameter(description = "JWT 인증 토큰(Bearer prefix 포함)", required = true, example = "Bearer eyJhbGZci0i...")
         @RequestHeader("Authorization") String authHeader
     ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body(Map.of("error", "유효한 인증 토큰이 필요합니다."));
+        }
+
+        String token = authHeader.substring("Bearer ".length()).trim();
+        if (!jwtUtil.isTokenValid(token)) {
+            return ResponseEntity.status(401).body(Map.of("error", "인증 토큰이 유효하지 않거나 만료되었습니다."));
+        }
+
         try {
-            String token = authHeader.replace("Bearer ", "");
             String loginId = jwtUtil.getLoginIdFromToken(token);
             Post post = postService.createPost(dto, loginId);
             return ResponseEntity.ok(Map.of("postId", post.getPostId()));
-        } catch (Exception e) {
-            // 임시로 JWT 인증 실패 시 기본값으로 처리
-            System.out.println("JWT 인증 실패, 기본값으로 처리: " + e.getMessage());
-            dto.setCompanyId(1L);
-            dto.setCompanyAdminId(1L);
-            Post post = postService.createPost(dto);
-            return ResponseEntity.ok(Map.of("postId", post.getPostId()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "공고 정보가 올바르지 않습니다."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(500).body(Map.of("error", "공고 등록 중 오류가 발생했습니다."));
         }
     }
 

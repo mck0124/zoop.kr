@@ -3,7 +3,6 @@ package com.zoop.backend.controller;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,7 +26,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name="CompanyController", description="회사 정보 관련 API")
 @RestController
 @RequestMapping("/api/companies")
-@CrossOrigin(origins = "http://localhost:3000")
 public class CompanyController {
 
     private final CompanyService service;
@@ -66,35 +64,12 @@ public class CompanyController {
         return ResponseEntity.ok(Map.of("companyId", saved.getCompanyId()));
     }
 
-    // 매핑 실패 디버깅용 임시 엔드포인트
-    @Operation(summary = "디버그용 임시 엔드포인트", description = "요청 본문 매핑 실패 디버깅을 위한 임시 API입니다.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "요청 수신 확인 및 처리"),
-        @ApiResponse(responseCode = "400", description = "잘못된 형식의 요청 본문")
-    })
-    @PostMapping("/debug")
-    public ResponseEntity<?> debug(
-        @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "디버깅을 위한 임의의 JSON 요청 본문 (모든 필드 허용)",
-   
-            required = true,
-            content = @Content(schema = @Schema(implementation = Map.class))
-        )
-        @RequestBody Map<String, Object> raw) {
-        System.out.println("🐛 수신된 RAW JSON = " + raw);
-        return ResponseEntity.ok().build();
-    }
-
-    // 디버깅용: companyId로 회사 정보 조회 GET 엔드포인트 추가
     @GetMapping("/{companyId}")
-    public ResponseEntity<?> debugGetCompanyById(@PathVariable Long companyId) {
-        System.out.println("[디버그] GET /api/companies/" + companyId + " 호출됨");
+    public ResponseEntity<?> getCompanyById(@PathVariable Long companyId) {
         Company company = service.getCompanyById(companyId);
         if (company == null) {
-            System.out.println("[디버그] companyId=" + companyId + " 에 해당하는 회사 없음");
             return ResponseEntity.notFound().build();
         }
-        System.out.println("[디버그] companyId=" + companyId + " 회사 정보: " + company);
         return ResponseEntity.ok(company);
     }
 
