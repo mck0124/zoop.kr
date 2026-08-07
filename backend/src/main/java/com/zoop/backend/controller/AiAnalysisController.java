@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.zoop.backend.domain.dto.modal.InterviewAnalysisResponse;
 import com.zoop.backend.domain.dto.modal.PortfolioAnalysisResponse;
 import com.zoop.backend.service.AiAnalysisService;
+import com.zoop.backend.service.AiAccessService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,15 +19,22 @@ import lombok.RequiredArgsConstructor;
 public class AiAnalysisController {
 
     private final AiAnalysisService aiAnalysisService;
+    private final AiAccessService aiAccessService;
 
     //
     @GetMapping("/{jobCandidateId}/portfolio")
-    public PortfolioAnalysisResponse getPortfolioAnalysis(@PathVariable Long jobCandidateId) {
-        return aiAnalysisService.getPortfolioAnalysis(jobCandidateId);
+    public ResponseEntity<PortfolioAnalysisResponse> getPortfolioAnalysis(@PathVariable Long jobCandidateId) {
+        if (!aiAccessService.canAccessJobCandidate(jobCandidateId)) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(aiAnalysisService.getPortfolioAnalysis(jobCandidateId));
     }
 
     @GetMapping("/{jobCandidateId}/interview")
     public ResponseEntity<InterviewAnalysisResponse> getInterviewAnalysis(@PathVariable Long jobCandidateId) {
+        if (!aiAccessService.canAccessJobCandidate(jobCandidateId)) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
+        }
         return aiAnalysisService.getInterviewAnalysis(jobCandidateId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

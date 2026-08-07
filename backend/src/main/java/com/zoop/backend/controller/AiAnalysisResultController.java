@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.zoop.backend.domain.dto.AiAnalysisResultDto;
 import com.zoop.backend.domain.entity.AiAnalysisResult;
 import com.zoop.backend.service.AiAnalysisResultService;
+import com.zoop.backend.service.AiAccessService;
 import com.zoop.backend.config.InternalApiKeyValidator;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,12 +39,24 @@ public class AiAnalysisResultController {
 
     private final AiAnalysisResultService aiAnalysisResultService;
     private final InternalApiKeyValidator internalApiKeyValidator;
+    private final AiAccessService aiAccessService;
 
     @GetMapping
     public ResponseEntity<List<AiAnalysisResult>> getAllAiAnalysisResults() {
+        if (!aiAccessService.isCompanyAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         // 모든 AI 분석 결과 조회
         List<AiAnalysisResult> results = aiAnalysisResultService.findAll();
         return ResponseEntity.ok(results);
+    }
+
+    @GetMapping("/{analysisId}")
+    public ResponseEntity<AiAnalysisResult> getById(@PathVariable Long analysisId) {
+        return aiAnalysisResultService.findById(analysisId)
+                .filter(aiAccessService::canAccessAnalysis)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.FORBIDDEN).build());
     }
 
     @Operation(summary = "AI 분석 결과 저장", description = "GitHub 후보자에 대한 AI 분석 결과를 저장합니다.")
@@ -82,8 +95,9 @@ public class AiAnalysisResultController {
         @PathVariable Long githubSearchResultId) {
         
         return aiAnalysisResultService.findByGithubSearchResultId(githubSearchResultId)
+                .filter(aiAccessService::canAccessAnalysis)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
     }
 
     @Operation(summary = "게시글 ID로 AI 분석 결과 목록 조회", description = "특정 채용 공고에 대한 모든 AI 분석 결과를 조회합니다.")
@@ -96,6 +110,9 @@ public class AiAnalysisResultController {
         @Parameter(description = "게시글 ID", required = true, example = "1")
         @PathVariable Long postId) {
         
+        if (!aiAccessService.canAccessPost(postId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         List<AiAnalysisResult> results = aiAnalysisResultService.findByPostId(postId);
         return ResponseEntity.ok(results);
     }
@@ -157,6 +174,9 @@ public class AiAnalysisResultController {
         @Parameter(description = "분석 타입 (github, portfolio, interview)", required = true, example = "github")
         @PathVariable String analysisType) {
         
+        if (!aiAccessService.isCompanyAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         List<AiAnalysisResult> results = aiAnalysisResultService.findByAnalysisType(analysisType);
         return ResponseEntity.ok(results);
     }
@@ -173,6 +193,9 @@ public class AiAnalysisResultController {
         @Parameter(description = "직접 지원자의 job_candidate_id", required = true, example = "1")
         @PathVariable Long jobCandidateId) {
         
+        if (!aiAccessService.canAccessJobCandidate(jobCandidateId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         List<AiAnalysisResult> results = aiAnalysisResultService.findByJobCandidateIdAndAnalysisType(jobCandidateId, "portfolio");
         if (results.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -191,6 +214,10 @@ public class AiAnalysisResultController {
         @Parameter(description = "AI 분석 결과 ID", required = true, example = "1")
         @PathVariable Long analysisId) {
         
+        var analysis = aiAnalysisResultService.findById(analysisId);
+        if (analysis.isEmpty() || !aiAccessService.isCompanyAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         boolean deleted = aiAnalysisResultService.deleteById(analysisId);
         if (deleted) {
             return ResponseEntity.ok().build();
