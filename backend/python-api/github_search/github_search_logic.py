@@ -490,6 +490,25 @@ def analyze_candidate_with_prompt(candidate, details, ideal_candidate=None, lang
         if source in {"repo", "top_repos"}:
             return reference.isdigit() and 0 <= int(reference) < len(safe_details["top_repos"])
         return False
+
+    def observed_evidence(source, reference):
+        """Return the exact non-PII snapshot value behind an evidence ref."""
+        reference = str(reference or "").strip()
+        if source == "languages" and reference in safe_details["languages"]:
+            return reference
+        if source == "skills_analysis" and reference in safe_details["skills_analysis"]:
+            return safe_details["skills_analysis"].get(reference)
+        if source == "contribution_stats" and reference in safe_details["contribution_stats"]:
+            return safe_details["contribution_stats"].get(reference)
+        if source == "recent_events" and reference.isdigit():
+            index = int(reference)
+            if 0 <= index < len(safe_details["recent_events"]):
+                return safe_details["recent_events"][index]
+        if source in {"repo", "top_repos"} and reference.isdigit():
+            index = int(reference)
+            if 0 <= index < len(safe_details["top_repos"]):
+                return safe_details["top_repos"][index]
+        return None
     language_instruction = {
         "en": "Write all human-readable values such as summary, claims, strengths, gaps, risks, roles, growth_signal, verification_plan, and fairness_guard status in English.",
         "ko": "summary, claims, strengths, gaps, risks, roles, growth_signal, verification_plan, fairness_guard status 등 사람이 읽는 값은 모두 한국어로 작성하세요.",
@@ -584,6 +603,7 @@ JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므
                     "source": source,
                     "evidence_ref": evidence_ref,
                     "claim": str(evidence_item.get("claim", "확인된 근거 없음")),
+                    "observed_value": observed_evidence(source, evidence_ref) if grounded else None,
                     "verification_state": "grounded" if grounded else "needs_verification",
                     "confidence": round(max(0.0, min(1.0, confidence if grounded else confidence * 0.25)), 2),
                 })

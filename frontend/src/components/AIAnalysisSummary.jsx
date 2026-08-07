@@ -63,6 +63,11 @@ function EvidenceBlock({ evidence, copy }) {
               </span>
             </div>
             {item.quote && <div className="mt-1 text-gray-500">“{item.quote}”</div>}
+            {item.observed_value !== undefined && item.observed_value !== null && (
+              <div className="mt-1 rounded-md bg-slate-50 px-2 py-1 font-mono text-[11px] text-slate-500">
+                {typeof item.observed_value === 'string' ? item.observed_value : JSON.stringify(item.observed_value)}
+              </div>
+            )}
             {item.evidence_id && <div className="mt-1 font-mono text-[10px] text-gray-400">근거 ID {item.evidence_id}</div>}
           </div>
         ))}
