@@ -13,7 +13,15 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
-client = openai.OpenAI(api_key=OPENAI_API_KEY)
+client = None
+
+def get_openai_client():
+    global client
+    if client is None:
+        if not OPENAI_API_KEY:
+            raise RuntimeError("OPENAI_API_KEY is not configured")
+        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+    return client
 
 app = FastAPI()
 ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",") if origin.strip()]
@@ -44,7 +52,7 @@ class InterviewQuestionsResponse(BaseModel):
 def call_openai_chat(messages, max_tokens=800, temperature=0.3):
     """OpenAI API 호출 함수"""
     try:
-        response = client.chat.completions.create(
+        response = get_openai_client().chat.completions.create(
             model=OPENAI_MODEL,
             messages=messages,
             max_tokens=max_tokens,
@@ -108,7 +116,7 @@ def generate_interview_questions(post_title: str, post_description: str,
 """
 
     try:
-        response = client.chat.completions.create(
+        response = get_openai_client().chat.completions.create(
             model=OPENAI_MODEL,
             messages=[
                 {"role": "system", "content": "당신은 전문적인 AI 면접관입니다. 채용 공고 정보를 분석하여 적합한 면접 질문을 생성해주세요."},
@@ -197,7 +205,7 @@ def generate_preparation_questions(post_title: str, post_description: str,
 """
 
     try:
-        response = client.chat.completions.create(
+        response = get_openai_client().chat.completions.create(
             model=OPENAI_MODEL,
             messages=[
                 {"role": "system", "content": "당신은 면접 준비를 도와주는 AI 코치입니다. 지원자가 면접을 준비할 수 있도록 일반적이고 예상 가능한 질문을 생성해주세요."},
@@ -257,7 +265,7 @@ async def generate_questions_endpoint(
         print(f"면접 질문 생성 오류: {e}")
         return InterviewQuestionsResponse(
             success=False,
-            error=f"질문 생성 중 오류가 발생했습니다: {e}"
+            error="맞춤 질문 생성에 실패했습니다. 입력 정보와 AI 서비스 상태를 확인한 뒤 다시 시도해주세요."
         )
 
 @app.post("/generate-preparation-questions", response_model=InterviewQuestionsResponse)
@@ -333,7 +341,7 @@ async def generate_preparation_questions_endpoint(
         print(f"❌ 스택 트레이스: {traceback.format_exc()}")
         return InterviewQuestionsResponse(
             success=False,
-            error=f"예상질문 생성 중 오류가 발생했습니다: {e}"
+            error="예상 질문 생성에 실패했습니다. 입력 정보와 AI 서비스 상태를 확인한 뒤 다시 시도해주세요."
         )
 
 @app.get("/health")

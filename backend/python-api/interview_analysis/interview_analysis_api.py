@@ -18,6 +18,7 @@ import yt_dlp
 # .env에서 API 키 로드
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 SPRING_API_URL = os.getenv("SPRING_API_URL", "http://localhost:8081")
 ZOOP_INTERNAL_API_KEY = os.getenv("ZOOP_INTERNAL_API_KEY", "")
 
@@ -132,7 +133,7 @@ def extract_audio_from_video(video_path: str) -> str:
 def analyze_interview_responses(transcripts: List[str], questions: List[str], post_title: str = "", post_description: str = "", ideal_candidate: str = "") -> dict:
     """OpenAI를 사용하여 면접 답변 분석 (공고/인재상 정보 포함, 구조화된 JSON 반환)"""
     combined_transcript = "\n\n".join([
-        f"질문 {i+1}: {questions[i]}\n답변: {transcript}"
+        f"질문 {i+1}: {questions[i] if i < len(questions) else '질문 정보 없음'}\n답변: {transcript}"
         for i, transcript in enumerate(transcripts)
     ])
     
@@ -197,7 +198,7 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
 
     try:
         response = get_openai_client().chat.completions.create(
-            model="gpt-4o-mini",
+            model=OPENAI_MODEL,
             messages=[
                 {"role": "system", "content": "당신은 헤드헌터이자 면접 전문가입니다. 반드시 위 JSON 포맷만 출력하세요."},
                 {"role": "user", "content": prompt}
@@ -287,7 +288,7 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                         "tags": ["근거 부족"],
                     })
             analysis_data["categories"] = normalized_categories
-            score = sum(category["score"] for category in normalized_categories)
+            score = min(100.0, sum(category["score"] for category in normalized_categories))
             analysis_data.setdefault("total_feedback", {})
             analysis_data["total_feedback"].setdefault("limitations", ["영상의 표정·목소리만으로 성격이나 잠재력을 단정하지 않습니다.", "AI 분석만으로 최종 채용 결정을 내릴 수 없습니다."])
             labels = [category["name"] for category in normalized_categories]
@@ -379,6 +380,7 @@ def update_analysis_status(schedule_id: int, status: str):
         response = requests.put(
             f"{SPRING_API_URL}/api/interview-schedules/{schedule_id}/analysis-status",
             params={"status": status},
+            headers=spring_headers(),
             timeout=10
         )
         if response.status_code == 200:
@@ -404,6 +406,7 @@ async def analyze_interview(
         # 1. Spring API에서 해당 면접의 영상 정보 조회
         videos_response = requests.get(
             f"{SPRING_API_URL}/api/interview-videos/schedule/{schedule_id}",
+            headers=spring_headers(),
             timeout=30
         )
         
@@ -490,7 +493,7 @@ async def analyze_interview(
         print(f"Interview analysis error: {e}")
         return InterviewAnalysisResponse(
             success=False,
-            error=f"분석 중 오류가 발생했습니다: {str(e)}"
+            error="면접 분석을 완료하지 못했습니다. 영상과 AI 서비스 상태를 확인한 뒤 다시 시도해주세요."
         )
 
 @app.post("/analyze-video", response_model=InterviewAnalysisResponse)
@@ -502,6 +505,7 @@ async def analyze_single_video(video_id: int = Form(...)):
         # 1. Spring API에서 해당 영상 정보 조회
         video_response = requests.get(
             f"{SPRING_API_URL}/api/interview-videos/{video_id}",
+            headers=spring_headers(),
             timeout=30
         )
         
@@ -565,7 +569,7 @@ async def analyze_single_video(video_id: int = Form(...)):
         print(f"Single video analysis error: {e}")
         return InterviewAnalysisResponse(
             success=False,
-            error=f"분석 중 오류가 발생했습니다: {str(e)}"
+            error="개별 영상 분석을 완료하지 못했습니다. 영상을 확인한 뒤 다시 시도해주세요."
         )
 
 def analyze_single_video_response(transcript: str, question: str) -> dict:
@@ -582,7 +586,7 @@ def auto_analyze_pending():
     while True:
         try:
             print(f"[AUTO] PENDING 면접 스케줄 확인 중... (URL: {SPRING_API_URL}/api/interview-schedules/pending)")
-            response = requests.get(f"{SPRING_API_URL}/api/interview-schedules/pending")
+            response = requests.get(f"{SPRING_API_URL}/api/interview-schedules/pending", headers=spring_headers(), timeout=10)
             print(f"[AUTO] 응답 상태 코드: {response.status_code}")
             
             if response.status_code != 200:
@@ -605,6 +609,7 @@ def auto_analyze_pending():
                     try:
                         progress_response = requests.get(
                             f"{SPRING_API_URL}/api/job-cand-progress/{job_candidate_id}",
+                            headers=spring_headers(),
                             timeout=10
                         )
                         if progress_response.status_code == 200:
