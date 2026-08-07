@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -171,6 +172,27 @@ public class CandidateController {
             log.error("후보자 조회 중 오류 발생: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "후보자 조회 중 오류가 발생했습니다."));
+        }
+    }
+
+    @PutMapping("/{candidateId}/profile")
+    public ResponseEntity<?> updateProfile(@PathVariable Long candidateId, @RequestBody Map<String, String> request) {
+        try {
+            Candidate updated = candidateService.updateProfile(
+                    candidateId, request.get("candidateName"), request.get("candidateEmail"));
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{candidateId}/password")
+    public ResponseEntity<?> changePassword(@PathVariable Long candidateId, @RequestBody Map<String, String> request) {
+        try {
+            candidateService.changePassword(candidateId, request.get("currentPassword"), request.get("newPassword"));
+            return ResponseEntity.ok(Map.of("message", "비밀번호가 변경되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 

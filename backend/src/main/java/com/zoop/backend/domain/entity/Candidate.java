@@ -15,6 +15,7 @@ import jakarta.persistence.GenerationType; // java.util.Date 클래스 임포트
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,6 +41,7 @@ public class Candidate {
     private String candidateEmail;
  
     @Column(name = "CANDIDATE_PASSWORD", nullable = false) // VARCHAR2(255), NOT NULL (해시된 비밀번호 저장용)
+    @JsonIgnore
     private String candidatePassword;
  
     @Column(name = "CANDIDATE_NAME") // VARCHAR2(255), nullable=true (기본값)

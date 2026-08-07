@@ -136,6 +136,38 @@ public class CandidateService {
         }
     }
 
+    @Transactional
+    public Candidate updateProfile(Long candidateId, String candidateName, String candidateEmail) {
+        Candidate candidate = candidateRepository.findById(candidateId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        if (candidateEmail == null || !candidateEmail.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            throw new IllegalArgumentException("유효한 이메일을 입력해 주세요.");
+        }
+        Optional<Candidate> emailOwner = candidateRepository.findByCandidateEmail(candidateEmail);
+        if (emailOwner.isPresent() && !candidateId.equals(emailOwner.get().getCandidateId())) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+        candidate.setCandidateName(candidateName == null ? "" : candidateName.trim());
+        candidate.setCandidateEmail(candidateEmail.trim());
+        candidate.setCandidateUpdatedAt(java.time.LocalDateTime.now());
+        return candidateRepository.save(candidate);
+    }
+
+    @Transactional
+    public void changePassword(Long candidateId, String currentPassword, String newPassword) {
+        Candidate candidate = candidateRepository.findById(candidateId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        if (newPassword == null || newPassword.length() < 8) {
+            throw new IllegalArgumentException("새 비밀번호는 8자 이상이어야 합니다.");
+        }
+        if (currentPassword == null || !passwordEncoder.matches(currentPassword, candidate.getCandidatePassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+        candidate.setCandidatePassword(passwordEncoder.encode(newPassword));
+        candidate.setCandidateUpdatedAt(java.time.LocalDateTime.now());
+        candidateRepository.save(candidate);
+    }
+
     @Transactional(readOnly = true)
     public CandidatePreferencesDto getPreferences(Long candidateId) {
         try {

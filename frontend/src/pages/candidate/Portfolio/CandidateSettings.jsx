@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Navbar from '../../../components/Navbar';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../../context/AuthContext';
+import { apiUrl } from '../../../api/config';
 
 export default function CandidateSettings() {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
 
   // 내 정보 폼 상태
   const [profileForm, setProfileForm] = useState({
@@ -38,23 +38,27 @@ export default function CandidateSettings() {
   const { authState } = useAuth();
 
   useEffect(() => {
+    if (authState.userId) {
+      try {
+        const saved = localStorage.getItem(`zoop_candidate_notifications_${authState.userId}`);
+        if (saved) setNotificationSettings(prev => ({ ...prev, ...JSON.parse(saved) }));
+      } catch (_) {
+        // Ignore malformed local preferences and keep safe defaults.
+      }
+    }
     // userId가 있으면 사용자 정보 불러오기
     const fetchProfile = async () => {
       if (!authState.userId) return;
       setLoading(true);
       try {
-        const res = await fetch(`/api/candidates/${authState.userId}`);
-        console.log('profile res:', res);
+        const res = await fetch(apiUrl(`/api/candidates/${authState.userId}`));
         if (res.ok) {
           const data = await res.json();
-          console.log('profile data:', data);
           setProfileForm({
             candidateName: data.candidateName || '',
             candidateEmail: data.candidateEmail || '',
             nickname: data.githubLogin || ''
           });
-        } else {
-          console.log('profile fetch failed:', res.status);
         }
       } catch (e) {
         console.error('profile fetch error:', e);
@@ -98,10 +102,16 @@ export default function CandidateSettings() {
   const handleProfileSave = async () => {
     setSaving(true);
     try {
-      // TODO: API 연동
-      alert('내 정보가 저장되었습니다.');
+      const res = await fetch(apiUrl(`/api/candidates/${authState.userId}/profile`), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ candidateName: profileForm.candidateName, candidateEmail: profileForm.candidateEmail })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || '프로필 저장에 실패했습니다.');
+      setStatusMessage('내 정보가 저장되었습니다.');
     } catch (e) {
-      alert('내 정보 저장 중 오류가 발생했습니다.');
+      setStatusMessage(e.message || '내 정보 저장 중 오류가 발생했습니다.');
     } finally {
       setSaving(false);
     }
@@ -119,12 +129,18 @@ export default function CandidateSettings() {
     }
     setSaving(true);
     try {
-      // TODO: API 연동
-      alert('비밀번호가 성공적으로 변경되었습니다.');
+      const res = await fetch(apiUrl(`/api/candidates/${authState.userId}/password`), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword: passwordForm.currentPassword, newPassword: passwordForm.newPassword })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || '비밀번호 변경에 실패했습니다.');
+      setStatusMessage('비밀번호가 성공적으로 변경되었습니다.');
       setShowPasswordModal(false);
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (e) {
-      alert('비밀번호 변경 중 오류가 발생했습니다.');
+      setStatusMessage(e.message || '비밀번호 변경 중 오류가 발생했습니다.');
     } finally {
       setSaving(false);
     }
@@ -134,10 +150,10 @@ export default function CandidateSettings() {
   const handleNotificationSave = async () => {
     setSaving(true);
     try {
-      // TODO: API 연동
-      alert('알림 설정이 저장되었습니다.');
+      localStorage.setItem(`zoop_candidate_notifications_${authState.userId}`, JSON.stringify(notificationSettings));
+      setStatusMessage('알림 설정이 이 브라우저에 저장되었습니다.');
     } catch (e) {
-      alert('알림 설정 저장 중 오류가 발생했습니다.');
+      setStatusMessage('알림 설정 저장 중 오류가 발생했습니다.');
     } finally {
       setSaving(false);
     }
@@ -145,19 +161,7 @@ export default function CandidateSettings() {
 
   // 계정 삭제
   const handleAccountDelete = async () => {
-    const confirmed = window.confirm('정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.');
-    if (!confirmed) return;
-    setSaving(true);
-    try {
-      // TODO: API 연동
-      alert('계정이 성공적으로 삭제되었습니다.');
-      localStorage.clear();
-      navigate('/');
-    } catch (e) {
-      alert('계정 삭제 중 오류가 발생했습니다.');
-    } finally {
-      setSaving(false);
-    }
+    setStatusMessage('계정 삭제는 데이터 보존 정책 확인 후 고객센터를 통해 요청해 주세요.');
   };
 
   const TabButton = ({ id, label, icon }) => (
@@ -331,6 +335,11 @@ export default function CandidateSettings() {
           <p style={{ fontSize: '1.1rem', color: '#4a5568', fontWeight: '500' }}>
             개인 계정과 관련된 모든 설정을 관리하세요
           </p>
+          {statusMessage && (
+            <div role="status" style={{ margin: '1rem auto 0', maxWidth: 620, padding: '0.75rem 1rem', borderRadius: 10, background: '#ecfdf5', color: '#047857', fontWeight: 600 }}>
+              {statusMessage}
+            </div>
+          )}
         </div>
 
         <div style={{
@@ -714,4 +723,4 @@ export default function CandidateSettings() {
       `}</style>
     </div>
   );
-} 
+}
