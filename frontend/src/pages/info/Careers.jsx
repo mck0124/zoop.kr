@@ -22,6 +22,7 @@ const LOCATIONS = [
 function Careers() {
   const [postings, setPostings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [selectedPost, setSelectedPost] = useState(null);
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -77,14 +78,20 @@ function Careers() {
   }, [videoPhase]);
 
   const fetchPublicPostings = async () => {
+    setLoading(true);
+    setLoadError('');
     try {
       const res = await fetch(apiUrl('/api/postings/public'));
       if (res.ok) {
         const data = await res.json();
         setPostings(data.map(p => ({ ...p, companyName: p.companyName || 'ZOOP' })));
-      } else setPostings([]);
+      } else {
+        setPostings([]);
+        setLoadError('채용 공고를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      }
     } catch {
       setPostings([]);
+      setLoadError('채용 서버와 연결되지 않았습니다. 네트워크를 확인한 뒤 다시 시도해 주세요.');
     } finally {
       setLoading(false);
     }
@@ -267,6 +274,13 @@ function Careers() {
               <div className="loading-container">
                 <div className="loading-spinner" />
                 <p>채용 공고를 불러오는 중...</p>
+              </div>
+            ) : loadError ? (
+              <div className="no-jobs" role="alert" style={{ display: 'grid', gap: 12, justifyItems: 'center' }}>
+                <span>{loadError}</span>
+                <button type="button" onClick={fetchPublicPostings} style={{ border: '1px solid #30c59b', borderRadius: 999, padding: '9px 16px', background: '#ecfdf5', color: '#087f5b', fontWeight: 700, cursor: 'pointer' }}>
+                  다시 불러오기
+                </button>
               </div>
             ) : currentPosts.length === 0 ? (
               <div className="no-jobs">조건에 맞는 채용 공고가 없습니다.</div>
