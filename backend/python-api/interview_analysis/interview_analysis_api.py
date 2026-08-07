@@ -260,20 +260,32 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                         confidence = float(item.get("confidence", 0) or 0)
                     except (TypeError, ValueError):
                         confidence = 0.0
-                    if quote and not _quote_is_in_answer(quote, answer_index, transcripts):
+                    quote_verified = bool(quote) and _quote_is_in_answer(quote, answer_index, transcripts)
+                    if quote and not quote_verified:
                         source = "unverified"
                         confidence *= 0.5
                     if source == "answer" and answer_index is None:
                         source = "unverified"
                         confidence *= 0.5
+                    if source not in {"answer", "question", "missing", "unverified"}:
+                        source = "unverified"
+                    verification_state = "grounded" if source == "answer" and quote_verified else "context_only" if source == "question" else "needs_verification"
                     normalized_evidence.append({
                         "source": source,
                         "answer_index": answer_index,
                         "quote": quote,
                         "claim": claim,
                         "confidence": max(0.0, min(1.0, confidence)),
+                        "verification_state": verification_state,
                     })
                 category["evidence"] = normalized_evidence or [{"source": "missing", "answer_index": None, "quote": "", "claim": "확인된 근거 없음", "confidence": 0.0}]
+                grounded_evidence = [item for item in category["evidence"] if item.get("verification_state") == "grounded"]
+                evidence_support = round(sum(item["confidence"] for item in grounded_evidence) / max(1, len(grounded_evidence)), 2)
+                support_factor = round(0.4 + (0.6 * evidence_support), 2) if grounded_evidence else 0.0
+                category["model_score"] = normalized_score
+                category["evidence_support"] = evidence_support
+                category["support_factor"] = support_factor
+                category["score"] = round(normalized_score * support_factor, 2)
                 try:
                     category["confidence"] = max(0.0, min(1.0, float(category.get("confidence", 0) or 0)))
                 except (TypeError, ValueError):
@@ -312,9 +324,10 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
             analysis_data["categories"] = normalized_categories
             score = min(100.0, sum(category["score"] for category in normalized_categories))
             analysis_data["score_calibration"] = {
-                "method": "fixed_interview_rubric_v1",
-                "description": "면접 평가 차원은 고정된 100점 루브릭으로 중복 항목을 제거해 계산합니다.",
+                "method": "evidence_weighted_interview_rubric_v1",
+                "description": "고정된 100점 루브릭에서 실제 답변 인용이 검증된 항목만 근거 확신도에 따라 반영합니다.",
                 "max_score": sum(maximum for _, maximum in expected_categories),
+                "model_score": round(sum(category.get("model_score", 0) for category in normalized_categories), 2),
                 "calibrated_score": score,
             }
             analysis_data.setdefault("total_feedback", {})
