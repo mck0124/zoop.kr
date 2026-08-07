@@ -85,7 +85,6 @@ export default function Index() {
   const { language } = useLanguage();
   const copy = HOME_COPY[language] || HOME_COPY.en;
   const ledgerDemo = LEDGER_DEMO_COPY[language] || LEDGER_DEMO_COPY.en;
-  const [mountTime] = useState(() => performance.now());
   const [demoView, setDemoView] = useState('evidence');
   const [demoValidated, setDemoValidated] = useState(false);
 
@@ -129,20 +128,29 @@ export default function Index() {
     };
   }, []);
 
-  // 항상 일정 간격/개수로 파장 렌더링
+  // 한 번의 프레임 루프에서 두 애니메이션 상태를 함께 갱신한다.
+  // 매 프레임마다 React를 다시 그리지 않도록 30fps로 제한하고,
+  // 사용자가 모션 감소를 요청한 경우 애니메이션을 생략한다.
   const [tick, setTick] = useState(0);
+  const [angle, setAngle] = useState(0);
   useEffect(() => {
-    let rafId;
-    function animate() {
-      const elapsed = (performance.now() - mountTime) / (1000 / 60);
-      setTick(elapsed);
-      rafId = requestAnimationFrame(animate);
-    }
-    rafId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(rafId);
-  }, [mountTime]);
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined;
 
-  // 파장은 무한히 증가하는 mainR 기준, 끊김 없음!
+    let animationFrame;
+    let lastPaint = 0;
+    const animate = (timestamp) => {
+      if (timestamp - lastPaint >= 1000 / 30) {
+        setTick(timestamp / (1000 / 60));
+        setAngle(timestamp * 0.00012);
+        lastPaint = timestamp;
+      }
+      animationFrame = requestAnimationFrame(animate);
+    };
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, []);
+
+  // 파장은 무한히 증가하는 mainR 기준으로 계산한다.
   const waveCycle = MAX_R - MIN_R + WAVE_DISTANCE;
   const mainR = MIN_R + ((tick * WAVE_SPEED) % waveCycle);
   const waves = [];
@@ -151,18 +159,6 @@ export default function Index() {
     if (r < MIN_R) r += waveCycle;
     waves.push({ r, idx: i });
   }
-
-  // 사선 회전 angle
-  const [angle, setAngle] = useState(0);
-  useEffect(() => {
-    let rafId;
-    function animateLine() {
-      setAngle(a => a + 0.002);
-      rafId = requestAnimationFrame(animateLine);
-    }
-    rafId = requestAnimationFrame(animateLine);
-    return () => cancelAnimationFrame(rafId);
-  }, []);
 
   const getOpacity = r => {
     const t = (r - MIN_R) / (MAX_R - MIN_R);
@@ -175,7 +171,7 @@ export default function Index() {
 
       {/* 메인 배너 */}
       <section className="hero-section">
-        <img src="/zoop_main_banner.png" alt="banner" className="hero-image" />
+        <img src="/zoop_main_banner.png" alt="ZOOP AI recruiting platform" className="hero-image" />
         <div className="hero-text">
           <h1>{copy.hero}</h1>
           <div className="cta-actions" aria-label="Choose your account type">
@@ -250,7 +246,7 @@ export default function Index() {
               <span className={demoValidated ? 'ledger-demo-status verified' : 'ledger-demo-status'}>{demoValidated ? copy.verified : copy.review}</span>
             </div>
             <div className="ledger-demo-copy">
-              <span className="ledger-demo-label">{LEDGER_DEMO[demoView].label}</span>
+              <span className="ledger-demo-label">{ledgerDemo[demoView].label}</span>
               <h3>{ledgerDemo[demoView].title}</h3>
               <p>{ledgerDemo[demoView].body}</p>
               <code>{ledgerDemo[demoView].meta}</code>
@@ -327,7 +323,8 @@ export default function Index() {
           <div className="radar-center-content">
             <img
               src="/index/index_1.png"
-              alt="사람"
+              alt=""
+              aria-hidden="true"
               style={{
                 width: 74,
                 display: "block",
@@ -348,9 +345,9 @@ export default function Index() {
             </div>
           </div>
           {/* 네 귀퉁이 아이콘 (사이즈 업) */}
-          <img src="/index/index_2.png" alt="mail" className="radar-icon radar-icon-topright" style={{ width: 75, height: 75 }}/>
-          <img src="/index/index_3.png" alt="building" className="radar-icon radar-icon-bottomleft" style={{ width: 63, height: 63 }}/>
-          <img src="/index/index_4.png" alt="zoop-card" className="radar-icon radar-icon-bottomright" style={{ width: 83, height: 83 }}/>
+          <img src="/index/index_2.png" alt="" aria-hidden="true" className="radar-icon radar-icon-topright" style={{ width: 75, height: 75 }}/>
+          <img src="/index/index_3.png" alt="" aria-hidden="true" className="radar-icon radar-icon-bottomleft" style={{ width: 63, height: 63 }}/>
+          <img src="/index/index_4.png" alt="" aria-hidden="true" className="radar-icon radar-icon-bottomright" style={{ width: 83, height: 83 }}/>
         </div>
       </section>
 

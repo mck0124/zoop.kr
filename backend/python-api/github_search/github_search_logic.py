@@ -173,7 +173,11 @@ def calc_similarity(ideal, text):
 def enhanced_search_github_candidates(filters, post_id=None):
     locations = expand_locations(filters)
     email_results = []
-    headcount = getattr(filters, 'headcount', 5)
+    # Optional 입력이 비어 있어도 검색 루프가 깨지지 않도록 경계를 고정한다.
+    try:
+        headcount = max(1, min(50, int(getattr(filters, 'headcount', 5) or 5)))
+    except (TypeError, ValueError):
+        headcount = 5
     ideal = getattr(filters, 'idealCandidate', None)
     for location in locations:
         for language in filters.languages:
@@ -217,7 +221,7 @@ def enhanced_search_github_candidates(filters, post_id=None):
                             "public_repos": public_repos
                         }
                         try:
-                            analysis = analyze_candidate_with_prompt(candidate_obj, details)
+                            analysis = analyze_candidate_with_prompt(candidate_obj, details, ideal_candidate=ideal)
                         except Exception as e:
                             print(f"[WARN] 후보자 분석 실패로 결과에서 제외: {login} - {e}")
                             continue
@@ -455,7 +459,7 @@ def get_github_candidate_details(username):
         print(f"[Error fetching details for {username}] {e}")
     return details
 
-def analyze_candidate_with_prompt(candidate, details):
+def analyze_candidate_with_prompt(candidate, details, ideal_candidate=None):
     """GitHub 공개 신호를 설명 가능한 구조화 평가로 변환한다."""
     safe_details = {
         "followers": candidate.get("followers"),
@@ -487,6 +491,9 @@ def analyze_candidate_with_prompt(candidate, details):
         return False
     prompt = f"""
 아래 GitHub 공개 데이터만으로 개발자 후보자를 평가하세요.
+<job_requirements>
+{str(ideal_candidate or '구체적인 인재상 정보가 제공되지 않음')[:4000]}
+</job_requirements>
 <github_public_snapshot>
 {json.dumps(safe_details, ensure_ascii=False, default=str)[:18000]}
 </github_public_snapshot>
@@ -495,6 +502,7 @@ def analyze_candidate_with_prompt(candidate, details):
 - 이름, 이메일, 위치, 회사, 사진, 성별, 나이 등 직무와 무관한 개인정보는 평가에서 제외하세요.
 - 값이 '확인 불가' 또는 null이면 점수를 추정하지 말고 gaps에 기록하세요.
 - 별 수, 저장소 수 같은 공개 신호만으로 실력·성격을 단정하지 말고 evidence에 한계를 적으세요.
+- 위 인재상과 직접 연결되는 공개 기술·프로젝트 신호를 우선 평가하고, 연결되지 않는 신호는 점수에 과도하게 반영하지 마세요.
 - 모든 claim은 위 데이터의 구체적 필드에 근거해야 합니다.
 
     evidence.source는 반드시 다음 중 하나만 사용하세요: languages, skills_analysis, repo, top_repos, recent_events, contribution_stats.
@@ -628,6 +636,7 @@ def analyze_candidate_with_prompt(candidate, details):
                 "policy_version": "grounded-hiring-v1",
                 "model": OPENAI_MODEL,
                 "source_type": "public_github_snapshot",
+                "job_requirements_fingerprint": hashlib.sha256(str(ideal_candidate or "").encode("utf-8")).hexdigest()[:12],
                 "source_fingerprint": hashlib.sha256(json.dumps(safe_details, ensure_ascii=False, default=str, sort_keys=True).encode("utf-8")).hexdigest()[:20],
                 "evidence_count": len(grounded),
                 "generated_at": datetime.now(timezone.utc).isoformat(),

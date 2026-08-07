@@ -5,6 +5,7 @@ test('renders the ZOOP recruiting landing page', () => {
   window.localStorage.clear();
   render(<App />);
   expect(screen.getByText(/Everything hiring needs/)).toBeInTheDocument();
+  expect(screen.getByRole('tab', { name: 'Verified evidence' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: '챗봇 열기' })).toBeInTheDocument();
 });
 
