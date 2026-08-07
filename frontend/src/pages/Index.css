@@ -205,11 +205,93 @@ html, body {
 }
 .evidence-intro-footnote span { color: #1fb98b; margin-right: .35rem; }
 
+/* ===== Evidence Ledger 공개 체험 데모 ===== */
+.ledger-demo-section {
+  padding: 5rem 2rem 6.5rem;
+  background: #f7fffc;
+}
+.ledger-demo-heading,
+.ledger-demo-card {
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.ledger-demo-heading { margin-bottom: 2rem; }
+.ledger-demo-heading h2 {
+  margin: 1.2rem 0 .9rem;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1.18;
+  letter-spacing: -.06em;
+}
+.ledger-demo-heading h2 em { color: #20b889; font-style: normal; }
+.ledger-demo-heading p { max-width: 720px; margin: 0; color: #6b7975; line-height: 1.75; }
+.ledger-demo-card {
+  overflow: hidden;
+  border: 1px solid #cfece2;
+  border-radius: 1.75rem;
+  background: #fff;
+  box-shadow: 0 22px 55px rgba(22, 113, 84, .09);
+}
+.ledger-demo-tabs {
+  display: flex;
+  gap: .35rem;
+  padding: .75rem;
+  border-bottom: 1px solid #e4f3ee;
+  background: #fbfffd;
+}
+.ledger-demo-tabs button {
+  border: 0;
+  border-radius: .8rem;
+  padding: .75rem 1rem;
+  color: #658078;
+  background: transparent;
+  font-weight: 800;
+  cursor: pointer;
+}
+.ledger-demo-tabs button:hover,
+.ledger-demo-tabs button.active { color: #087d5a; background: #e7fbf4; }
+.ledger-demo-panel {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  gap: 2.5rem;
+  align-items: center;
+  padding: 2.5rem;
+}
+.ledger-demo-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .45rem;
+  padding: 1.25rem;
+  border-radius: 1.25rem;
+  background: #f5fbf8;
+  text-align: center;
+}
+.ledger-demo-score-label { color: #78938a; font-size: .75rem; font-weight: 800; letter-spacing: .08em; }
+.ledger-demo-score strong { color: #146c57; font-size: 3.2rem; line-height: 1; }
+.ledger-demo-score strong small { font-size: .9rem; color: #90aaa1; }
+.ledger-demo-status { padding: .4rem .65rem; border-radius: 999px; color: #3565a5; background: #edf4ff; font-size: .72rem; font-weight: 800; }
+.ledger-demo-status.verified { color: #087346; background: #dcfce9; }
+.ledger-demo-copy { min-width: 0; }
+.ledger-demo-label { color: #13a97a; font-size: .75rem; font-weight: 900; letter-spacing: .1em; }
+.ledger-demo-copy h3 { margin: .65rem 0 .75rem; font-size: 1.45rem; }
+.ledger-demo-copy p { margin: 0 0 1rem; color: #526c63; line-height: 1.75; }
+.ledger-demo-copy code { display: block; overflow-wrap: anywhere; color: #839890; font-size: .72rem; }
+.ledger-demo-action { margin-top: 1.3rem; border: 0; border-radius: 999px; padding: .75rem 1rem; color: #fff; background: #20b889; font-weight: 800; cursor: pointer; }
+.ledger-demo-action:hover { background: #149d73; }
+
 @media (max-width: 850px) {
   .evidence-flow { grid-template-columns: 1fr; max-width: 560px; }
   .evidence-flow-arrow { transform: rotate(90deg); justify-self: center; }
   .evidence-flow-card { min-height: 0; }
   .evidence-flow-card p { min-height: 0; }
+  .ledger-demo-panel { grid-template-columns: 1fr; gap: 1.5rem; padding: 1.5rem; }
+}
+
+@media (max-width: 520px) {
+  .ledger-demo-section { padding-left: 1rem; padding-right: 1rem; }
+  .ledger-demo-tabs { overflow-x: auto; }
+  .ledger-demo-tabs button { white-space: nowrap; font-size: .82rem; }
 }
 
 @media (max-width: 900px) {

@@ -14,9 +14,32 @@ const WAVE_SPEED = 1.07;
 const WAVE_DISTANCE = 160;
 const WAVE_STROKE = 2.1;
 
+const LEDGER_DEMO = {
+  evidence: {
+    label: '근거 원문',
+    title: 'AI가 읽은 문장과 판단을 연결합니다',
+    body: '“장애율을 낮추기 위해 재시도 큐와 멱등성 키를 도입했습니다.”',
+    meta: 'EVID-7A31 · portfolio · 후보자 원문 확인',
+  },
+  gaps: {
+    label: '확인할 빈틈',
+    title: '모르는 것을 아는 척하지 않습니다',
+    body: '실제 본인 기여도와 운영 환경의 정량적 결과는 제출물만으로 확인할 수 없습니다.',
+    meta: '검토 보류 · 다음 질문으로 연결',
+  },
+  counterfactual: {
+    label: '판단 변경 실험',
+    title: '어떤 증거가 판단을 바꾸는지 보여줍니다',
+    body: '대표 프로젝트의 장애 대응 로그와 본인 기여를 확인하면 예상 점수가 달라집니다.',
+    meta: '검증 행동 · 결정 영수증에 기록',
+  },
+};
+
 export default function Index() {
   const navigate = useNavigate();
   const [mountTime] = useState(() => performance.now());
+  const [demoView, setDemoView] = useState('evidence');
+  const [demoValidated, setDemoValidated] = useState(false);
 
   // subtitle fade-in - 확실한 스크롤 효과
   useEffect(() => {
@@ -159,6 +182,49 @@ export default function Index() {
         </div>
         <div className="evidence-intro-footnote">
           <span aria-hidden="true">✦</span> 직무와 무관한 개인정보는 평가에서 제외합니다 · 모든 AI 판단은 저장 가능한 결정 영수증으로 남습니다
+        </div>
+      </section>
+
+      {/* 로그인 없이도 핵심 AI 차별점을 체험하는 공개 데모 */}
+      <section className="ledger-demo-section" aria-labelledby="ledger-demo-title">
+        <div className="ledger-demo-heading">
+          <span className="evidence-kicker">TRY THE LEDGER</span>
+          <h2 id="ledger-demo-title">점수 하나가 아니라,<br /><em>판단의 과정</em>을 보여드립니다.</h2>
+          <p>아래는 기능을 설명하기 위한 샘플입니다. 실제 후보자를 평가하지 않으며, ZOOP의 AI가 어떻게 근거와 불확실성을 함께 다루는지 보여줍니다.</p>
+        </div>
+        <div className="ledger-demo-card">
+          <div className="ledger-demo-tabs" role="tablist" aria-label="Evidence Ledger 샘플 보기">
+            {Object.entries(LEDGER_DEMO).map(([key, item]) => (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={demoView === key}
+                className={demoView === key ? 'active' : ''}
+                key={key}
+                onClick={() => setDemoView(key)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <div className="ledger-demo-panel" role="tabpanel">
+            <div className="ledger-demo-score">
+              <span className="ledger-demo-score-label">샘플 판단</span>
+              <strong>{demoValidated ? '82' : '72'}<small>/100</small></strong>
+              <span className={demoValidated ? 'ledger-demo-status verified' : 'ledger-demo-status'}>{demoValidated ? '검증 후 상향' : '검토 권장'}</span>
+            </div>
+            <div className="ledger-demo-copy">
+              <span className="ledger-demo-label">{LEDGER_DEMO[demoView].label}</span>
+              <h3>{LEDGER_DEMO[demoView].title}</h3>
+              <p>{LEDGER_DEMO[demoView].body}</p>
+              <code>{LEDGER_DEMO[demoView].meta}</code>
+              {demoView === 'counterfactual' && (
+                <button type="button" className="ledger-demo-action" onClick={() => setDemoValidated(value => !value)}>
+                  {demoValidated ? '검증 전 상태로 되돌리기' : '검증 완료를 시뮬레이션하기'}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 
