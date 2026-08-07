@@ -8,7 +8,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/portfolio-job-matches")
-@CrossOrigin(origins = "http://localhost:3000")
 @Slf4j
 public class PortfolioJobMatchController {
     
@@ -298,4 +296,4 @@ public class PortfolioJobMatchController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("매칭 단일 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
-} 
+}

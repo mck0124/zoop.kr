@@ -6,6 +6,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -21,6 +22,9 @@ public class GitHubCandidateClient {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @Value("${python.github.api.url:http://localhost:8000}")
+    private String githubApiUrl;
+
     public List<CandidateDto> getCandidates(FilterRequestDto dto) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -28,7 +32,7 @@ public class GitHubCandidateClient {
         HttpEntity<FilterRequestDto> request = new HttpEntity<>(dto, headers);
 
         ResponseEntity<CandidateResponse> response = restTemplate
-                .postForEntity("http://localhost:8001/search", request, CandidateResponse.class);
+                .postForEntity(githubApiUrl + "/search", request, CandidateResponse.class);
 
         return response.getBody() != null ? response.getBody().getCandidates() : List.of();
     }

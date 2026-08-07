@@ -70,14 +70,7 @@ public class CandidateService {
             // 비밀번호 암호화
             String encrypted = passwordEncoder.encode(candidate.getCandidatePassword());
             
-            // 비밀번호 암호화 전/후 로그 출력
-            logger.info("암호화 전 비밀번호: {}", candidate.getCandidatePassword());
-            logger.info("암호화된 비밀번호: {}", encrypted);
-            
             candidate.setCandidatePassword(encrypted);
-            
-            // 저장할 값 로그 출력
-            logger.info("저장할 값1 : {}", candidate);
             
             // 후보자 저장
             Candidate savedCandidate = candidateRepository.save(candidate);

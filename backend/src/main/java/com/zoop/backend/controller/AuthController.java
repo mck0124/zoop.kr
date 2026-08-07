@@ -85,10 +85,7 @@ public class AuthController {
             }
 
             // 2. 비밀번호 검증
-            System.out.println("🔐 기업회원 - raw password = " + password);
-            System.out.println("🔐 기업회원 - hashed password = " + admin.getPassword());
             boolean match = passwordEncoder.matches(password, admin.getPassword());
-            System.out.println("🔐 기업회원 - password match result = " + match);
 
 
             if (!match) {
@@ -124,10 +121,7 @@ public class AuthController {
             }
 
             // 2. 비밀번호 검증
-            System.out.println("🔐 개인회원 - raw password = " + password);
-            System.out.println("🔐 개인회원 - hashed password = " + candidate.getCandidatePassword());
             boolean match = passwordEncoder.matches(password, candidate.getCandidatePassword());
-             System.out.println("🔐 개인회원 - password match result = " + match);
 
 
             if (!match) {

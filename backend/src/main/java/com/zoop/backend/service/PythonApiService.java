@@ -50,18 +50,6 @@ public class PythonApiService {
             log.info("Python API 호출 시작: {}/generate-preparation-questions", pythonInterviewApiUrl);
             log.info("요청 파라미터 - postTitle: {}, programmingLanguage: {}", postTitle, programmingLanguage);
             
-            // 🔍 디버깅: 실제 전송되는 데이터 상세 로그
-            log.info("=== Python API 전송 데이터 상세 ===");
-            log.info("postTitle: '{}'", postTitle);
-            log.info("postDescription: '{}'", postDescription);
-            log.info("programmingLanguage: '{}'", programmingLanguage);
-            log.info("idealCandidate: '{}' (length: {})", idealCandidate, idealCandidate != null ? idealCandidate.length() : "null");
-            log.info("location: '{}' (length: {})", location, location != null ? location.length() : "null");
-            log.info("salaryRange: '{}'", salaryRange);
-            log.info("headcount: {}", headcount);
-            log.info("portfolioAnalysis: '{}' (length: {})", portfolioAnalysis, portfolioAnalysis != null ? portfolioAnalysis.length() : "null");
-            log.info("================================");
-            
             // Form 데이터 준비
             MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
             formData.add("post_title", postTitle != null ? postTitle : "");
@@ -72,13 +60,6 @@ public class PythonApiService {
             formData.add("salary_range", salaryRange != null ? salaryRange : "");
             formData.add("headcount", headcount != null ? String.valueOf(headcount) : "1");
             formData.add("portfolio_analysis", portfolioAnalysis != null ? portfolioAnalysis : "");
-
-            // 🔍 디버깅: 실제 전송되는 Form 데이터 로그
-            log.info("=== 실제 전송되는 Form 데이터 ===");
-            formData.forEach((key, values) -> {
-                log.info("{}: {}", key, values);
-            });
-            log.info("==============================");
 
             // HTTP 헤더 설정
             HttpHeaders headers = new HttpHeaders();

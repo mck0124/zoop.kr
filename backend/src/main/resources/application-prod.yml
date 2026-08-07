@@ -18,6 +18,9 @@ python:
   interview:
     api:
       url: ${PYTHON_INTERVIEW_API_URL}
+  github:
+    api:
+      url: ${PYTHON_GITHUB_API_URL}
 
 spring:
   datasource:
