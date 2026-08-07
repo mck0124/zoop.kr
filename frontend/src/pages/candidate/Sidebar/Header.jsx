@@ -1,7 +1,6 @@
 // c/pages/candidate/Header.jsx
 
 import React, { useEffect, useState, useRef } from 'react'; // useState와 useRef가 여기에 import 되어 있어야 합니다.
-import './Header.css';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 

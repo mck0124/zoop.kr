@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react';
-import './PortfolioNavbar.css';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { apiUrl } from '../../../api/config';

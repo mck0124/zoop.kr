@@ -1,6 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+// Load shared candidate navigation styles once in a deterministic order.
+import './pages/candidate/Portfolio/PortfolioNavbar.css';
+import './pages/candidate/Sidebar/Sidebar.css';
+import './pages/candidate/Sidebar/Header.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { AuthProvider } from './context/AuthContext';
