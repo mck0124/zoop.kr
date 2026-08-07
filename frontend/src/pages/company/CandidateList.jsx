@@ -2984,6 +2984,20 @@ const EvidenceTrustPanel = ({ candidate, analysisText }) => {
           ))}
         </div>
       )}
+      {structured?.score_calibration && (
+        <div style={{ marginTop: '12px', padding: '10px 12px', background: 'rgba(219, 234, 254, 0.12)', border: '1px solid rgba(191, 219, 254, 0.35)', borderRadius: '10px', fontSize: '0.8rem', color: '#dbeafe' }}>
+          <strong>근거 보정 점수</strong>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '5px' }}>
+            <span>모델 초안 {structured.score_calibration.model_score ?? '-'}점</span>
+            <span>검증 후 {structured.score_calibration.calibrated_score ?? structured.score ?? '-'}점</span>
+          </div>
+          {structured.score_calibration.uncalibrated_dimensions?.length > 0 && (
+            <div style={{ marginTop: '5px', color: '#fde68a' }}>
+              근거 부족 항목: {structured.score_calibration.uncalibrated_dimensions.join(', ')}
+            </div>
+          )}
+        </div>
+      )}
       <div style={{ marginTop: '14px', color: '#a7f3d0', fontSize: '0.78rem' }}>
         AI는 의사결정을 보조하며, 최종 채용 판단은 담당자가 원본 자료와 면접을 확인한 뒤 내려야 합니다.
       </div>

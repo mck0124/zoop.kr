@@ -567,13 +567,34 @@ def analyze_candidate_with_prompt(candidate, details):
                     "verification_state": "grounded" if grounded else "needs_verification",
                     "confidence": round(max(0.0, min(1.0, confidence if grounded else confidence * 0.25)), 2),
                 })
-            dimensions.append({"name": name, "score": score, "max": maximum, "evidence": evidence or [{"evidence_id": _evidence_id("github", name, "missing"), "source": "missing", "claim": "확인된 근거 없음", "verification_state": "needs_verification", "confidence": 0.0}]})
+            grounded_evidence = [item for item in evidence if item["verification_state"] == "grounded"]
+            evidence_support = round(
+                sum(item["confidence"] for item in grounded_evidence) / max(1, len(grounded_evidence)),
+                2,
+            )
+            # 공개 GitHub 데이터에서 실제로 확인된 근거가 있는 부분만 순위에
+            # 반영한다. 모델의 초안 점수는 보존하되, 근거가 없으면 채용 후보
+            # 정렬 점수에는 기여하지 않도록 한다.
+            support_factor = round(0.4 + (0.6 * evidence_support), 2) if grounded_evidence else 0.0
+            calibrated_score = round(score * support_factor, 2)
+            dimensions.append({
+                "name": name,
+                "score": calibrated_score,
+                "model_score": round(score, 2),
+                "max": maximum,
+                "evidence_support": evidence_support,
+                "support_factor": support_factor,
+                "evidence": evidence or [{"evidence_id": _evidence_id("github", name, "missing"), "source": "missing", "claim": "확인된 근거 없음", "verification_state": "needs_verification", "confidence": 0.0}],
+            })
         for name, maximum in max_scores.items():
             if name not in seen_dimension_names:
                 dimensions.append({
                     "name": name,
                     "score": 0.0,
+                    "model_score": 0.0,
                     "max": maximum,
+                    "evidence_support": 0.0,
+                    "support_factor": 0.0,
                     "evidence": [{"evidence_id": _evidence_id("github", name, "missing"), "source": "missing", "claim": "이 평가 차원에 대한 확인 근거 없음", "verification_state": "needs_verification", "confidence": 0.0}],
                 })
         if not dimensions:
@@ -585,6 +606,13 @@ def analyze_candidate_with_prompt(candidate, details):
             "version": "github-evidence-v1",
             "dimensions": dimensions,
             "score": score,
+            "score_calibration": {
+                "method": "evidence_weighted_github_v1",
+                "description": "모델 초안 점수에 실제 공개 데이터 근거의 검증 상태와 확신도를 반영했습니다.",
+                "model_score": round(sum(item.get("model_score", 0) for item in dimensions), 1),
+                "calibrated_score": score,
+                "uncalibrated_dimensions": [item["name"] for item in dimensions if item.get("support_factor", 0) == 0],
+            },
             "decision": decision,
             "grounded_evidence_ids": [item["evidence_id"] for item in grounded],
             "evidence_count": len(grounded),
