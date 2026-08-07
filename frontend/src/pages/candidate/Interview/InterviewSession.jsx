@@ -76,6 +76,10 @@ const InterviewSession = () => {
         return res.json();
       })
       .then(data => {
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error('생성된 면접 질문이 없습니다. 면접 담당자에게 질문 생성을 다시 요청해주세요.');
+        }
+        setError('');
         setQuestions(data);
       })
       .catch(e => setError(e.message));
@@ -95,7 +99,12 @@ const InterviewSession = () => {
 
   // 카메라 프리뷰 연결
   useEffect(() => {
+    if (!questions.length) return undefined;
     let isMounted = true;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError('이 브라우저에서는 카메라와 마이크를 사용할 수 없습니다. 최신 브라우저에서 다시 시도해주세요.');
+      return undefined;
+    }
     navigator.mediaDevices.getUserMedia({ 
       video: { 
         width: { ideal: 1280 }, 
@@ -129,8 +138,9 @@ const InterviewSession = () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
+      speechRef.current?.cancel();
     };
-  }, []);
+  }, [questions.length]);
 
   // phase & timer 관리
   useEffect(() => {
@@ -152,22 +162,36 @@ const InterviewSession = () => {
   useEffect(() => {
     if (phase === 'answer') {
       if (streamRef.current) {
+        if (!window.MediaRecorder) {
+          setError('이 브라우저에서는 면접 녹화를 지원하지 않습니다. 최신 Chrome, Safari 또는 Edge를 사용해주세요.');
+          return;
+        }
         const clonedStream = streamRef.current.clone();
-        const recorder = new window.MediaRecorder(clonedStream, { mimeType: 'video/webm' });
-        recorderRef.current = recorder;
-        chunksRef.current = [];
-        recorder.ondataavailable = (e) => {
-          if (e.data && e.data.size > 0) {
-            chunksRef.current.push(e.data);
-          }
-        };
-        recorder.onstop = () => {
-          const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-          uploadVideo(blob);
+        try {
+          const mimeType = window.MediaRecorder.isTypeSupported?.('video/webm;codecs=vp8,opus')
+            ? 'video/webm;codecs=vp8,opus'
+            : undefined;
+          const recorder = mimeType
+            ? new window.MediaRecorder(clonedStream, { mimeType })
+            : new window.MediaRecorder(clonedStream);
+          recorderRef.current = recorder;
+          chunksRef.current = [];
+          recorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              chunksRef.current.push(e.data);
+            }
+          };
+          recorder.onstop = () => {
+            const blob = new Blob(chunksRef.current, { type: mimeType || 'video/webm' });
+            uploadVideo(blob);
+            clonedStream.getTracks().forEach(track => track.stop());
+          };
+          recorder.start();
+          setRecording(true);
+        } catch {
           clonedStream.getTracks().forEach(track => track.stop());
-        };
-        recorder.start();
-        setRecording(true);
+          setError('면접 녹화를 시작하지 못했습니다. 카메라 권한과 브라우저 설정을 확인해주세요.');
+        }
       }
     } else if (phase === 'upload') {
       if (recorderRef.current && recorderRef.current.state === 'recording') {
@@ -177,6 +201,12 @@ const InterviewSession = () => {
     }
     // eslint-disable-next-line
   }, [phase]);
+
+  useEffect(() => () => {
+    speechRef.current?.cancel();
+    if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
+    streamRef.current?.getTracks().forEach(track => track.stop());
+  }, []);
 
   // 업로드 함수
   const uploadVideo = async (blob) => {
