@@ -438,14 +438,16 @@ async def analyze_interview(
             
             try:
                 transcript = extract_audio_from_video(video_url)
-                transcripts.append(transcript)
-                questions.append(question_content)
-                print(f"Extracted transcript: {transcript[:100]}...")
+                if transcript and transcript.strip():
+                    transcripts.append(transcript)
+                    questions.append(question_content)
+                    print(f"Extracted transcript: {transcript[:100]}...")
+                else:
+                    print(f"Transcript was empty; skipping video: {video_url}")
                 
             except Exception as e:
                 print(f"Error processing video {video_url}: {e}")
-                transcripts.append("")
-                questions.append(question_content)
+                continue
         
         if not transcripts:
             return InterviewAnalysisResponse(

@@ -116,14 +116,6 @@ public class PortfolioController {
             @RequestParam(value = "source", required = false) String source
     ) {
         try {
-            System.out.println("=== [DEBUG] PortfolioController.submitPortfolio() 진입 ===");
-            System.out.println("[PortfolioController] careerDataJson(raw): " + careerDataJson);
-            // 파일 상태 로그 출력
-            System.out.println("=== PortfolioController.submitPortfolio() 호출됨 ===");
-            System.out.println("[PortfolioController] portfolioFile: " + (portfolioFile != null ? portfolioFile.getOriginalFilename() + " (크기: " + portfolioFile.getSize() + " bytes)" : "null"));
-            System.out.println("[PortfolioController] postId: " + postId);
-            System.out.println("[PortfolioController] candidateId: " + candidateId);
-            
             // JSON 문자열을 객체로 변환
             CareerDataDto careerData = objectMapper.readValue(careerDataJson, CareerDataDto.class);
             
@@ -164,27 +156,14 @@ public class PortfolioController {
             @RequestParam(value = "portfolioDescription", required = false) String portfolioDescription
     ) {
         try {
-            System.out.println("=== [DEBUG] PortfolioController.submitStandalonePortfolio() 진입 ===");
-            System.out.println("[PortfolioController] candidateId: " + candidateId);
-            System.out.println("[PortfolioController] portfolioFile: " + (portfolioFile != null ? portfolioFile.getOriginalFilename() + " (크기: " + portfolioFile.getSize() + " bytes)" : "null"));
-            System.out.println("[PortfolioController] portfolioUrl: " + portfolioUrl);
-            System.out.println("[PortfolioController] portfolioDescription: " + portfolioDescription);
-            System.out.println("[PortfolioController] 파일 업로드 시작...");
-
             // 1. candidate_portfolios 테이블에 저장
             String portfolioFilePath = null;
             if (portfolioFile != null && !portfolioFile.isEmpty()) {
                 try {
-                    String fileName = "standalone_portfolio_" + candidateId + "_" + System.currentTimeMillis() + "_" + portfolioFile.getOriginalFilename();
                     portfolioFilePath = s3Service.uploadPortfolioFile(portfolioFile);
-                    System.out.println("[PortfolioController] S3 업로드 성공: " + portfolioFilePath);
                 } catch (Exception s3Error) {
-                    System.err.println("[PortfolioController] S3 업로드 실패: " + s3Error.getMessage());
-                    s3Error.printStackTrace();
-                    // S3 업로드 실패 시 로컬 경로로 대체
-                    String fileName = "standalone_portfolio_" + candidateId + "_" + System.currentTimeMillis() + "_" + portfolioFile.getOriginalFilename();
-                    portfolioFilePath = "local://" + fileName;
-                    System.out.println("[PortfolioController] 로컬 파일 경로로 대체: " + portfolioFilePath);
+                    // S3 업로드 실패는 제출을 성공으로 처리하지 않는다.
+                    throw new RuntimeException("포트폴리오 파일 업로드에 실패했습니다.", s3Error);
                 }
             }
 
@@ -198,7 +177,6 @@ public class PortfolioController {
                     .build();
 
             CandidatePortfolio savedPortfolio = candidatePortfolioRepository.save(portfolio);
-            System.out.println("[PortfolioController] 저장된 포트폴리오 ID: " + savedPortfolio.getCandPortfolioId());
 
             // 3. JobCandProgress에서 해당 candidate의 stage를 2y로 업데이트
             try {
@@ -239,10 +217,6 @@ public class PortfolioController {
             @RequestParam(value = "portfolioFile", required = false) MultipartFile portfolioFile
     ) {
         try {
-            System.out.println("=== [DEBUG] PortfolioController.uploadResumePortfolio() 진입 ===");
-            System.out.println("[PortfolioController] candidateId: " + candidateId);
-            System.out.println("[PortfolioController] portfolioFile: " + (portfolioFile != null ? portfolioFile.getOriginalFilename() + " (크기: " + portfolioFile.getSize() + " bytes)" : "null"));
-
             // 파일이 없으면 insert 시도하지 않고 400 에러 반환
             if (portfolioFile == null || portfolioFile.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이력서 파일을 첨부해 주세요.");
@@ -252,16 +226,9 @@ public class PortfolioController {
             String portfolioFilePath = null;
             if (portfolioFile != null && !portfolioFile.isEmpty()) {
                 try {
-                    String fileName = "resume_portfolio_" + candidateId + "_" + System.currentTimeMillis() + "_" + portfolioFile.getOriginalFilename();
                     portfolioFilePath = s3Service.uploadPortfolioFile(portfolioFile);
-                    System.out.println("[PortfolioController] S3 업로드 성공: " + portfolioFilePath);
                 } catch (Exception s3Error) {
-                    System.err.println("[PortfolioController] S3 업로드 실패: " + s3Error.getMessage());
-                    s3Error.printStackTrace();
-                    // S3 업로드 실패 시 로컬 경로로 대체
-                    String fileName = "resume_portfolio_" + candidateId + "_" + System.currentTimeMillis() + "_" + portfolioFile.getOriginalFilename();
-                    portfolioFilePath = "local://" + fileName;
-                    System.out.println("[PortfolioController] 로컬 파일 경로로 대체: " + portfolioFilePath);
+                    throw new RuntimeException("이력서 파일 업로드에 실패했습니다.", s3Error);
                 }
             }
 
@@ -275,7 +242,6 @@ public class PortfolioController {
                     .build();
 
             CandidatePortfolio savedPortfolio = candidatePortfolioRepository.save(portfolio);
-            System.out.println("[PortfolioController] 저장된 포트폴리오 ID: " + savedPortfolio.getCandPortfolioId());
 
             // 응답 DTO에 S3 URL 포함
             PortfolioSubmissionResponseDto response = new PortfolioSubmissionResponseDto();

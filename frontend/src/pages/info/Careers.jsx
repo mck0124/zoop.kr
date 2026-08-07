@@ -47,6 +47,9 @@ function Careers() {
     if (isInitialized && authState.userId) {
       fetchBookmarks();
     }
+    // AuthContext exposes an action function whose identity changes on render;
+    // the user identity is the actual trigger for this request.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInitialized, authState.userId]);
 
   // Set video playback rate when video loads
@@ -87,7 +90,6 @@ function Careers() {
     }
   };
 
-  const handleApply = post => { setSelectedPost(post); setShowApplyModal(true); };
   const handleCancelApplication = () => setShowApplyModal(false);
   const handleSubmitApplication = async formData => {
     try {

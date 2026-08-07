@@ -1502,7 +1502,6 @@ export default function CandidateList({ activeTab = 'all' }) {
 
       if (res.ok) {
         alert("📨 초대 메일을 전송했습니다!");
-        console.log("전달한 데이터 : ", payload);
       } else {
         alert("❌ 전송 실패");
       }

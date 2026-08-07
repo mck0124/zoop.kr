@@ -91,10 +91,7 @@ export default function InterviewEvaluation() {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log('면접 분석 결과:', data);
         setAnalysisResult(data);
-      } else {
-        console.log('면접 분석 결과가 없습니다.');
       }
     } catch (error) {
       console.error('면접 분석 결과 조회 실패:', error);
@@ -127,12 +124,9 @@ export default function InterviewEvaluation() {
   const parseAnalysisData = (analysisData) => {
     if (!analysisData) return null;
     try {
-      console.log('파싱할 분석 데이터:', analysisData);
-      
       // JSON 형태인 경우 파싱 (새 구조)
       if (typeof analysisData === 'string' && analysisData.trim().startsWith('{')) {
         const parsed = JSON.parse(analysisData);
-        console.log('파싱된 JSON:', parsed);
         
         // 새 구조: analysis.categories, analysis.total_feedback, analysis.visualization
         if (parsed.analysis && parsed.analysis.categories && Array.isArray(parsed.analysis.categories)) {
@@ -193,7 +187,6 @@ export default function InterviewEvaluation() {
   };
 
   const parsedAnalysis = parseAnalysisData(analysisResult?.analysisData);
-  console.log('파싱된 분석 결과:', parsedAnalysis);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

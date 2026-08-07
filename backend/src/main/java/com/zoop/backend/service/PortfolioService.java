@@ -95,9 +95,6 @@ public class PortfolioService {
             boolean agreeReceiveRecruitmentInfo,
             String source // "apply" or "dashboard"
     ) {
-        System.out.println("==== PortfolioService.submitPortfolio() 호출됨 ====");
-        System.out.println("[PortfolioService] portfolioFile: " + (portfolioFile != null ? portfolioFile.getOriginalFilename() : "null"));
-        
         // 필수 동의 체크
         if (!agreeRequiredPersonal) {
             throw new IllegalArgumentException("필수 개인정보 수집 및 이용에 동의해야 합니다.");
@@ -110,16 +107,11 @@ public class PortfolioService {
         if (useExistingPortfolio && existingPortfolioPath != null && !existingPortfolioPath.trim().isEmpty()) {
             // 기존 포트폴리오 파일 경로 사용
             portfolioFilePath = existingPortfolioPath;
-            System.out.println("[PortfolioService] 기존 포트폴리오 파일 사용: " + portfolioFilePath);
         } else if (portfolioFile != null && !portfolioFile.isEmpty()) {
             // 새 파일 S3 업로드
             try {
-                System.out.println("[PortfolioService] S3 업로드 시작 전 - portfolioFile: " + portfolioFile.getOriginalFilename());
                 portfolioFilePath = s3Service.uploadPortfolioFile(portfolioFile);
-                System.out.println("[PortfolioService] S3 업로드 완료 후 - portfolioFilePath: " + portfolioFilePath);
             } catch (Exception e) {
-                System.err.println("[PortfolioService] S3 업로드 중 예외 발생: " + e.getMessage());
-                e.printStackTrace();
                 throw new RuntimeException("포트폴리오 파일 업로드 실패: " + e.getMessage(), e);
             }
         } else {
@@ -132,7 +124,6 @@ public class PortfolioService {
             .findByPost_PostIdAndCandidate_CandidateId(postId.longValue(), candidateId.longValue())
             .orElseGet(() -> {
                 // 신규 생성
-                System.out.println("[PortfolioService] JobCandProgress 레코드가 없어서 새로 생성합니다.");
                 Candidate candidate = candidateRepository.findById(Long.valueOf(candidateId))
                     .orElseThrow(() -> new RuntimeException("해당 후보자를 찾을 수 없습니다."));
                 var post = postRepository.findById(Long.valueOf(postId))
@@ -180,8 +171,6 @@ public class PortfolioService {
         // JobCandProgress에서 가져온 ID 값을 Integer로 변환
         Integer jobCandProgressPk = jobCandProgress.getJobCandidateId().intValue();
 
-        System.out.println("[PortfolioService] portfolioFilePath(S3 URL): " + portfolioFilePath);
-        
         // 기존 포트폴리오가 있는지 확인
         Optional<Portfolio> existingPortfolio = portfolioRepository.findByJobCandidateId(jobCandProgressPk)
                 .stream().findFirst();
@@ -189,13 +178,11 @@ public class PortfolioService {
         Portfolio portfolio;
         if (existingPortfolio.isPresent()) {
             // 기존 포트폴리오 업데이트
-            System.out.println("[PortfolioService] 기존 포트폴리오 업데이트");
             portfolio = existingPortfolio.get();
             portfolio.setPortfolioFilePath(portfolioFilePath);
             portfolio.setPortfolioUpdatedAt(new Date());
         } else {
             // 새 포트폴리오 생성
-            System.out.println("[PortfolioService] 새 포트폴리오 생성");
             portfolio = Portfolio.builder()
                     .jobCandidateId(jobCandProgressPk)
                     .portfolioFilePath(portfolioFilePath)
@@ -203,10 +190,7 @@ public class PortfolioService {
                     .build();
         }
         
-        System.out.println("[PortfolioService] DB 저장 시작");
         Portfolio savedPortfolio = portfolioRepository.save(portfolio);
-        System.out.println("[PortfolioService] DB 저장 완료 - 저장된 Portfolio의 portfolioFilePath: " + savedPortfolio.getPortfolioFilePath());
-        System.out.println("[PortfolioService] 저장된 Portfolio 전체 정보: " + savedPortfolio.toString());
 
         // (기존) 개인대시보드에서 포트폴리오 제출 시 stage를 2y로 업데이트
         // (기존) 채용페이지에서 지원했을 때는 0으로 유지, 개인대시보드에서 포트폴리오 제출 시 2y로 변경
@@ -225,13 +209,8 @@ public class PortfolioService {
         // --- 후보자 경력구분/총경력기간 저장 ---
         Candidate candidate = candidateRepository.findById(Long.valueOf(candidateId))
             .orElseThrow(() -> new RuntimeException("해당 후보자를 찾을 수 없습니다."));
-        System.out.println("[PortfolioService] careerData (full object): " + careerData);
-        if (careerData != null) {
-            System.out.println("[PortfolioService] careerData fields: isExperienced=" + careerData.getIsExperienced() + ", totalYearsOfExperience=" + careerData.getTotalYearsOfExperience() + ", workExperiences=" + careerData.getWorkExperiences());
-        }
         // Robustly handle isExperienced as String (from CareerDataDto)
-        boolean isExperienced = "true".equalsIgnoreCase(careerData.getIsExperienced());
-        System.out.println("[PortfolioService] isExperienced (parsed): " + isExperienced + " (raw: " + careerData.getIsExperienced() + ")");
+        boolean isExperienced = careerData != null && "true".equalsIgnoreCase(careerData.getIsExperienced());
         if (careerData != null) {
             candidate.setCareerType(isExperienced ? "경력" : "신입");
             candidate.setTotalCareerPeriod(isExperienced ? String.valueOf(careerData.getTotalYearsOfExperience()) : "0");
@@ -264,17 +243,13 @@ public class PortfolioService {
             }
         }
         */
-        System.out.println("[PortfolioService] 업무경험 저장 SKIP: candidate_job_experiences 테이블 없음");
         
         PortfolioSubmissionResponseDto response = new PortfolioSubmissionResponseDto();
         response.setPortfolioId(savedPortfolio.getPortfolioId());
         response.setMessage("포트폴리오가 성공적으로 제출되었습니다.");
         response.setSuccess(true);
-        System.out.println("[PortfolioService] 응답 DTO 설정 전 - savedPortfolio.getPortfolioFilePath(): " + savedPortfolio.getPortfolioFilePath());
         response.setPortfolioFilePath(savedPortfolio.getPortfolioFilePath()); // S3 URL 응답에 포함
         response.setRedirectUrl("/candidate/dashboard");
-        System.out.println("[PortfolioService] 응답 DTO 설정 후 - response.getPortfolioFilePath(): " + response.getPortfolioFilePath());
-        System.out.println("[PortfolioService] 최종 응답: " + response.toString());
         
         // ====== 포트폴리오 제출 후 자동 분석 및 결과 저장 ======
         try {

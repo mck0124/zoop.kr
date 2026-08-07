@@ -48,7 +48,7 @@ def call_openai_chat(messages, max_tokens=800, temperature=0.3):
         return response.choices[0].message.content
     except Exception as e:
         print(f"OpenAI API 호출 오류: {e}")
-        return f"API 호출 중 오류가 발생했습니다: {e}"
+        raise RuntimeError("AI 서비스 호출에 실패했습니다.") from e
 
 app = FastAPI(
     title="Portfolio Matching API",

@@ -22,10 +22,6 @@ public class PasswordResetController {
     @PostMapping("/request-password-reset")
     public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequest request) {
         try {
-            log.info("비밀번호 재설정 요청: githubLogin={}, email={}, name={}, phone={}", 
-                    request.getGithubLogin(), request.getEmail(), 
-                    request.getCandidateName(), request.getCandidatePhoneNumber());
-            
             passwordResetService.requestPasswordReset(request);
             
             log.info("✅ 비밀번호 재설정 이메일 전송 성공");
