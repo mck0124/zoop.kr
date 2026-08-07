@@ -3,6 +3,7 @@ import Navbar from '../../components/Navbar';
 import { useParams } from 'react-router-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
 import SEO from '../../components/SEO';
+import { apiUrl } from '../../api/config';
 
 // PDF.js 워커 경로 설정 (필수)
 pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL}/pdf.worker.min.mjs`;
@@ -36,7 +37,7 @@ export default function ResponderList() {
 
   // 회신자 목록 로드
   useEffect(() => {
-    fetch(`http://localhost:8081/api/progress/${postId}`)
+    fetch(apiUrl(`/api/progress/${postId}`))
       .then(res => res.json())
       .then(setResponder)
       .catch(err => console.error('❌ 후보자 목록 오류:', err));
@@ -66,7 +67,7 @@ export default function ResponderList() {
 
   const getPdfUrl = () => {
     const filename = selectedResponder?.filePath?.split('/').pop();
-    return filename ? `http://localhost:8081/api/files/download/${filename}` : null;
+    return filename ? apiUrl(`/api/files/download/${filename}`) : null;
   };
 
   return (

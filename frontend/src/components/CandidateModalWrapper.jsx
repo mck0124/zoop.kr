@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import CandidateModal from './CandidateModal';
+import { apiUrl } from '../api/config';
 
 const CandidateModalWrapper = ({ children, postId, fromMatchingTab }) => {
   const [isModalOpen, setModalOpen] = useState(false);
@@ -14,7 +15,7 @@ const CandidateModalWrapper = ({ children, postId, fromMatchingTab }) => {
     const stagesNeedingFile = ['2y', '3n', '3y', '4n', '4y'];
     if (stagesNeedingFile.includes(candidate.jobCandCurrStage)) {
       try {
-        const res = await fetch(`http://localhost:8081/api/portfolios/${candidate.jobCandidateId}/file-path`);
+        const res = await fetch(apiUrl(`/api/portfolios/${candidate.jobCandidateId}/file-path`));
         if (!res.ok) throw new Error("포트폴리오 경로 요청 실패");
         const data = await res.json();
         const filePath = data.filePath;
@@ -47,4 +48,4 @@ const CandidateModalWrapper = ({ children, postId, fromMatchingTab }) => {
   );
 };
 
-export default CandidateModalWrapper; 
+export default CandidateModalWrapper;

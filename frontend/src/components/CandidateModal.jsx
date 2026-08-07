@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { useNavigate } from 'react-router-dom';
+import { apiUrl as buildApiUrl } from '../api/config';
 pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL}/pdf.worker.min.mjs`;
 
 /** */
@@ -70,7 +71,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
   useEffect(() => {
     if (!isOpen || !candidate || !postId || fromMatchingTab) return;
 
-    fetch(`http://localhost:8081/api/progress/${postId}/${candidate.githubLogin}/job-candidate-id`)
+    fetch(buildApiUrl(`/api/progress/${postId}/${candidate.githubLogin}/job-candidate-id`))
       .then(res => {
         if (!res.ok) throw new Error('jobCandidateId 조회 실패');
         return res.json();
@@ -96,7 +97,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
 
     // invitationSentDate
     if (["2n", "2y", "2p", "3n", "3y", "4n", "4y"].includes(stage)) {
-      fetch(`http://localhost:8081/api/invitations/${postId}/${githubLogin}/sent-times`)
+      fetch(buildApiUrl(`/api/invitations/${postId}/${githubLogin}/sent-times`))
         .then(res => {
           if (!res.ok) throw new Error('invitationSentDate 조회 실패');
           return res.json();
@@ -122,7 +123,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
 
     // portfolioSubmissionDate 
     if (["2y", "2p", "3n", "3y", "4n", "4y"].includes(stage)) {
-      fetch(`http://localhost:8081/api/portfolios/${jobCandidateId}/submission-date`)
+      fetch(buildApiUrl(`/api/portfolios/${jobCandidateId}/submission-date`))
         .then(res => {
           if (!res.ok) throw new Error('portfolioSubmissionDate 조회 실패');
           return res.json();
@@ -144,7 +145,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
 
     // interviewSchedule
     if (["3n", "3y", "4n", "4y"].includes(stage)) {
-      fetch(`http://localhost:8081/api/interview-schedules/${jobCandidateId}/schedule`)
+      fetch(buildApiUrl(`/api/interview-schedules/${jobCandidateId}/schedule`))
         .then(res => {
           if (!res.ok) throw new Error('interviewSchedule 조회 실패');
           return res.json();
@@ -166,7 +167,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
 
     // 포트폴리오 분석
     if (["2y", "2p", "3n", "3y", "4n", "4y"].includes(stage)) {
-      fetch(`http://localhost:8081/api/analysis/${jobCandidateId}/portfolio`)
+      fetch(buildApiUrl(`/api/analysis/${jobCandidateId}/portfolio`))
         .then(res => {
           if (!res.ok) throw new Error('portfolioAnalysis 조회 실패');
           return res.json();
@@ -189,7 +190,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
     
     // 면접 영상
     if (["3y", "4n", "4y"].includes(stage)) {
-      fetch(`http://localhost:8081/api/interviews/${jobCandidateId}/video`)
+      fetch(buildApiUrl(`/api/interviews/${jobCandidateId}/video`))
         .then(res => {
           if (!res.ok) throw new Error('interviewVideo 조회 실패');
           return res.json();
@@ -209,7 +210,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
         });
 
       // 면접 분석
-      fetch(`http://localhost:8081/api/analysis/${jobCandidateId}/interview`)
+      fetch(buildApiUrl(`/api/analysis/${jobCandidateId}/interview`))
         .then(res => {
           if (!res.ok) throw new Error('interviewAnalysis 조회 실패');
           return res.json();
@@ -252,7 +253,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
     if (!jobCandidateId) return;
 
     // jobCandidateId로 포트폴리오 조회
-    fetch(`http://localhost:8081/api/portfolios/job-candidate/${jobCandidateId}`)
+    fetch(buildApiUrl(`/api/portfolios/job-candidate/${jobCandidateId}`))
       .then(res => {
         if (!res.ok) {
           if (res.status === 404) {
@@ -282,11 +283,11 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
         let url;
         if (isS3Url) {
           // S3 URL인 경우 백엔드 프록시를 통해 다운로드
-          url = `http://localhost:8081/api/files/s3/download?s3Url=${encodeURIComponent(filePath)}`;
+          url = buildApiUrl(`/api/files/s3/download?s3Url=${encodeURIComponent(filePath)}`);
         } else {
           // 로컬 파일인 경우 기존 방식 사용
           const filename = filePath.split('/').pop();
-          url = `http://localhost:8081/api/files/download/${filename}`;
+          url = buildApiUrl(`/api/files/download/${filename}`);
         }
 
         return fetch(url);
@@ -323,11 +324,11 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
     let url;
     if (isS3Url) {
       // S3 URL인 경우 백엔드 프록시를 통해 다운로드
-      url = `http://localhost:8081/api/files/s3/download?s3Url=${encodeURIComponent(interviewVideoUrl)}`;
+      url = buildApiUrl(`/api/files/s3/download?s3Url=${encodeURIComponent(interviewVideoUrl)}`);
     } else {
       // 로컬 파일인 경우 기존 방식 사용
       const filename = interviewVideoUrl.split('/').pop(); // 예: "video.mp4"
-      url = `http://localhost:8081/api/files/download/${filename}`;
+      url = buildApiUrl(`/api/files/download/${filename}`);
     }
 
     fetch(url)
@@ -377,12 +378,12 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
       return;
     }
 
-    const apiUrl = `http://localhost:8081/api/progress/${jobCandidateId}/update-stage-2p`;
-    console.log('면접초대 API 호출 URL:', apiUrl);
+    const invitationUrl = buildApiUrl(`/api/progress/${jobCandidateId}/update-stage-2p`);
+    console.log('면접초대 API 호출 URL:', invitationUrl);
     console.log('jobCandidateId:', jobCandidateId);
 
     try {
-      const response = await fetch(apiUrl, {
+      const response = await fetch(invitationUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
