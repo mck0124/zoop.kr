@@ -6,6 +6,22 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const parseQuestion = (question) => {
+    const match = String(question || '').match(/^\s*\[([^\]]+)\]\s*(.*)$/);
+    return {
+      category: match?.[1] || '면접 준비',
+      text: match?.[2] || String(question || ''),
+    };
+  };
+
+  const categoryStyle = (category) => {
+    if (category.includes('근거')) return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+    if (category.includes('기술')) return 'bg-blue-100 text-blue-700 border-blue-200';
+    if (category.includes('문제')) return 'bg-violet-100 text-violet-700 border-violet-200';
+    if (category.includes('협업')) return 'bg-orange-100 text-orange-700 border-orange-200';
+    return 'bg-gray-100 text-gray-700 border-gray-200';
+  };
+
   // 면접 예상질문 API 호출
   const fetchInterviewQuestions = async () => {
     setLoading(true);
@@ -145,11 +161,14 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
                   {/* 정상 상태 아이콘 */}
                   <span><CheckCircleIcon /></span>
                   <p className="text-yellow-700 text-sm">
-                    포지션과 경력에 맞는 맞춤형 질문이 생성되었습니다.
+                    포지션과 제출물의 확인 필요 지점을 연결한 맞춤형 질문입니다. <b>근거검증</b> 질문부터 답변을 준비해 보세요.
                   </p>
                 </div>
                 <div className="space-y-3">
                   {questions.map((question, index) => (
+                    (() => {
+                      const parsed = parseQuestion(question);
+                      return (
                     <div
                       key={index}
                       className="flex items-start space-x-3 p-4 bg-yellow-50 rounded-2xl border border-yellow-100 hover:bg-yellow-100 transition-all duration-200"
@@ -158,8 +177,15 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-400 text-white font-bold text-sm flex-shrink-0">
                         {index + 1}
                       </div>
-                      <p className="text-gray-800 leading-relaxed flex-1">{question}</p>
+                      <div className="flex-1">
+                        <span className={`mb-2 inline-flex rounded-full border px-2 py-1 text-[11px] font-bold ${categoryStyle(parsed.category)}`}>
+                          {parsed.category}
+                        </span>
+                        <p className="text-gray-800 leading-relaxed">{parsed.text}</p>
+                      </div>
                     </div>
+                      );
+                    })()
                   ))}
                 </div>
               </div>
