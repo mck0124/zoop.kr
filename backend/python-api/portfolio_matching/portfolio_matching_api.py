@@ -16,8 +16,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../gith
 # .env에서 API 키 로드
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 SPRING_API_URL = os.getenv("SPRING_API_URL", "http://localhost:8081")
 ZOOP_INTERNAL_API_KEY = os.getenv("ZOOP_INTERNAL_API_KEY", "")
+SPRING_TIMEOUT_SECONDS = 30
 
 def spring_headers(content_type: Optional[str] = None) -> Dict[str, str]:
     headers = {"Content-Type": content_type} if content_type else {}
@@ -26,6 +28,8 @@ def spring_headers(content_type: Optional[str] = None) -> Dict[str, str]:
     return headers
 
 client = None
+_inflight_portfolios = set()
+_inflight_portfolios_lock = threading.Lock()
 
 def get_openai_client():
     global client
@@ -39,7 +43,7 @@ def call_openai_chat(messages, max_tokens=800, temperature=0.3):
     """OpenAI API 호출 함수"""
     try:
         response = get_openai_client().chat.completions.create(
-            model="gpt-4o-mini",
+            model=OPENAI_MODEL,
             messages=messages,
             max_tokens=max_tokens,
             temperature=temperature
@@ -195,7 +199,7 @@ def analyze_portfolio_content(portfolio_content: str, desired_job: Optional[str]
 
     try:
         response = get_openai_client().chat.completions.create(
-            model="gpt-4o-mini",
+            model=OPENAI_MODEL,
             messages=[
                 {"role": "system", "content": "당신은 근거 검증형 채용 분석가입니다. JSON 스키마를 지키고 원문에 없는 사실을 만들지 마세요."},
                 {"role": "user", "content": prompt},
@@ -247,7 +251,7 @@ def save_portfolio_analysis_to_spring(portfolio_id: int, analysis_data: str, ana
             f"{SPRING_API_URL}/api/ai-analysis-results",
             json=payload,
             headers=spring_headers("application/json"),
-            timeout=30
+            timeout=SPRING_TIMEOUT_SECONDS
         )
         
         if response.status_code == 201:
@@ -266,7 +270,8 @@ def get_job_candidate_id_by_candidate_and_post(candidate_id: int, post_id: int) 
     try:
         response = requests.get(
             f"{SPRING_API_URL}/api/progress/{post_id}/{candidate_id}/job-candidate-id",
-            timeout=30
+            headers=spring_headers(),
+            timeout=SPRING_TIMEOUT_SECONDS
         )
         
         if response.status_code == 200:
@@ -291,7 +296,7 @@ def update_ai_analysis_job_candidate_id(analysis_id: int, job_candidate_id: int)
             f"{SPRING_API_URL}/api/ai-analysis-results/{analysis_id}/job-candidate-id",
             json=payload,
             headers=spring_headers("application/json"),
-            timeout=30
+            timeout=SPRING_TIMEOUT_SECONDS
         )
         
         if response.status_code == 200:
@@ -310,7 +315,8 @@ def get_job_candidate_id_by_portfolio(portfolio_id: int) -> Optional[int]:
     try:
         response = requests.get(
             f"{SPRING_API_URL}/api/portfolio-job-matches/portfolio/{portfolio_id}/job-candidate-id",
-            timeout=30
+            headers=spring_headers(),
+            timeout=SPRING_TIMEOUT_SECONDS
         )
         
         if response.status_code == 200:
@@ -377,7 +383,7 @@ def update_job_cand_progress_to_2y(candidate_id: int, post_id: int) -> bool:
             f"{SPRING_API_URL}/api/progress/create",
             json=payload,
             headers=spring_headers("application/json"),
-            timeout=30
+            timeout=SPRING_TIMEOUT_SECONDS
         )
         
         if response.status_code == 201:
@@ -397,6 +403,7 @@ def update_portfolio_analysis_status(portfolio_id: int, status: str):
         response = requests.put(
             f"{SPRING_API_URL}/api/portfolios/{portfolio_id}/analysis-status",
             params={"status": status},
+            headers=spring_headers(),
             timeout=10
         )
         if response.status_code == 200:
@@ -412,13 +419,14 @@ def update_candidate_portfolio_analysis_status(cand_portfolio_id: int, status: s
         response = requests.put(
             f"{SPRING_API_URL}/api/portfolios/candidate-portfolio/{cand_portfolio_id}/analysis-status",
             params={"status": status},
+            headers=spring_headers(),
             timeout=10
         )
         print(f"[DEBUG] CandidatePortfolio status update response: {response.status_code} {response.text}")
     except Exception as e:
         print(f"[ERROR] Exception updating candidate_portfolio analysis status: {e}")
 
-async def process_portfolio_analysis_async(portfolio_id: int, candidate_id: int, portfolio_content: str, 
+async def _process_portfolio_analysis_async(portfolio_id: int, candidate_id: int, portfolio_content: str,
                                          desired_job: Optional[str] = None, self_introduction: Optional[str] = None):
     """비동기로 포트폴리오 분석 처리"""
     try:
@@ -576,7 +584,7 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
 
     try:
         response = get_openai_client().chat.completions.create(
-            model="gpt-4o-mini",
+            model=OPENAI_MODEL,
             messages=[
                 {"role": "system", "content": "당신은 IT 채용 매칭 전문가입니다. 정확하고 객관적으로 매칭 분석을 해주세요."},
                 {"role": "user", "content": prompt}
@@ -704,12 +712,24 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
         
     except Exception as e:
         print(f"OpenAI matching error: {e}")
-        return {
-            "matching_analysis": "매칭 분석을 완료하지 못했습니다. 지원자의 증거를 확인한 뒤 다시 시도해 주세요.",
-            "matching_score": 0.0,
-            "recommended_job": job_title,
-            "matching_evidence": {"decision": "not_enough_evidence", "error": "AI 분석 결과를 검증하지 못함"}
-        }
+        raise RuntimeError("포트폴리오-채용공고 매칭을 검증 가능한 형태로 완료하지 못했습니다.") from e
+
+async def process_portfolio_analysis_async(portfolio_id: int, candidate_id: int, portfolio_content: str,
+                                           desired_job: Optional[str] = None,
+                                           self_introduction: Optional[str] = None):
+    """동일 포트폴리오가 여러 스케줄러 사이클에서 중복 처리되지 않도록 보호한다."""
+    with _inflight_portfolios_lock:
+        if portfolio_id in _inflight_portfolios:
+            print(f"[AUTO] 이미 처리 중인 포트폴리오 건너뜀: portfolio_id={portfolio_id}")
+            return
+        _inflight_portfolios.add(portfolio_id)
+    try:
+        await _process_portfolio_analysis_async(
+            portfolio_id, candidate_id, portfolio_content, desired_job, self_introduction
+        )
+    finally:
+        with _inflight_portfolios_lock:
+            _inflight_portfolios.discard(portfolio_id)
 
 def auto_analyze_pending_portfolios():
     """PENDING 상태의 포트폴리오를 자동으로 분석하는 스케줄러"""
@@ -718,7 +738,7 @@ def auto_analyze_pending_portfolios():
             print("[AUTO] PENDING 포트폴리오 확인 중...")
             
             # 1. Spring 백엔드에서 PENDING 상태의 candidate_portfolios 조회
-            response = requests.get(f"{SPRING_API_URL}/api/portfolios/candidate-pending", timeout=10)
+            response = requests.get(f"{SPRING_API_URL}/api/portfolios/candidate-pending", headers=spring_headers(), timeout=10)
             
             if response.status_code == 200:
                 pending_portfolios = response.json()
@@ -742,7 +762,7 @@ def auto_analyze_pending_portfolios():
                                         portfolio_content = extract_text_from_file_direct(portfolio_file_path)
                                     else:
                                         # 텍스트 파일은 바로 읽기
-                                        file_response = requests.get(portfolio_file_path, timeout=30)
+                                        file_response = requests.get(portfolio_file_path, timeout=SPRING_TIMEOUT_SECONDS)
                                         if file_response.status_code == 200:
                                             portfolio_content = file_response.text[:2000]  # 최대 2000자
                                         else:
@@ -778,7 +798,7 @@ def auto_analyze_pending_portfolios():
                         print(f"[AUTO] 포트폴리오 분석 중 오류: portfolio_id={portfolio_id}, error={e}")
             
             # 2. Spring 백엔드에서 PENDING 상태의 기존 portfolios 조회
-            response2 = requests.get(f"{SPRING_API_URL}/api/portfolios/pending", timeout=10)
+            response2 = requests.get(f"{SPRING_API_URL}/api/portfolios/pending", headers=spring_headers(), timeout=10)
             
             if response2.status_code == 200:
                 pending_old_portfolios = response2.json()
@@ -813,7 +833,7 @@ def auto_analyze_pending_portfolios():
                                         try:
                                             update_url = f"{SPRING_API_URL}/api/portfolios/{portfolio_id}/status"
                                             update_data = {"portfolioAnalysisStatus": "COMPLETED"}
-                                            update_response = requests.put(update_url, json=update_data, timeout=10)
+                                            update_response = requests.put(update_url, json=update_data, headers=spring_headers("application/json"), timeout=10)
                                             if update_response.status_code == 200:
                                                 print(f"[AUTO] 기존 포트폴리오 상태 업데이트 완료: portfolio_id={portfolio_id}")
                                             else:
@@ -870,13 +890,15 @@ def extract_text_from_file_direct(file_path_or_url):
     # URL이면 다운로드, 아니면 로컬 파일로 처리
     if file_path_or_url.startswith('http://') or file_path_or_url.startswith('https://'):
         print(f"[분석] URL에서 파일 다운로드 시작: {file_path_or_url}")
-        resp = requests.get(file_path_or_url)
+        resp = requests.get(file_path_or_url, timeout=SPRING_TIMEOUT_SECONDS)
         print(f"[분석] 다운로드 응답 상태: {resp.status_code}")
         if resp.status_code != 200:
             print(f"[분석] 다운로드 실패: {resp.status_code} - {resp.text[:200]}")
             raise Exception(f"파일 다운로드 실패: {file_path_or_url}")
         
         print(f"[분석] 다운로드된 파일 크기: {len(resp.content)} bytes")
+        if len(resp.content) > 10 * 1024 * 1024:
+            raise ValueError("포트폴리오 파일은 10MB 이하만 분석할 수 있습니다.")
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
             tmp.write(resp.content)
             tmp_path = tmp.name
@@ -905,7 +927,7 @@ def extract_text_from_file_direct(file_path_or_url):
                 print(f"[분석] 텍스트 파일 길이: {len(text)}")
     except Exception as e:
         print(f"[분석] 텍스트 추출 오류: {e}")
-        text = f"[텍스트 추출 실패: {e}]"
+        raise RuntimeError("포트폴리오 원문을 추출하지 못했습니다.") from e
     finally:
         if file_path_or_url.startswith('http') and os.path.exists(tmp_path):
             os.remove(tmp_path)
@@ -964,7 +986,8 @@ async def analyze_candidate_portfolio(
             complete_upload_res = requests.post(
                 f"{SPRING_API_URL}/api/portfolios/complete-upload",
                 data={"candidateId": candidate_id, "portfolioFilePath": file_url, "analysisData": analysis_result},
-                timeout=30
+                headers=spring_headers(),
+                timeout=SPRING_TIMEOUT_SECONDS
             )
             if complete_upload_res.status_code != 200:
                 raise Exception(f"complete-upload API 실패: {complete_upload_res.text}")
@@ -998,7 +1021,8 @@ async def match_portfolio_jobs(
         # Spring API에서 분석 결과 조회
         analysis_response = requests.get(
             f"{SPRING_API_URL}/api/ai-analysis-results/{analysis_id}",
-            timeout=30
+            headers=spring_headers(),
+            timeout=SPRING_TIMEOUT_SECONDS
         )
         
         if analysis_response.status_code != 200:
@@ -1041,8 +1065,12 @@ async def root():
 @app.on_event("startup")
 def start_auto_analyze():
     """앱 시작 시 자동 분석 스케줄러 시작"""
-    threading.Thread(target=auto_analyze_pending_portfolios, daemon=True).start()
-    print("[STARTUP] Portfolio auto-analysis scheduler started")
+    enabled = os.getenv("ENABLE_PORTFOLIO_SCHEDULER", "true").lower() == "true"
+    if enabled:
+        threading.Thread(target=auto_analyze_pending_portfolios, daemon=True, name="portfolio-scheduler").start()
+        print("[STARTUP] Portfolio auto-analysis scheduler started")
+    else:
+        print("[STARTUP] Portfolio auto-analysis scheduler disabled")
 
 if __name__ == "__main__":
     import uvicorn

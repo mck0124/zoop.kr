@@ -65,7 +65,10 @@ pip install -r requirements.txt
 ```bash
 # .env 파일 예시
 OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_MODEL=gpt-4o-mini
 SPRING_API_URL=http://localhost:8081
+ZOOP_INTERNAL_API_KEY=replace-with-a-long-random-worker-secret
+ENABLE_PORTFOLIO_SCHEDULER=true
 ```
 
 ### 3. 서비스 실행
