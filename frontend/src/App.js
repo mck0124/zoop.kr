@@ -54,6 +54,7 @@ const Support = lazy(() => import('./pages/info/Support'));
 const FaqPage = lazy(() => import('./pages/info/FaqPage'));
 const Careers = lazy(() => import('./pages/info/Careers'));
 const JobDetailPage = lazy(() => import('./pages/info/JobDetailPage'));
+const PolicyPage = lazy(() => import('./pages/info/PolicyPage'));
 
 
 
@@ -106,6 +107,8 @@ function AppContent() {
         <Route path="/faq" element={<FaqPage />} />
         <Route path="/careers" element={<Careers />} />
         <Route path="/job/:postId" element={<JobDetailPage />} />
+        <Route path="/terms" element={<PolicyPage />} />
+        <Route path="/privacy" element={<PolicyPage />} />
         <Route path="/report" element={<IncidentReportPage />} />
         <Route path="/company/candidates/:postId" element={<PrivateRoute allowedUserType="company"><CandidateList /></PrivateRoute>} />
         <Route

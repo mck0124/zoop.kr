@@ -360,8 +360,8 @@ export default function Index() {
           <p>ZOOP AI Recruiting Platform · KOSA Capstone Prototype</p>
           <p>본 서비스는 기술 시연을 위한 프로젝트입니다.</p>
           <div className="footer-terms" aria-label="정책 안내">
-            <span>서비스 이용약관 준비 중</span>
-            <span>개인정보 처리방침 준비 중</span>
+            <Link to="/terms">서비스 이용약관</Link>
+            <Link to="/privacy">개인정보 처리방침</Link>
           </div>
           <div className="footer-icons">
             <span>📘</span> <span>🐦</span> <span>📸</span> <span>🔗</span>
