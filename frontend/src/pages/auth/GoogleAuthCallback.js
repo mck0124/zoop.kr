@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom'; // 필요한 훅 임포트
 import axios from 'axios'; // 백엔드 통신을 위한 axios 임포트
 import { useAuth } from '../../context/AuthContext'; // 인증 상태 관리를 위한 AuthContext 임포트
+import { apiUrl } from '../../api/config';
 
 // Google 소셜 로그인 콜백 처리 컴포넌트
 function GoogleAuthCallback() {
@@ -82,7 +83,7 @@ function GoogleAuthCallback() {
             // Axios POST 요청으로 인가 코드(code)를 백엔드에 전달합니다.
             // URL 경로는 백엔드 AuthController에 정의된 엔드포인트와 일치해야 합니다.
             // {provider} 자리에 'google'을 넣어줍니다.
-            const response = await axios.post(`http://localhost:8081/api/auth/social/google/callback`, {
+            const response = await axios.post(apiUrl('/api/auth/social/google/callback'), {
                 code: code, // 인가 코드 전송
                 state: state, // 필요시 state 값 전송
                 // pkce_code_verifier: pkceVerifier, // PKCE 사용 시 verifier 전송

@@ -5,6 +5,7 @@ import './LoginSelectionPage.css';
 import Navbar from '../../components/Navbar';
 import { useAuth } from '../../context/AuthContext';
 import SEO from '../../components/SEO';
+import { apiUrl } from '../../api/config';
 
 function LoginSelectionPage() {
   const [userType, setUserType] = useState('candidate'); // 기본값 개인회원
@@ -101,7 +102,7 @@ function LoginSelectionPage() {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:8081/api/auth/login', {
+      const response = await axios.post(apiUrl('/api/auth/login'), {
         loginId,
         password,
         userType
@@ -139,7 +140,7 @@ function LoginSelectionPage() {
         if (location.state?.fromInvite && location.state?.token && receivedUserType === 'candidate') {
           try {
             // invitation 테이블 업데이트
-            const invitationResponse = await fetch('http://localhost:8081/api/invitations/update-candidate-id', {
+            const invitationResponse = await fetch(apiUrl('/api/invitations/update-candidate-id'), {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -157,7 +158,7 @@ function LoginSelectionPage() {
             }
 
             // job_cand_progress 테이블 업데이트
-            const progressResponse = await fetch('http://localhost:8081/api/progress/update-candidate-id', {
+            const progressResponse = await fetch(apiUrl('/api/progress/update-candidate-id'), {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
