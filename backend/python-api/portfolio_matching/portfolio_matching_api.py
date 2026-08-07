@@ -659,12 +659,15 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
         candidate_sources = {"portfolio", "portfolio_analysis", "resume", "github"}
         raw_dimensions = structured.get("dimensions", [])
         dimensions = []
+        seen_dimension_names = set()
         for raw_dimension in raw_dimensions if isinstance(raw_dimensions, list) else []:
             if not isinstance(raw_dimension, dict):
                 continue
             name = str(raw_dimension.get("name", "평가 항목"))
-            maximum = int(raw_dimension.get("max", max_by_name.get(name, 20)) or 20)
-            maximum = max(1, min(100, maximum))
+            if name not in max_by_name or name in seen_dimension_names:
+                continue
+            seen_dimension_names.add(name)
+            maximum = max_by_name[name]
             try:
                 dimension_score = float(raw_dimension.get("score", 0) or 0)
             except (TypeError, ValueError):
@@ -701,6 +704,16 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
                 "max": maximum,
                 "evidence": clean_evidence or [{"evidence_id": "", "source": "missing", "claim": "확인된 근거 없음", "verification_state": "needs_verification", "confidence": 0.0}],
             })
+
+        # 모델이 차원을 누락하거나 이름을 바꿔도 총점의 분모와 배점은 고정한다.
+        for name, maximum in max_by_name.items():
+            if name not in seen_dimension_names:
+                dimensions.append({
+                    "name": name,
+                    "score": 0.0,
+                    "max": maximum,
+                    "evidence": [{"evidence_id": "", "source": "missing", "claim": "이 평가 차원에 대한 확인 근거 없음", "verification_state": "needs_verification", "confidence": 0.0}],
+                })
 
         score = max(0.0, min(100.0, sum(item["score"] for item in dimensions)))
         evidence_count = sum(1 for dimension in dimensions for item in dimension["evidence"] if item["verification_state"] == "grounded")
