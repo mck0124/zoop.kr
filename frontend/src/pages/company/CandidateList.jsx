@@ -741,15 +741,27 @@ const getAnalysisPayload = (candidate, analysisResult) => {
   const confidence = Number.isFinite(confidenceRaw) ? Math.round(Math.max(0, Math.min(100, confidenceRaw <= 1 ? confidenceRaw * 100 : confidenceRaw))) : null;
   const directEvidence = Array.isArray(payload?.evidence) ? payload.evidence : Array.isArray(payload?.verified_evidence) ? payload.verified_evidence : [];
   const dimensionEvidence = Array.isArray(payload?.dimensions) ? payload.dimensions.flatMap(dimension => Array.isArray(dimension?.evidence) ? dimension.evidence : []) : [];
-  const evidence = [...directEvidence, ...dimensionEvidence];
-  const hasStructuredEvidence = payload?.version === 'github-evidence-v1' || payload?.version === 'portfolio-evidence-v1';
+  const evidence = [...directEvidence, ...dimensionEvidence].reduce((unique, item) => {
+    if (!item) return unique;
+    const key = item.evidence_id || `${item.source || 'evidence'}:${item.claim || ''}:${item.quote || ''}`;
+    if (!unique.some(existing => existing.__evidenceKey === key)) {
+      unique.push({ ...item, __evidenceKey: key });
+    }
+    return unique;
+  }, []);
+  const groundedEvidence = evidence.filter(item => item && (
+    item.verification_state === 'verified' ||
+    item.verification_state === 'grounded' ||
+    (item.source === 'github' && item.evidence_id)
+  ));
+  const hasStructuredEvidence = ['github-evidence-v1', 'portfolio-evidence-v1', 'interview-evidence-v1'].includes(payload?.version);
   const decision = payload?.decision || (hasStructuredEvidence && coverage !== null && coverage >= 70 ? 'review' : 'not_enough_evidence');
   return {
     analysisText,
     score: Number.isFinite(score) ? Math.max(0, Math.min(100, Math.round(score))) : null,
     coverage,
     confidence,
-    evidenceCount: evidence.length,
+    evidenceCount: groundedEvidence.length,
     decision,
     hasStructuredEvidence,
     gaps: Array.isArray(payload?.gaps) ? payload.gaps : []
