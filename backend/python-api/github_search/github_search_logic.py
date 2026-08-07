@@ -1,4 +1,4 @@
-import requests, re, os, base64
+import requests, re, os, base64, json
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import difflib
@@ -86,7 +86,7 @@ def extract_user_email(username):
     email = extract_email_from_profile_html(username)
     if email:
         return email
-    return extract_email_from_readme(username) or "not_found@example.com"
+    return extract_email_from_readme(username)
 
 REGION_KEYWORDS = {
     "서울": ["서울", "seoul"],
@@ -195,7 +195,7 @@ def enhanced_search_github_candidates(filters, post_id=None):
                             public_repos = user_info.get("public_repos", "불명")
                     except Exception:
                         pass
-                    if email and email != "not_found@example.com":
+                    if email:
                         # 상세 정보 수집
                         details = get_github_candidate_details(login)
                         # 분석 및 점수/근거/요약 생성
@@ -210,11 +210,20 @@ def enhanced_search_github_candidates(filters, post_id=None):
                         try:
                             analysis = analyze_candidate_with_prompt(candidate_obj, details)
                         except Exception as e:
-                            analysis = f"OpenAI 분석 실패: {e}"
+                            print(f"[WARN] 후보자 분석 실패로 결과에서 제외: {login} - {e}")
+                            continue
                         print(f"[DEBUG] OpenAI 분석 결과: {analysis}")
                         # LLM 점수 파싱 (예: (점수: 92점))
                         llm_score = 0
                         analysis_str = str(analysis) if analysis is not None else ""
+
+                        # 구조화된 GitHub 증거 원장에서는 모델이 계산한 총점을 우선 사용한다.
+                        try:
+                            structured_analysis = json.loads(analysis_str)
+                            if structured_analysis.get("version") == "github-evidence-v1":
+                                llm_score = float(structured_analysis.get("score", 0) or 0)
+                        except (TypeError, ValueError, json.JSONDecodeError):
+                            structured_analysis = None
                         
                         # 먼저 총점 패턴으로 시도
                         total_score_patterns = [
@@ -301,11 +310,19 @@ def enhanced_search_github_candidates(filters, post_id=None):
     email_results = sorted(email_results, key=lambda x: x["llm_score"], reverse=True)[:headcount]
     return email_results
 
-openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
+openai_client = None
+
+def get_openai_client():
+    global openai_client
+    if openai_client is None:
+        if not OPENAI_API_KEY:
+            raise RuntimeError("OPENAI_API_KEY is not configured")
+        openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
+    return openai_client
 
 def call_openai_chat(messages, max_tokens=800, temperature=0.3):
     try:
-        response = openai_client.chat.completions.create(
+        response = get_openai_client().chat.completions.create(
             model=OPENAI_MODEL,
             messages=messages,
             max_tokens=max_tokens,
@@ -318,7 +335,7 @@ def call_openai_chat(messages, max_tokens=800, temperature=0.3):
         )
     except Exception as e:
         print(f"[OpenAI API Error] {e}")
-        return {"answer": "AI 서버 연결에 문제가 발생했습니다."}
+        raise RuntimeError("AI 서버 연결에 문제가 발생했습니다.") from e
 
 def get_github_candidate_details(username):
     """
@@ -336,6 +353,7 @@ def get_github_candidate_details(username):
         'profile_info': {},
         'skills_analysis': {}
     }
+    repos = []
     try:
         # Get repos
         repo_url = f"https://api.github.com/users/{username}/repos?per_page=100"
@@ -437,85 +455,106 @@ def get_github_candidate_details(username):
     return details
 
 def analyze_candidate_with_prompt(candidate, details):
-    """
-    Uses OpenAI to analyze a candidate using the provided prompt and details.
-    """
+    """GitHub 공개 신호를 설명 가능한 구조화 평가로 변환한다."""
+    safe_details = {
+        "followers": candidate.get("followers"),
+        "public_repos": candidate.get("public_repos"),
+        "top_language": details.get("top_language"),
+        "languages": details.get("languages", []),
+        "skills_analysis": details.get("skills_analysis", {}),
+        "recent_events": details.get("recent_events", []),
+        "top_repos": details.get("top_repos", []),
+        "contribution_stats": details.get("contribution_stats", {}),
+        "bio": details.get("profile_info", {}).get("bio", ""),
+    }
     prompt = f"""
-아래는 한 깃허브 개발자의 상세 데이터입니다.
+아래 GitHub 공개 데이터만으로 개발자 후보자를 평가하세요.
+데이터:
+{json.dumps(safe_details, ensure_ascii=False, default=str)[:18000]}
 
-=== 기본 정보 ===
-닉네임: {candidate.get('login')}
-프로필 URL: {candidate.get('profile_url')}
-이메일: {candidate.get('email')}
-팔로워 수: {candidate.get('followers', '불명')}
-공개 저장소 수: {candidate.get('public_repos', '불명')}
+규칙:
+- 이름, 이메일, 위치, 회사, 사진, 성별, 나이 등 직무와 무관한 개인정보는 평가에서 제외하세요.
+- 값이 '확인 불가' 또는 null이면 점수를 추정하지 말고 gaps에 기록하세요.
+- 별 수, 저장소 수 같은 공개 신호만으로 실력·성격을 단정하지 말고 evidence에 한계를 적으세요.
+- 모든 claim은 위 데이터의 구체적 필드에 근거해야 합니다.
 
-=== 프로필 정보 ===
-이름: {details['profile_info'].get('name', '불명')}
-소개: {details['profile_info'].get('bio', '없음')}
-회사: {details['profile_info'].get('company', '없음')}
-위치: {details['profile_info'].get('location', '없음')}
-블로그: {details['profile_info'].get('blog', '없음')}
-GitHub 가입일: {details['profile_info'].get('created_at', '불명')}
-
-=== 기술 스택 분석 ===
-대표 언어: {details['top_language']}
-사용 언어 리스트: {details['languages']}
-기술 스택 상세: {details['skills_analysis']}
-
-=== 최근 활동 ===
-최근 이벤트: {', '.join(details['recent_events'])}
-주요 레포 설명: {'; '.join(details.get('repo_descriptions', []))}
-대표 레포 README: {'; '.join(details.get('repo_readmes', []))}
-
-=== 대표 프로젝트 (상위 5개) ===
-{chr(10).join([f"• {repo['name']}: {repo['description']} (⭐{repo['stars']}, 🔧{repo['language']})" for repo in details['top_repos']])}
-
-=== 기여 통계 ===
-총 커밋 수: {details['contribution_stats'].get('total_commits') or '확인 불가'}
-최근 커밋 수: {details['contribution_stats'].get('recent_commits') or '확인 불가'}
-Pull Request 수: {details['contribution_stats'].get('pull_requests') or '확인 불가'}
-이슈 생성 수: {details['contribution_stats'].get('issues_created') or '확인 불가'}
-기여한 저장소 수: {details['contribution_stats'].get('repositories_contributed') or '확인 불가'}
-
-이 정보를 바탕으로 다음을 종합적으로 분석해주세요:
-
-1. **주요 언어와 기술스택** - 어떤 언어와 기술을 주로 사용하는지, 기술적 깊이
-2. **최근 활동/커밋/오픈소스 기여 등 활동성** - 얼마나 활발하게 활동하는지, 기여 패턴
-3. **대표 프로젝트/특징/강점** - 어떤 프로젝트가 대표적인지, 어떤 강점이 있는지
-4. **개발 경험과 성장** - 개발 경력, 학습 곡선, 성장 잠재력
-5. **협업 및 커뮤니티 참여** - 오픈소스 기여, 팀워크 능력
-
-6. **100점 만점 기준 점수 부여** - 다음 기준으로 정확히 평가해주세요:
-   - 팔로워 수 (10점): 100명 이상=10점, 50-99명=8점, 20-49명=6점, 20명 미만=4점
-   - 공개 저장소 수 (15점): 50개 이상=15점, 20-49개=12점, 10-19개=8점, 10개 미만=5점
-   - 언어 다양성 (15점): 5개 이상=15점, 3-4개=12점, 2개=8점, 1개=5점
-   - 최근 활동성 (20점): 최근 1개월 내 활동=20점, 3개월 내=15점, 6개월 내=10점, 1년 내=5점
-   - 프로젝트 품질 (20점): 스타가 많은 프로젝트=20점, 실용적인 프로젝트=15점, 학습용 프로젝트=10점
-   - 기술적 깊이 (20점): 복잡한 프로젝트=20점, 중간 수준=15점, 기본 수준=10점
-
-7. **추가 분석 정보**:
-   - 강점과 약점 분석
-   - 적합한 직무 유형
-   - 성장 가능성과 개선 방안
-- 추천 이유
-
-숫자가 '확인 불가'인 항목은 절대 추정하거나 공개 저장소 수로 대체하지 마세요. 해당 신호는 평가에서 제외하고, 추가 검증이 필요한 근거로 표시하세요.
-
-반드시 아래 형식으로 출력해주세요:
-이유: [구체적인 평가 근거와 각 항목별 점수] (점수: [총점]점)
-종합요약: [3-4줄 요약]
-핵심키워드: [개발자의 주요 특징을 나타내는 3-5개의 핵심 키워드, 쉼표로 구분]
-강점: [주요 강점 3-4개, 쉼표로 구분]
-약점: [개선이 필요한 부분 2-3개, 쉼표로 구분]
-적합직무: [이 개발자가 잘 맞을 직무 유형 2-3개, 쉼표로 구분]
-성장가능성: [향후 성장 가능성과 방향성, 2-3줄]
+아래 JSON만 반환하세요:
+{{
+  "score": 0,
+  "dimensions": [
+    {{"name":"기술 스택","score":0,"max":20,"evidence":[{{"source":"languages|skills_analysis|repo","claim":"데이터에 근거한 주장","confidence":0.0}}]}},
+    {{"name":"프로젝트 품질","score":0,"max":20,"evidence":[]}},
+    {{"name":"활동 신호","score":0,"max":20,"evidence":[]}},
+    {{"name":"문제 해결 깊이","score":0,"max":20,"evidence":[]}},
+    {{"name":"커뮤니티·협업 신호","score":0,"max":20,"evidence":[]}}
+  ],
+  "summary":"근거 중심 3문장 요약",
+  "keywords":["확인된 기술 또는 프로젝트 특성"],
+  "strengths":["실제 데이터로 확인된 강점"],
+  "gaps":["확인할 수 없는 정보"],
+  "risk_flags":["과대해석 위험"],
+  "suitable_roles":["근거가 있는 추천 직무"],
+  "growth_signal":"확인 가능한 성장 신호와 한계",
+  "verification_plan":["면접·원본 저장소에서 확인할 행동"],
+  "fairness_guard":{{"excluded_attributes":["이름","이메일","위치","회사"],"evaluated_attributes":["기술·프로젝트·활동의 공개 근거"],"status":"pass"}}
+}}
 """
-    messages = [
-        {"role": "system", "content": "너는 깃허브 개발자를 정확하고 공정하게 평가하는 AI 전문가야. 각 개발자의 실제 데이터를 바탕으로 객관적으로 점수를 매겨줘."},
-        {"role": "user", "content": prompt}
-    ]
-    return call_openai_chat(messages, max_tokens=800, temperature=0.7)
+    try:
+        response = get_openai_client().chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "당신은 근거 검증형 GitHub 채용 분석가입니다. 반드시 JSON만 반환하고 추측을 금지합니다."},
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=1500,
+            temperature=0.2,
+            response_format={"type": "json_object"},
+        )
+        result = json.loads(response.choices[0].message.content or "{}")
+        max_scores = {"기술 스택": 20, "프로젝트 품질": 20, "활동 신호": 20, "문제 해결 깊이": 20, "커뮤니티·협업 신호": 20}
+        dimensions = []
+        for item in result.get("dimensions", []) if isinstance(result.get("dimensions"), list) else []:
+            if not isinstance(item, dict):
+                continue
+            name = str(item.get("name", "평가 항목"))
+            maximum = max_scores.get(name, 20)
+            try:
+                score = max(0.0, min(float(maximum), float(item.get("score", 0) or 0)))
+            except (TypeError, ValueError):
+                score = 0.0
+            evidence = []
+            for evidence_item in item.get("evidence", []) if isinstance(item.get("evidence"), list) else []:
+                if not isinstance(evidence_item, dict):
+                    continue
+                try:
+                    confidence = float(evidence_item.get("confidence", 0) or 0)
+                except (TypeError, ValueError):
+                    confidence = 0.0
+                evidence.append({
+                    "source": str(evidence_item.get("source", "unknown")),
+                    "claim": str(evidence_item.get("claim", "확인된 근거 없음")),
+                    "confidence": round(max(0.0, min(1.0, confidence)), 2),
+                })
+            dimensions.append({"name": name, "score": score, "max": maximum, "evidence": evidence or [{"source": "missing", "claim": "확인된 근거 없음", "confidence": 0.0}]})
+        if not dimensions:
+            raise ValueError("GitHub 분석 차원이 비어 있습니다.")
+        grounded = [item for dimension in dimensions for item in dimension["evidence"] if item["source"] != "missing"]
+        result.update({
+            "version": "github-evidence-v1",
+            "dimensions": dimensions,
+            "score": round(min(100.0, sum(item["score"] for item in dimensions)), 1),
+            "evidence_coverage": round(min(100.0, len(grounded) / max(1, len(dimensions)) * 100), 1),
+            "confidence": round(sum(item["confidence"] for item in grounded) / max(1, len(grounded)), 2),
+            "gaps": [str(item) for item in result.get("gaps", []) if item][:6] or ["실제 코드 기여도와 협업 맥락은 GitHub 공개 데이터만으로 확인 불가"],
+            "risk_flags": [str(item) for item in result.get("risk_flags", []) if item][:6] or ["공개 활동량을 실력의 직접 증거로 해석하지 않음"],
+            "verification_plan": [str(item) for item in result.get("verification_plan", []) if item][:6] or ["대표 저장소의 실제 기여와 설계 선택을 면접에서 확인"],
+            "fairness_guard": result.get("fairness_guard") if isinstance(result.get("fairness_guard"), dict) else {"status": "pass", "excluded_attributes": ["이름", "이메일", "위치", "회사"], "evaluated_attributes": ["공개 기술·프로젝트 근거"]},
+            "decision_trace": ["직무와 무관한 개인정보를 평가에서 제외", "공개 GitHub 신호를 5개 직무 관련 차원으로 분리", f"{len(grounded)}개 근거와 확인 불가 영역을 분리"],
+        })
+        return json.dumps(result, ensure_ascii=False)
+    except Exception as e:
+        print(f"[OpenAI structured analysis error] {e}")
+        raise RuntimeError("GitHub 후보자 분석을 검증 가능한 형태로 완료하지 못했습니다.") from e
 
 def extract_text_from_file(file_path_or_url):
     """

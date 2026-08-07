@@ -913,10 +913,22 @@ const parsePortfolioEvidence = (analysisText) => {
   }
 };
 
+const parseGithubEvidence = (analysisText) => {
+  if (!analysisText || typeof analysisText !== 'string') return null;
+  try {
+    const parsed = JSON.parse(analysisText);
+    return parsed && parsed.version === 'github-evidence-v1' ? parsed : null;
+  } catch (_) {
+    return null;
+  }
+};
+
 const extractSummary = (analysisText) => {
   if (!analysisText) return '';
   const structured = parsePortfolioEvidence(analysisText);
   if (structured) return structured.summary || '제출물 근거가 부족합니다.';
+  const github = parseGithubEvidence(analysisText);
+  if (github) return github.summary || 'GitHub 공개 근거가 부족합니다.';
   const summaryMatch = analysisText.match(/종합요약:\s*([^\n]+(?:\n[^\n]+)*)/);
   if (summaryMatch) return summaryMatch[1].trim();
   return analysisText.length > 85 ? analysisText.substring(0, 85) + '...' : analysisText;
@@ -926,6 +938,8 @@ const extractKeywords = (analysisText) => {
   if (!analysisText) return [];
   const structured = parsePortfolioEvidence(analysisText);
   if (structured) return Array.isArray(structured.technical_stack) ? structured.technical_stack.slice(0, 8) : [];
+  const github = parseGithubEvidence(analysisText);
+  if (github) return (github.keywords || []).slice(0, 8);
   const keywordMatch = analysisText.match(/핵심키워드:\s*([^\n]+)/);
   if (keywordMatch) {
     const keywords = keywordMatch[1].trim().split(',').map(k => k.trim());
@@ -941,6 +955,8 @@ const extractStrengths = (analysisText) => {
     .filter(item => item && item.assessment && !/확인되지 않음|부족/.test(item.assessment))
     .map(item => `${item.name}: ${item.assessment}`)
     .slice(0, 4);
+  const github = parseGithubEvidence(analysisText);
+  if (github) return (github.strengths || []).slice(0, 4);
   const strengthMatch = analysisText.match(/강점:\s*([^\n]+)/);
   if (strengthMatch) {
     const strengths = strengthMatch[1].trim().split(',').map(s => s.trim());
@@ -953,6 +969,8 @@ const extractWeaknesses = (analysisText) => {
   if (!analysisText) return [];
   const structured = parsePortfolioEvidence(analysisText);
   if (structured) return [...(structured.gaps || []), ...(structured.risk_flags || [])].slice(0, 5);
+  const github = parseGithubEvidence(analysisText);
+  if (github) return [...(github.gaps || []), ...(github.risk_flags || [])].slice(0, 5);
   const weaknessMatch = analysisText.match(/약점:\s*([^\n]+)/);
   if (weaknessMatch) {
     const weaknesses = weaknessMatch[1].trim().split(',').map(w => w.trim());
@@ -965,6 +983,8 @@ const extractSuitableJobs = (analysisText) => {
   if (!analysisText) return [];
   const structured = parsePortfolioEvidence(analysisText);
   if (structured) return (structured.technical_stack || []).slice(0, 4);
+  const github = parseGithubEvidence(analysisText);
+  if (github) return (github.suitable_roles || []).slice(0, 4);
   const jobMatch = analysisText.match(/적합직무:\s*([^\n]+)/);
   if (jobMatch) {
     const jobs = jobMatch[1].trim().split(',').map(j => j.trim());
@@ -977,6 +997,8 @@ const extractGrowthPotential = (analysisText) => {
   if (!analysisText) return '';
   const structured = parsePortfolioEvidence(analysisText);
   if (structured) return structured.seniority_signal || '';
+  const github = parseGithubEvidence(analysisText);
+  if (github) return github.growth_signal || '';
   const growthMatch = analysisText.match(/성장가능성:\s*([^\n]+(?:\n[^\n]+)*)/);
   if (growthMatch) {
     return growthMatch[1].trim();
@@ -1157,6 +1179,23 @@ function parseComponentScores(analysisText, candidate) {
 // Parse scores from natural language ai_analysis_data.analysis_data
 function parseNaturalLanguageScores(text) {
   if (!text) return null;
+  try {
+    const structured = JSON.parse(text);
+    if (structured?.version === 'github-evidence-v1' && Array.isArray(structured.dimensions)) {
+      const dimensionScores = Object.fromEntries(structured.dimensions.map(item => [item.name, item.score || 0]));
+      return {
+        '팔로워 수': 0,
+        '공개 저장소 수': 0,
+        '언어 다양성': dimensionScores['기술 스택'] || 0,
+        '최근 활동성': dimensionScores['활동 신호'] || 0,
+        '프로젝트 품질': dimensionScores['프로젝트 품질'] || 0,
+        '기술적 깊이': Math.min(20, (dimensionScores['문제 해결 깊이'] || 0) + (dimensionScores['커뮤니티·협업 신호'] || 0)),
+        totalScore: Number(structured.score || 0),
+      };
+    }
+  } catch (_) {
+    // 구버전 자연어 분석은 아래 호환 파서로 처리한다.
+  }
   let scoreSection = text;
   // Extract only the '점수 부여' section
   const scoreStart = text.indexOf('점수 부여');
