@@ -64,7 +64,6 @@ function JobDetailPage() {
           const companyRes = await fetch(apiUrl(`/api/companies/${postData.companyId}`));
           if (companyRes.ok) {
             const companyData = await companyRes.json();
-            console.log("기업 정보 fetch 결과:", companyData);
             setCompany(companyData);
           }
         }

@@ -76,8 +76,6 @@ function PortfolioSubmissionPage() {
       isFetchingRef.current = true;
       
       try {
-        console.log(`포트폴리오 제출 페이지 로드 - 공고 ID: ${postId}, 사용자 ID: ${candidateId}`);
-        
         // 공고 정보 가져오기
         const response = await fetch(apiUrl(`/api/postings/info/${postId}`));
         if (!response.ok) {
@@ -85,7 +83,6 @@ function PortfolioSubmissionPage() {
         }
         const data = await response.json();
         setJobPosting(data);
-        console.log('공고 정보:', data);
         
         // 회사 정보 가져오기
         if (data.companyId) {
@@ -195,19 +192,11 @@ function PortfolioSubmissionPage() {
     formData.append('portfolioContent', portfolioContent);
     formData.append('portfolioUrl', portfolioUrl);
 
-    console.log('제출 전 파일 상태:', { portfolioFile, resumeFile });
-    
     if (portfolioFile) {
-      console.log('포트폴리오 파일 추가:', portfolioFile.name, portfolioFile.size);
       formData.append('portfolioFile', portfolioFile);
-    } else {
-      console.log('포트폴리오 파일이 선택되지 않음');
     }
     if (resumeFile) {
-      console.log('이력서 파일 추가:', resumeFile.name, resumeFile.size);
       formData.append('resumeFile', resumeFile);
-    } else {
-      console.log('이력서 파일이 선택되지 않음');
     }
 
     formData.append('careerData', JSON.stringify({
@@ -232,10 +221,8 @@ function PortfolioSubmissionPage() {
     // source 파라미터 추가
     formData.append('source', 'dashboard');
 
-    console.log("workExperiences to submit:", workExperiences);
-
     try {
-        const response = await fetch('/api/portfolios', {
+        const response = await fetch(apiUrl('/api/portfolios'), {
             method: 'POST',
             body: formData,
         });
@@ -245,8 +232,7 @@ function PortfolioSubmissionPage() {
             throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
 
-        const result = await response.json();
-        console.log('제출 성공:', result);
+        await response.json();
         alert('지원서가 성공적으로 제출되었습니다.');
         setIsSubmitting(false);
         navigate('/candidate/dashboard');

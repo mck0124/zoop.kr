@@ -57,12 +57,8 @@ const [individualAgree, setIndividualAgree] = useState({
 
   // ============ [폼 유효성 검사 useEffect 추가] ============
   useEffect(() => {
-    console.log('ApplicantSignupProcess - location.state:', location.state);
-    console.log('ApplicantSignupProcess - invitationToken:', invitationToken);
-    
     // location.state에서 초대 정보 확인
     if (location.state?.fromInvite && location.state?.githubLogin) {
-      console.log('location.state에서 초대 정보 확인됨:', location.state.githubLogin);
       setFromInvite(true);
       setIdCheck(location.state.githubLogin);
       setIsIdAvailable(true);
