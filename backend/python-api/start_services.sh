@@ -79,6 +79,14 @@ uvicorn interview_questions_api:app --host 0.0.0.0 --port 8004 --reload &
 QUESTIONS_PID=$!
 echo "✅ Interview Questions Service 시작됨 (PID: $QUESTIONS_PID)"
 
+# OCR Service (Port 5003)
+echo "📄 OCR Service 시작 중... (Port 5003)"
+cd ../../ocr
+uvicorn ocr_api:app --host 0.0.0.0 --port 5003 --reload &
+OCR_PID=$!
+cd ../python-api/interview_questions
+echo "✅ OCR Service 시작됨 (PID: $OCR_PID)"
+
 echo ""
 echo "🎉 모든 서비스가 시작되었습니다!"
 echo "🔍 GitHub Search Service: http://localhost:8000"
@@ -88,7 +96,7 @@ echo "📊 Portfolio Matching Service: http://localhost:8003"
 echo "❓ Interview Questions Service: http://localhost:8004"
 echo ""
 echo "서비스를 중지하려면:"
-echo "kill $GITHUB_PID $CHATBOT_PID $INTERVIEW_PID $PORTFOLIO_PID $QUESTIONS_PID"
+echo "kill $GITHUB_PID $CHATBOT_PID $INTERVIEW_PID $PORTFOLIO_PID $QUESTIONS_PID $OCR_PID"
 echo ""
 echo "로그 확인:"
 echo "tail -f github_search/logs.txt chatbot/logs.txt interview_analysis/logs.txt portfolio_matching/logs.txt interview_questions/logs.txt"
@@ -116,4 +124,4 @@ while true; do
         break
     fi
     sleep 5
-done 
+done

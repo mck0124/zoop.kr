@@ -4,20 +4,30 @@ import easyocr
 import re
 import shutil
 import os
+import threading
 
 app = FastAPI()
 
 # CORS 설정
+ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",") if origin.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# EasyOCR 초기화
-reader = easyocr.Reader(['ko', 'en'])
+reader = None
+reader_lock = threading.Lock()
+
+def get_reader():
+    global reader
+    if reader is None:
+        with reader_lock:
+            if reader is None:
+                reader = easyocr.Reader(['ko', 'en'])
+    return reader
 
 # 정규식 패턴
 biznum_pattern = re.compile(r'\d{3}-\d{2}-\d{5}')
@@ -25,12 +35,16 @@ idnum_pattern = re.compile(r'\d{6}-\d{7}')  # 주민등록번호 패턴
 
 @app.post("/ocr")
 async def extract_ocr_data(file: UploadFile = File(...)):
-    temp_path = f"temp_{file.filename}"
+    safe_filename = os.path.basename(file.filename or "upload.bin")
+    temp_path = os.path.join("/tmp", f"zoop-ocr-{threading.get_ident()}-{safe_filename}")
     with open(temp_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    lines = reader.readtext(temp_path, detail=0)
-    os.remove(temp_path)
+    try:
+        lines = get_reader().readtext(temp_path, detail=0)
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
 
     biznum = corp_name = ceo_name = address = ""
     is_cert_doc = False  # ✅ 증명원 여부 플래그
@@ -60,3 +74,7 @@ async def extract_ocr_data(file: UploadFile = File(...)):
         "is_cert_doc": is_cert_doc,  # ✅ 증명서 여부 반환
         "raw_text": lines             # ✅ 전체 텍스트 반환 (디버깅용)
     }
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "ocr", "model_loaded": reader is not None}
