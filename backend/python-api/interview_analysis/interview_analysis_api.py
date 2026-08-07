@@ -20,7 +20,7 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 SPRING_API_URL = os.getenv("SPRING_API_URL", "http://localhost:8081")
 
-client = openai.OpenAI(api_key=OPENAI_API_KEY)
+client = None
 
 app = FastAPI()
 ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",") if origin.strip()]
@@ -33,10 +33,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Whisper 모델 로드 (한 번만 로드)
-print("Loading Whisper model...")
-whisper_model = whisper.load_model("base")
-print("Whisper model loaded successfully!")
+whisper_model = None
+whisper_model_lock = threading.Lock()
+
+def get_openai_client():
+    global client
+    if client is None:
+        if not OPENAI_API_KEY:
+            raise RuntimeError("OPENAI_API_KEY is not configured")
+        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+    return client
+
+def get_whisper_model():
+    """Load Whisper on first analysis so startup and health checks stay fast."""
+    global whisper_model
+    if whisper_model is None:
+        with whisper_model_lock:
+            if whisper_model is None:
+                print("Loading Whisper model...")
+                whisper_model = whisper.load_model("base")
+                print("Whisper model loaded successfully!")
+    return whisper_model
 
 class InterviewAnalysisRequest(BaseModel):
     schedule_id: int
@@ -69,12 +86,12 @@ def extract_audio_from_video(video_path: str) -> str:
                     video_file = ydl.prepare_filename(info)
                 
                 # 다운로드된 비디오 파일로 Whisper 실행
-                result = whisper_model.transcribe(video_file, language="ko")
+                result = get_whisper_model().transcribe(video_file, language="ko")
                 return result["text"]
         else:
             # 로컬 파일인 경우 - FFmpeg 없이 직접 Whisper 사용
             print(f"Direct Whisper processing for: {video_path}")
-            result = whisper_model.transcribe(video_path, language="ko")
+            result = get_whisper_model().transcribe(video_path, language="ko")
             return result["text"]
     except Exception as e:
         print(f"Audio extraction error: {e}")
@@ -82,7 +99,7 @@ def extract_audio_from_video(video_path: str) -> str:
         try:
             print("FFmpeg 오류 발생, 대체 방법으로 시도...")
             # 직접 Whisper로 비디오 파일 처리 (오디오 추출 없이)
-            result = whisper_model.transcribe(video_path, language="ko")
+            result = get_whisper_model().transcribe(video_path, language="ko")
             return result["text"]
         except Exception as e2:
             print(f"대체 방법도 실패: {e2}")
@@ -149,7 +166,7 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
 """
 
     try:
-        response = client.chat.completions.create(
+        response = get_openai_client().chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "당신은 헤드헌터이자 면접 전문가입니다. 반드시 위 JSON 포맷만 출력하세요."},
@@ -483,7 +500,7 @@ def analyze_single_video_response(transcript: str, question: str) -> dict:
 }}
 """
     try:
-        response = client.chat.completions.create(
+        response = get_openai_client().chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "당신은 헤드헌터이자 면접 전문가입니다. 반드시 위 JSON 포맷만 출력하세요."},
@@ -589,7 +606,12 @@ def start_auto_analyze():
 @app.get("/health")
 async def health_check():
     """헬스 체크"""
-    return {"status": "healthy", "service": "interview-analysis"}
+    return {
+        "status": "healthy",
+        "service": "interview-analysis",
+        "openai_configured": bool(OPENAI_API_KEY),
+        "whisper_loaded": whisper_model is not None,
+    }
 
 if __name__ == "__main__":
     import uvicorn
