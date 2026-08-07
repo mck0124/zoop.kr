@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { useNavigate } from 'react-router-dom';
 import { apiUrl as buildApiUrl } from '../api/config';
@@ -160,21 +160,6 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
     
   }, [isOpen, candidate, jobCandidateId, fromMatchingTab]);
 
-  // useEffect(() => {
-  //   console.log("📩 invitationTimes 상태 업데이트:", invitationTimes);
-  // }, [invitationTimes]);
-
-  // useEffect(() => {
-  //   console.log("📁 portfolioDate 상태 업데이트:", portfolioDate);
-  // }, [portfolioDate]);
-
-  // useEffect(() => {
-  //   console.log("📅 interviewSchedule 상태 업데이트:", interviewSchedule);
-  // }, [interviewSchedule]);
-
-  useEffect(() => {
-  }, [interviewVideoUrl]);
-
   /**포트폴리오를 불러오기 위한 useState */
   useEffect(() => {
     if (!jobCandidateId) return;
@@ -320,7 +305,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
   };
 
   // 닫기버튼 클릭시
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     // 아코디언 닫기
     setPortfolioAnalysisOpen(false);
 
@@ -338,7 +323,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
 
     // 최종 닫기
     onClose();
-  };
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -348,7 +333,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
     document.addEventListener('keydown', handleEscape);
     modalRef.current?.focus();
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen]);
+  }, [isOpen, handleClose]);
 
   const navigate = useNavigate();
   // 매칭탭에서만 새로운 상세페이지로 이동하는 함수
