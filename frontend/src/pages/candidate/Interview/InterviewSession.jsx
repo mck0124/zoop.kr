@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { apiUrl } from '../../../api/config';
 
 // InterviewSession.jsx: 2-column layout (left: question/timer, right: video), auto think/answer phase with timer and recording
 
@@ -69,7 +70,7 @@ const InterviewSession = () => {
       return;
     }
     
-    fetch(`/api/interview-videos/questions/${scheduleIdNum}`)
+    fetch(apiUrl(`/api/interview-videos/questions/${scheduleIdNum}`))
       .then(res => {
         if (!res.ok) throw new Error('질문을 불러오지 못했습니다');
         return res.json();
@@ -186,7 +187,7 @@ const InterviewSession = () => {
     formData.append('questionNumber', currentIdx + 1);
     formData.append('questionContent', questions[currentIdx]);
     try {
-      const res = await fetch('/api/interview-videos/upload', {
+      const res = await fetch(apiUrl('/api/interview-videos/upload'), {
         method: 'POST',
         body: formData,
       });
@@ -308,4 +309,4 @@ const InterviewSession = () => {
   );
 };
 
-export default InterviewSession; 
+export default InterviewSession;

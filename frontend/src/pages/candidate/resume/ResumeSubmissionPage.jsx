@@ -66,7 +66,7 @@ const ResumeSubmissionPage = () => {
       }
       // 2. 이력서 정보는 실패해도 무시
       try {
-        const resumeRes = await fetch(`/api/resumes/candidate/${authState.userId}`);
+        const resumeRes = await fetch(apiUrl(`/api/resumes/candidate/${authState.userId}`));
         if (resumeRes.ok) {
           const resumes = await resumeRes.json();
           if (Array.isArray(resumes) && resumes.length > 0) {
@@ -78,7 +78,7 @@ const ResumeSubmissionPage = () => {
       }
       // 3. 최근 첨부 이력서 파일 fetch
       try {
-        const pfRes = await fetch(`/api/portfolios/candidate-portfolio/recent/${authState.userId}`);
+        const pfRes = await fetch(apiUrl(`/api/portfolios/candidate-portfolio/recent/${authState.userId}`));
         if (pfRes.ok) {
           const pf = await pfRes.json();
           if (pf.hasPortfolio && pf.portfolioFilePath) {
@@ -134,7 +134,7 @@ const ResumeSubmissionPage = () => {
           Object.keys(ex).forEach(k => { if (ex[k] === undefined || ex[k] === null) ex[k] = ''; });
           return ex;
         });
-      const resumeRes = await fetch('/api/resumes', {
+      const resumeRes = await fetch(apiUrl('/api/resumes'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -159,14 +159,14 @@ const ResumeSubmissionPage = () => {
         } catch (e) {}
         throw new Error(errorMsg);
       }
-      const resumeId = await resumeRes.json();
+      await resumeRes.json();
 
       // 2. 포트폴리오 파일 업로드
       if (form.file) {
         const fd = new FormData();
         fd.append('candidateId', authState.userId);
         fd.append('portfolioFile', form.file);
-        const portRes = await fetch('/api/portfolios/resume-upload', {
+        const portRes = await fetch(apiUrl('/api/portfolios/resume-upload'), {
           method: 'POST',
           body: fd,
         });
@@ -184,7 +184,6 @@ const ResumeSubmissionPage = () => {
           throw new Error(errorMsg);
         }
         const uploadResult = await portRes.json();
-        console.log('포트폴리오 업로드 응답:', uploadResult);
         // 다양한 필드명에 대응
         const cand_portfolio_id = uploadResult.cand_portfolio_id || uploadResult.portfolioId || uploadResult.id;
         const file_url = uploadResult.file_url || uploadResult.portfolioFilePath || uploadResult.url;

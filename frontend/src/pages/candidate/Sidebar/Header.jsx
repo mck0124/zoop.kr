@@ -63,7 +63,6 @@ function Header() {
   // 마이페이지, 설정 등 클릭 핸들러 (예시)
   const handleMenuItemClick = (path) => {
     if (path === '/mypage') {
-      console.log('DEBUG userType:', authState?.userType); // TEMP DEBUG
       if (authState?.userType === 'candidate') {
         navigate('/candidate/dashboard');
       } else {

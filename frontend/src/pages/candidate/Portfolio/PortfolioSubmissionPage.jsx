@@ -48,6 +48,7 @@ function PortfolioSubmissionPage() {
   // New state for veteran proof file
   const [veteranProofFile, setVeteranProofFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeAgreement, setActiveAgreement] = useState(null);
 
   useEffect(() => {
     // AuthContext가 초기화되지 않았으면 아무것도 하지 않음
@@ -618,7 +619,7 @@ function PortfolioSubmissionPage() {
                     <span className="checkbox-custom"></span>
                     <span className="agreement-text">필수 개인정보 수집 및 이용 동의</span>
                   </label>
-                  <a href="#" className="agreement-link">보기</a>
+                  <button type="button" className="agreement-link" onClick={() => setActiveAgreement('필수 개인정보 수집 및 이용 동의')}>보기</button>
                 </div>
 
                 <div className="agreement-item">
@@ -633,7 +634,7 @@ function PortfolioSubmissionPage() {
                     <span className="checkbox-custom"></span>
                     <span className="agreement-text">선택 개인정보 수집 및 이용 동의</span>
                   </label>
-                  <a href="#" className="agreement-link">보기</a>
+                  <button type="button" className="agreement-link" onClick={() => setActiveAgreement('선택 개인정보 수집 및 이용 동의')}>보기</button>
                 </div>
 
                 <div className="agreement-item">
@@ -648,7 +649,7 @@ function PortfolioSubmissionPage() {
                     <span className="checkbox-custom"></span>
                     <span className="agreement-text">선택 추후 적합한 포지션 제안을 위한 개인정보 수집 및 이용에 동의합니다</span>
                   </label>
-                  <a href="#" className="agreement-link">보기</a>
+                  <button type="button" className="agreement-link" onClick={() => setActiveAgreement('추후 포지션 제안을 위한 개인정보 수집 및 이용 동의')}>보기</button>
                 </div>
                 <p className="agreement-note">제안에 동의해주셔야 추후 더 적합한 포지션을 채용담당자로부터 제안 받을 수 있어요.</p>
 
@@ -664,7 +665,7 @@ function PortfolioSubmissionPage() {
                     <span className="checkbox-custom"></span>
                     <span className="agreement-text">선택 추후 공개채용 등이 오픈되었을 때 채용정보를 수신하는 것에 동의합니다</span>
                   </label>
-                  <a href="#" className="agreement-link">보기</a>
+                  <button type="button" className="agreement-link" onClick={() => setActiveAgreement('채용정보 수신 동의')}>보기</button>
                 </div>
               </div>
 
@@ -679,6 +680,19 @@ function PortfolioSubmissionPage() {
           </form>
         </div>
       </div>
+      {activeAgreement && (
+        <div className="agreement-modal-backdrop" role="presentation" onClick={() => setActiveAgreement(null)}>
+          <div className="agreement-modal" role="dialog" aria-modal="true" aria-labelledby="agreement-modal-title" onClick={event => event.stopPropagation()}>
+            <div className="agreement-modal-header">
+              <h2 id="agreement-modal-title">{activeAgreement}</h2>
+              <button type="button" aria-label="동의 내용 닫기" onClick={() => setActiveAgreement(null)}>×</button>
+            </div>
+            <p>ZOOP은 지원서 검토와 적합한 채용 기회 안내를 위해 필요한 범위에서 개인정보를 처리합니다.</p>
+            <p className="agreement-modal-note">필수 동의는 지원서 제출에 필요하며, 선택 동의는 언제든지 철회할 수 있습니다. 실제 처리 범위는 서비스의 개인정보 처리방침을 따릅니다.</p>
+            <button type="button" className="submit-button agreement-modal-close" onClick={() => setActiveAgreement(null)}>확인</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
