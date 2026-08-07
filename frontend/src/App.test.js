@@ -21,3 +21,11 @@ test('switches the landing page between English, Korean, and Chinese', () => {
   expect(screen.getByText(/招聘所需的一切/)).toBeInTheDocument();
   expect(window.localStorage.getItem('zoopLanguage')).toBe('zh');
 });
+
+test('shows a localized recovery page for unknown routes', async () => {
+  window.localStorage.clear();
+  window.history.pushState({}, '', '/route-that-does-not-exist');
+  render(<App />);
+  expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
+  window.history.pushState({}, '', '/');
+});

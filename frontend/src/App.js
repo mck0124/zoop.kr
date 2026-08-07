@@ -56,6 +56,7 @@ const FaqPage = lazy(() => import('./pages/info/FaqPage'));
 const Careers = lazy(() => import('./pages/info/Careers'));
 const JobDetailPage = lazy(() => import('./pages/info/JobDetailPage'));
 const PolicyPage = lazy(() => import('./pages/info/PolicyPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 
 
@@ -267,6 +268,7 @@ function AppContent() {
             </PrivateRoute>
           }
         />
+        <Route path="*" element={<NotFoundPage />} />
         {/* <Route path="/job/:postId" element={<JobDetailPage />} /> */}
       </Routes>
 

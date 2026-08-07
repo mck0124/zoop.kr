@@ -71,14 +71,12 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
   const [lang, setLang] = useState(globalLanguage);
   const [openTime, setOpenTime] = useState("");
   const [inputValue, setInputValue] = useState("");
-  const [attachedFile, setAttachedFile] = useState(null);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState([welcomeMsgs[globalLanguage] || welcomeMsgs.en]);
   const [optionButtons, setOptionButtons] = useState(initialOptions[globalLanguage] || initialOptions.en);
   const [isComposing, setIsComposing] = useState(false);
 
-  const fileInputRef = useRef(null);
   const inputRef = useRef(null);
   const modalRef = useRef(null);
   const scrollRef = useRef(null);
@@ -205,7 +203,6 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
   const sendMessage = (text) => {
     if (isSending.current || loading || !text) return;
     setOptionButtons([]);
-    setAttachedFile(null);
     setEmojiOpen(false);
     setMessages((prevMsgs) => [
       ...prevMsgs,
@@ -324,17 +321,11 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
     return "";
   }
 
-  const handleFileBtnClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) setAttachedFile(file);
-  };
+  const sourceCopy = lang === "ko"
+    ? { label: "답변 근거", page: "안내서 p." }
+    : lang === "zh"
+      ? { label: "回答依据", page: "指南 p." }
+      : { label: "Sources", page: "Guide p." };
 
   if (!visible) return null;
 
@@ -418,11 +409,11 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
                 <>
                   {renderAIContent(msg.content)}
                   {Array.isArray(msg.sources) && msg.sources.length > 0 && (
-                    <div className="chatbot-source-list" aria-label="답변 근거">
-                      <span className="chatbot-source-label">답변 근거</span>
+                    <div className="chatbot-source-list" aria-label={sourceCopy.label}>
+                      <span className="chatbot-source-label">{sourceCopy.label}</span>
                       {msg.sources.slice(0, 3).map((source, sourceIndex) => (
                         <span className="chatbot-source-chip" key={`${source.page}-${sourceIndex}`}>
-                          안내서 p.{source.page}
+                          {sourceCopy.page}{source.page}
                         </span>
                       ))}
                     </div>
@@ -499,30 +490,7 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
             </div>
           )}
         </button>
-        {inputValue.trim() === "" && !attachedFile ? (
-          <>
-            <button
-              className="chatbot-flat-icon-btn"
-              tabIndex={0}
-              aria-label="첨부파일"
-              type="button"
-              onClick={handleFileBtnClick}
-              style={{ marginRight: 0 }}
-              disabled={loading || isSending.current}
-            >
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none">
-                <path d="M7.5 12.5l5-5a3.5 3.5 0 015 5l-7 7a4.5 4.5 0 01-6.3-6.3l7.5-7.5"
-                      stroke="#bababa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              style={{ display: "none" }}
-              onChange={handleFileChange}
-            />
-          </>
-        ) : (
+        {inputValue.trim() !== "" && (
           <button
             className="chatbot-flat-send-btn"
             tabIndex={0}
@@ -546,20 +514,6 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
           </button>
         )}
       </div>
-      {attachedFile && (
-        <div style={{
-          margin: "0 1.1em 0.33em 1.1em",
-          color: "#2dc4a1", fontSize: "0.97em", fontWeight: 500
-        }}>
-          첨부: {attachedFile.name}
-          <button
-            onClick={() => setAttachedFile(null)}
-            style={{
-              background: "none", border: "none", color: "#aaa", marginLeft: "0.65em",
-              cursor: "pointer", fontSize: "1.1em"
-            }}>×</button>
-        </div>
-      )}
     </div>
   );
 }

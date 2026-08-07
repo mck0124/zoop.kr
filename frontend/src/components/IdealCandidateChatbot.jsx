@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { HiOutlineLightningBolt } from "react-icons/hi";
 import { apiUrl, CHATBOT_API_URL } from "../api/config";
+import { useLanguage } from "../context/LanguageContext";
 
 // ✅ 기본 프리셋 예시 (아무 입력도 없을 때)
 const defaultCandidatePhrases = [
@@ -24,10 +25,37 @@ const defaultCandidatePhrases = [
   "긍정적인 마인드를 가진 분"
 ];
 
+const IDEAL_COPY = {
+  ko: {
+    hello: "안녕하세요! 👋", title: "회사 인재상 작성 AI 어시스턴트", realtime: "실시간 대화형 어시스턴트",
+    invite: "추가로 필요한", details: "기술 스택, 경험, 가치관", suffix: "등을 자유롭게 말씀해 주세요.",
+    role: "직무", languages: "언어", nationwide: "전국", region: "지역", salary: "연봉", headcount: "인원수", deadline: "마감일", description: "상세설명",
+    placeholder: "인재상에 대해 자유롭게 말씀해 주세요...", error: "죄송합니다. 일시적인 오류가 발생했습니다. 다시 시도해 주세요.", applied: "요청을 반영한 인재상을 작성했습니다. 추가로 수정할 부분을 말씀해 주세요."
+  },
+  en: {
+    hello: "Hello! 👋", title: "AI ideal-candidate assistant", realtime: "Real-time conversational assistant",
+    invite: "Tell me about any", details: "skills, experience, or values", suffix: "you want to add.",
+    role: "Role", languages: "Languages", nationwide: "Nationwide", region: "Region", salary: "Salary", headcount: "Headcount", deadline: "Deadline", description: "Description",
+    placeholder: "Tell me what kind of teammate you are looking for...", error: "Sorry, something went wrong. Please try again.", applied: "I drafted the ideal-candidate profile. Tell me what you would like to refine."
+  },
+  zh: {
+    hello: "你好！👋", title: "AI 理想候选人助手", realtime: "实时对话式助手",
+    invite: "请告诉我还需要强调哪些", details: "技术栈、经验或价值观", suffix: "。",
+    role: "职位", languages: "语言", nationwide: "全国", region: "地区", salary: "薪资", headcount: "招聘人数", deadline: "截止日期", description: "职位描述",
+    placeholder: "请描述你正在寻找的候选人类型...", error: "抱歉，出现了问题。请重试。", applied: "我已经生成了理想候选人画像。请告诉我需要如何修改。"
+  }
+};
+
+const DEFAULT_PHRASES = {
+  ko: defaultCandidatePhrases,
+  en: ["Draft an ideal-candidate profile", "We value ownership", "Strong collaboration skills", "Deep practical experience", "Comfortable learning new technology", "Clear communication", "Data-driven decision making", "Customer-focused mindset"],
+  zh: ["请帮我生成理想候选人画像", "重视责任感和主人翁意识", "具备良好的协作能力", "拥有丰富的实战经验", "能够快速学习新技术", "沟通清晰有效", "能够基于数据做决策", "以客户为中心"],
+};
+
 // 최근에 보여준 버튼 phrase를 저장 (최대 10개)
 let recentPhraseHistory = [];
 
-function getDynamicCandidatePhrases(messages) {
+function getDynamicCandidatePhrases(messages, fallbackPhrases = defaultCandidatePhrases) {
   // 최근 입력/AI답변에 특정 키워드 있으면 다채롭게 제안 (간단 예시)
   const keywords = [
     { key: "책임", phrase: "주도적이고 책임감 있는 분을 원합니다" },
@@ -47,7 +75,7 @@ function getDynamicCandidatePhrases(messages) {
     if (text.includes(key)) picks.push(phrase);
   }
   // 후보군: 키워드 기반 picks + 프리셋 섞기
-  let pool = Array.from(new Set([...picks, ...defaultCandidatePhrases]));
+  let pool = Array.from(new Set([...picks, ...fallbackPhrases]));
   // 최근에 보여준 phrase는 제외
   pool = pool.filter(p => !recentPhraseHistory.includes(p));
   // 동일한 입력은 동일한 제안을 반환해 재현 가능한 UX를 유지합니다.
@@ -56,7 +84,7 @@ function getDynamicCandidatePhrases(messages) {
   recentPhraseHistory = [...recentPhraseHistory, ...result].slice(-10);
   // 만약 후보가 부족하면 프리셋에서 추가
   if (result.length < 4) {
-    const more = defaultCandidatePhrases.filter(p => !result.includes(p) && !recentPhraseHistory.includes(p));
+    const more = fallbackPhrases.filter(p => !result.includes(p) && !recentPhraseHistory.includes(p));
     result.push(...more.slice(0, 4 - result.length));
     recentPhraseHistory = [...recentPhraseHistory, ...result].slice(-10);
   }
@@ -64,23 +92,27 @@ function getDynamicCandidatePhrases(messages) {
 }
 
 export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidateUpdate, style }) {
+  const { language } = useLanguage();
+  const copy = IDEAL_COPY[language] || IDEAL_COPY.en;
+
   function getFilterSummaryLines(filters) {
     if (!filters) return [];
     const f = filters.filters || filters;
     const lines = [];
-    if (f.roles && f.roles.length) lines.push(`직무: ${f.roles.join(", ")}`);
-    if (f.languages && f.languages.length) lines.push(`언어: ${f.languages.join(", ")}`);
+    if (f.roles && f.roles.length) lines.push(`${copy.role}: ${f.roles.join(", ")}`);
+    if (f.languages && f.languages.length) lines.push(`${copy.languages}: ${f.languages.join(", ")}`);
     let regionStr = "";
-    if (f.nationwide) regionStr = "전국";
+    if (f.nationwide) regionStr = copy.nationwide;
     else if (f.regions && f.regions.length) regionStr = f.regions.join(", ");
-    if (regionStr) lines.push(`지역: ${regionStr}`);
-    if (f.salary) lines.push(`연봉: ${Number(f.salary).toLocaleString()}만원`);
-    if (f.headcount) lines.push(`인원수: ${f.headcount}명`);
-    if (filters.expiryDate) lines.push(`마감일: ${filters.expiryDate}`);
-    if (filters.description) lines.push(`상세설명: ${filters.description}`);
+    if (regionStr) lines.push(`${copy.region}: ${regionStr}`);
+    if (f.salary) lines.push(`${copy.salary}: ${Number(f.salary).toLocaleString()}${language === "ko" ? "만원" : ""}`);
+    if (f.headcount) lines.push(`${copy.headcount}: ${f.headcount}${language === "ko" ? "명" : ""}`);
+    if (filters.expiryDate) lines.push(`${copy.deadline}: ${filters.expiryDate}`);
+    if (filters.description) lines.push(`${copy.description}: ${filters.description}`);
     return lines;
   }
   const filterSummaryLines = getFilterSummaryLines(recruitFilters);
+  const defaultPhrases = DEFAULT_PHRASES[language] || DEFAULT_PHRASES.en;
 
   // 기본 안내 메시지
   const initialAIMessage = {
@@ -88,10 +120,10 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
     content: (
       <div style={{ color: "#222" }}>
         <div style={{ fontWeight: 700, marginBottom: "0.5rem", fontSize: "1.1rem" }}>
-          안녕하세요! 👋
+          {copy.hello}
         </div>
         <div style={{ marginBottom: "0.5rem" }}>
-          <strong>회사 인재상 작성 AI 어시스턴트</strong>입니다.
+          <strong>{copy.title}</strong>
         </div>
         {filterSummaryLines.length > 0 && (
           <div style={{ marginBottom: "0.5rem", fontWeight: 500 }}>
@@ -99,13 +131,13 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
               <div key={idx}>{line}</div>
             ))}
             <div style={{ marginTop: "0.5rem" }}>
-              추가로 필요한 <b>기술 스택, 경험, 가치관</b> 등을 자유롭게 말씀해 주세요.
+              {copy.invite} <b>{copy.details}</b> {copy.suffix}
             </div>
           </div>
         )}
         {filterSummaryLines.length === 0 && (
           <div>
-            추가로 필요한 <b>기술 스택, 경험, 가치관</b> 등을 자유롭게 말씀해 주세요.
+            {copy.invite} <b>{copy.details}</b> {copy.suffix}
           </div>
         )}
       </div>
@@ -127,9 +159,9 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
   const candidatePhrases =
     examples && examples.length > 0
       ? examples
-      : messages.length === 1 && messages[0] === initialAIMessage
-        ? defaultCandidatePhrases
-        : getDynamicCandidatePhrases(messages);
+        : messages.length === 1 && messages[0].type === "ai"
+        ? defaultPhrases
+        : getDynamicCandidatePhrases(messages, defaultPhrases);
 
   // 예상 버튼들(중복 제거)
   const uniqueCandidatePhrases = Array.from(new Set(candidatePhrases));
@@ -163,7 +195,8 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
         body: JSON.stringify({
           history: history.slice(0, -1),
           user_input: lastUserMsg,
-          recruit_filters: recruitFilters
+          recruit_filters: recruitFilters,
+          lang: language
         }),
       });
       if (!response.ok) throw new Error("API 호출 실패");
@@ -195,7 +228,7 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
 
       }
       // 안내문구만 남기기 (앞뒤 공백/줄바꿈 정리)
-      guide = guide.trim().replace(/^\n+|\n+$/g, "");
+      guide = guide.trim().replace(/^\n+|\n+$/g, "") || copy.applied;
       setExamples(parsedExamples);
       // 안내문구만 챗봇에 표시
       setMessages((prevMsgs) => [
@@ -209,7 +242,7 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
     } catch (error) {
       setMessages((prevMsgs) => [
         ...prevMsgs,
-        { type: "ai", content: "죄송합니다. 일시적인 오류가 발생했습니다. 다시 시도해 주세요." }
+        { type: "ai", content: copy.error }
       ]);
     } finally {
       setLoading(false);
@@ -306,8 +339,8 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
           <HiOutlineLightningBolt size={20} color="#18d1a0" />
         </div>
         <div>
-          <div style={{ fontWeight: 800, fontSize: "1.13rem", color: "#000" }}>AI 인재상 작성</div>
-          <div style={{ fontSize: "0.89rem", color: "#000" }}>실시간 대화형 어시스턴트</div>
+          <div style={{ fontWeight: 800, fontSize: "1.13rem", color: "#000" }}>{copy.title}</div>
+          <div style={{ fontSize: "0.89rem", color: "#000" }}>{copy.realtime}</div>
         </div>
       </div>
       {/* 메시지 영역 */}
@@ -459,7 +492,7 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
             onCompositionStart={() => setIsComposing(true)}
             onCompositionEnd={() => setIsComposing(false)}
             onKeyDown={handleInputKeyDown}
-            placeholder="인재상에 대해 자유롭게 말씀해 주세요..."
+            placeholder={copy.placeholder}
             style={{
               flex: 1,
               padding: "1rem 1.2rem",

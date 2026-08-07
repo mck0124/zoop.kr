@@ -124,6 +124,7 @@ class IdealCandidateRequest(BaseModel):
     history: list
     user_input: str
     recruit_filters: dict | None = None
+    lang: str = "en"
 
 @app.post("/chat")
 async def chat_endpoint(req: ChatRequest):
@@ -175,13 +176,20 @@ async def chat_endpoint(req: ChatRequest):
 @app.post("/ideal-candidate-chat")
 async def ideal_candidate_chat_endpoint(req: IdealCandidateRequest):
     try:
+        lang = req.lang if req.lang in ["en", "ko", "zh"] else "en"
         filters_str = ""
         if req.recruit_filters:
             for k, v in req.recruit_filters.items():
                 filters_str += f"{k}: {v}\n"
         
+        language_instruction = {
+            "en": "Write all natural-language output in English. Keep the <SUMMARY>, <EXAMPLES>, and <END> tags exactly as written.",
+            "zh": "请用中文输出所有自然语言内容。请严格保留 <SUMMARY>、<EXAMPLES> 和 <END> 标签。",
+            "ko": "모든 자연어 답변은 한국어로 작성하고 <SUMMARY>, <EXAMPLES>, <END> 태그는 그대로 유지해.",
+        }[lang]
         system_prompt = (
             "너는 전문적인 인재상 작성 AI 어시스턴트야. "
+            + language_instruction +
             "아래 지침을 꼭 지켜:\n"
             "1. 사용자가 한 문장 또는 단어만 입력해도, 그 내용이 인재상에 들어갈 만한 특성, 역량, 성향, 직무, 경험, 키워드 등과 조금이라도 관련이 있으면 반드시 인재상 요약(<SUMMARY>)과 예시(<EXAMPLES>)를 작성해.\n"
             "2. 예시: '리더십 경험', '팀워크', '책임감', '데이터 기반 의사결정', '창의성', '성실함', '주도적', '배려심' 등 키워드, 문장, 특성, 경험 등 전부 인재상 작성에 포함될 수 있다면 무조건 작성해.\n"
@@ -213,4 +221,4 @@ async def ideal_candidate_chat_endpoint(req: IdealCandidateRequest):
         
     except Exception as e:
         print(f"[Error in ideal-candidate-chat] {e}")
-        return {"answer": "죄송합니다. 일시적인 오류가 발생했습니다. 다시 시도해 주세요."}
+        return {"answer": {"ko": "죄송합니다. 일시적인 오류가 발생했습니다. 다시 시도해 주세요.", "zh": "抱歉，发生了临时错误。请稍后再试。", "en": "Sorry, a temporary error occurred. Please try again."}.get(req.lang, "Sorry, a temporary error occurred. Please try again.")}
