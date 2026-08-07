@@ -52,6 +52,18 @@ The project was developed by a **4-person team** as a Korea Software Industry As
 - **Evidence-first matching:** returns dimension scores, source-backed evidence, confidence, missing evidence, and interview follow-up topics instead of an opaque single score.
 - **Support assistant:** routes customer questions through the server-side AI service; no OpenAI credential is shipped to the browser.
 
+### What makes the AI different
+
+ZOOP is designed around a **decision that can be challenged**, not a score that must be trusted blindly:
+
+- **Evidence ledger:** every portfolio and GitHub analysis separates claims, source, confidence, gaps, and verification actions. Portfolio quotes are mechanically checked against the submitted text before they are labeled as verified.
+- **Counterfactual matching:** recruiters can select missing signals—such as confirming a candidate's actual project contribution—and preview how that evidence could change the recommendation.
+- **Interview consistency audit:** interview analysis checks whether claims remain consistent across answers and links observations back to answer-level quotes.
+- **Decision receipt:** a recruiter can export the score, evidence, fairness guard, uncertainty, and next verification steps as an auditable JSON receipt.
+- **Fairness guardrails:** names, gender, age, photos, school, location, and other non-job-related attributes are explicitly excluded from the AI evaluation contract.
+
+The result is an AI recruiting workflow that makes uncertainty visible and turns it into the next best question, instead of hiding uncertainty behind a polished ranking.
+
 ## System Architecture
 
 ```mermaid
