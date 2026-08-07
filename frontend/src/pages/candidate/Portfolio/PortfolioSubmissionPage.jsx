@@ -7,6 +7,7 @@ import './PortfolioSubmissionPage.css';
 import { apiUrl } from '../../../api/config';
 
 function PortfolioSubmissionPage() {
+  const MAX_FILE_SIZE = 50 * 1024 * 1024;
   const { postId } = useParams();
   const navigate = useNavigate();
   const { authState, isInitialized } = useAuth();
@@ -142,6 +143,23 @@ function PortfolioSubmissionPage() {
       return exp;
     });
     setWorkExperiences(newWorkExperiences);
+  };
+
+  const handleFileSelection = (event, setFile, allowedExtensions) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const extension = `.${file.name.split('.').pop().toLowerCase()}`;
+    if (file.size > MAX_FILE_SIZE) {
+      alert('파일은 50MB 이하만 첨부할 수 있습니다.');
+      event.target.value = '';
+      return;
+    }
+    if (allowedExtensions && !allowedExtensions.includes(extension)) {
+      alert(`지원하지 않는 파일 형식입니다. ${allowedExtensions.join(', ')} 파일을 선택해주세요.`);
+      event.target.value = '';
+      return;
+    }
+    setFile(file);
   };
 
   const handleSubmit = async (e) => {
@@ -340,7 +358,7 @@ function PortfolioSubmissionPage() {
                   </div>
                   <input
                     type="file"
-                    onChange={(e) => setPortfolioFile(e.target.files[0])}
+                    onChange={(e) => handleFileSelection(e, setPortfolioFile, ['.pdf', '.zip', '.rar', '.png', '.jpg', '.jpeg'])}
                     accept=".pdf,.zip,.rar,.png,.jpg,.jpeg"
                     className="file-input"
                     required
@@ -362,7 +380,7 @@ function PortfolioSubmissionPage() {
                   </div>
                   <input
                     type="file"
-                    onChange={(e) => setResumeFile(e.target.files[0])}
+                    onChange={(e) => handleFileSelection(e, setResumeFile, ['.pdf', '.doc', '.docx'])}
                     accept=".pdf,.doc,.docx"
                     className="file-input"
                   />
@@ -382,7 +400,8 @@ function PortfolioSubmissionPage() {
                   </div>
                   <input
                     type="file"
-                    onChange={(e) => setVeteranProofFile(e.target.files[0])}
+                    onChange={(e) => handleFileSelection(e, setVeteranProofFile, ['.pdf', '.png', '.jpg', '.jpeg'])}
+                    accept=".pdf,.png,.jpg,.jpeg"
                     className="file-input"
                   />
                 </label>
