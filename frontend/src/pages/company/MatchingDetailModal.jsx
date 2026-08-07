@@ -18,6 +18,9 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
     }
     setLoading(true);
     setError('');
+    setMatch(null);
+    // 후보자를 바꿔 열 때 이전 후보자의 초대 ID가 남지 않도록 초기화한다.
+    setJobCandidateId(null);
     setSelectedCounterfactuals([]);
     
     // 매칭 정보와 함께 jobCandidateId도 가져오기
@@ -29,13 +32,16 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
         .catch(() => null) // jobCandidateId가 없을 수 있음
     ])
     .then(([matchData, jobCandidateResponse]) => {
+      if (!matchData) {
+        throw new Error('matching-result-not-found');
+      }
       setMatch(matchData);
       if (jobCandidateResponse && jobCandidateResponse.jobCandidateId) {
         setJobCandidateId(jobCandidateResponse.jobCandidateId);
       }
       setLoading(false);
     })
-    .catch(e => {
+    .catch(() => {
       setError('데이터를 불러오는 중 오류가 발생했습니다.');
       setLoading(false);
     });

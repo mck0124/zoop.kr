@@ -374,7 +374,7 @@ def get_github_candidate_details(username):
             for repo in sorted_repos:
                 repo_name = repo['name']
                 readme_url = f"https://api.github.com/repos/{username}/{repo_name}/readme"
-        readme_res = requests.get(readme_url, headers=get_headers(), timeout=GITHUB_HTTP_TIMEOUT_SECONDS)
+                readme_res = requests.get(readme_url, headers=get_headers(), timeout=GITHUB_HTTP_TIMEOUT_SECONDS)
                 if readme_res.status_code == 200:
                     content = readme_res.json().get("content", "")
                     decoded_readme = base64.b64decode(content).decode("utf-8", errors="ignore")
