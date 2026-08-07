@@ -398,8 +398,6 @@ def save_portfolio_job_matches_to_spring(portfolio_id: int, matches: List[Dict[s
                 "matchingReason": readable_reason
             }
             
-            print(f"[DEBUG] 매칭 저장 시도: candPortfolioId={portfolio_id}, jobPostingId={match.get('jobPostingId')}, score={match.get('matching_score')}")
-            
             response = requests.post(
                 f"{SPRING_API_URL}/api/portfolio-job-matches",
                 json=payload,
@@ -410,9 +408,7 @@ def save_portfolio_job_matches_to_spring(portfolio_id: int, matches: List[Dict[s
             if response.status_code != 201:
                 print(f"Failed to save match: {response.status_code} - {response.text}")
                 return False
-            else:
-                print(f"[DEBUG] 매칭 저장 성공: {response.status_code}")
-        
+
         return True
         
     except Exception as e:
@@ -472,7 +468,8 @@ def update_candidate_portfolio_analysis_status(cand_portfolio_id: int, status: s
             headers=spring_headers(),
             timeout=10
         )
-        print(f"[DEBUG] CandidatePortfolio status update response: {response.status_code} {response.text}")
+        if response.status_code != 200:
+            print(f"[WARN] CandidatePortfolio status update failed: {response.status_code}")
     except Exception as e:
         print(f"[ERROR] Exception updating candidate_portfolio analysis status: {e}")
 
@@ -496,11 +493,8 @@ async def _process_portfolio_analysis_async(portfolio_id: int, candidate_id: int
             
             # 3. Spring 백엔드에서 활성 채용공고 목록 조회
             active_jobs = get_active_jobs_from_spring()
-            print(f"[DEBUG] 활성 공고 개수: {len(active_jobs)}")
             if not active_jobs:
-                print("[DEBUG] 활성 공고가 없습니다. 매칭을 건너뜁니다.")
-            else:
-                print("[DEBUG] 매칭 루프 진입")
+                print("[INFO] 활성 공고가 없어 매칭을 건너뜁니다.")
             # 4. 각 채용공고와 매칭 분석
             matches = []
             for job in active_jobs:
@@ -1006,7 +1000,6 @@ def extract_text_from_file_direct(file_path_or_url):
             print(f"[분석] 임시 파일 삭제: {tmp_path}")
     
     print(f"[분석] 최종 추출된 텍스트 길이: {len(text)}")
-    print(f"[분석] 텍스트 미리보기: {text[:200]}...")
     return text
 
 @app.post("/analyze-portfolio", response_model=PortfolioAnalysisResponse)

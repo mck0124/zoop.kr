@@ -19,9 +19,6 @@ app.add_middleware(
 
 @app.post("/search")
 def search(filters: FilterRequest):
-    print("[DEBUG] FastAPI에서 받은 filters:", filters)
-    print("[DEBUG] FastAPI에서 받은 headcount:", getattr(filters, 'headcount', None))
-    print("[DEBUG] FastAPI에서 받은 post_id:", getattr(filters, 'post_id', None))
     results = search_github_candidates(filters, getattr(filters, 'post_id', None))
     return {"candidates": results}
 
@@ -34,9 +31,6 @@ def analyze_portfolio(payload: dict = Body(...)):
     file_url = payload.get("file_url")
     extra_info = payload.get("extra_info")
     if not file_url:
-        print("[분석 요청] file_url 없음! 요청 무시")
         return {"error": "file_url is required"}
-    print(f"[분석 시작] file_url: {file_url} | extra_info: {extra_info}")
     result = analyze_portfolio_file(file_url, extra_info)
-    print(f"[분석 완료] file_url: {file_url} | 결과 일부: {str(result)[:120]}...")
     return {"result": result}
