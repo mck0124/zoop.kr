@@ -82,6 +82,7 @@ export default function AIAnalysisSummary({ analysis, score, title = 'AI 분석 
   const fairness = payload?.fairness_guard || payload?.fairnessGuard;
   const trace = payload?.decision_trace || payload?.decisionTrace;
   const audit = payload?.audit || payload?.evidence_audit || null;
+  const calibration = payload?.score_calibration || payload?.scoreCalibration || null;
   const hasStructuredData = Boolean(payload);
   const safeScore = finiteNumber(score);
   const coveragePercent = formatPercent(coverage);
@@ -120,6 +121,16 @@ export default function AIAnalysisSummary({ analysis, score, title = 'AI 분석 
       {summary ? <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-700">{summary}</p> : null}
       {legacyText ? <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-700">{legacyText}</p> : null}
       {!summary && !legacyText && <p className="mt-3 text-sm text-gray-400">아직 읽을 수 있는 분석 결과가 없습니다.</p>}
+
+      {calibration && (
+        <div className="mt-4 rounded-xl border border-teal-100 bg-teal-50 p-3 text-xs text-teal-800">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="font-semibold">근거 보정 점수</span>
+            <span>AI 초안 {Math.round(Number(calibration.model_score || 0))}점 → 검증 반영 {Math.round(Number(calibration.calibrated_score || safeScore || 0))}점</span>
+          </div>
+          <p className="mt-1">{calibration.description || '후보자 원문 근거가 확인된 항목만 판단에 온전히 반영합니다.'}</p>
+        </div>
+      )}
 
       {stack && <div className="mt-4"><div className="mb-1 text-xs font-semibold text-gray-500">기술·역량 신호</div><List items={Array.isArray(stack) ? stack : [stack]} /></div>}
       {categories.length > 0 && (

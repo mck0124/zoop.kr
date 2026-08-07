@@ -672,6 +672,7 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
                 dimension_score = float(raw_dimension.get("score", 0) or 0)
             except (TypeError, ValueError):
                 dimension_score = 0.0
+            dimension_score = max(0.0, min(float(maximum), dimension_score))
             evidence = raw_dimension.get("evidence", [])
             clean_evidence = []
             for item in evidence if isinstance(evidence, list) else []:
@@ -698,10 +699,22 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
                     "verification_state": "grounded" if is_grounded else "context_only" if normalized_source == "job" else "needs_verification",
                     "confidence": max(0.0, min(1.0, confidence if is_grounded or normalized_source == "job" else confidence * 0.25)),
                 })
+            grounded_evidence = [item for item in clean_evidence if item["verification_state"] == "grounded"]
+            grounded_confidence = round(
+                sum(item["confidence"] for item in grounded_evidence) / max(1, len(grounded_evidence)),
+                2,
+            )
+            # 모델이 낸 점수와 원문에서 지지되는 정도를 분리한다. 후보자 원문 근거가
+            # 없으면 해당 차원의 점수는 채용 판단에 기여하지 않도록 보수적으로 보정한다.
+            support_factor = round(0.4 + (0.6 * grounded_confidence), 2) if grounded_evidence else 0.0
+            calibrated_score = round(dimension_score * support_factor, 2)
             dimensions.append({
                 "name": name,
-                "score": max(0.0, min(float(maximum), dimension_score)),
+                "score": calibrated_score,
+                "model_score": round(dimension_score, 2),
                 "max": maximum,
+                "evidence_support": grounded_confidence,
+                "support_factor": support_factor,
                 "evidence": clean_evidence or [{"evidence_id": "", "source": "missing", "claim": "확인된 근거 없음", "verification_state": "needs_verification", "confidence": 0.0}],
             })
 
@@ -711,7 +724,10 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
                 dimensions.append({
                     "name": name,
                     "score": 0.0,
+                    "model_score": 0.0,
                     "max": maximum,
+                    "evidence_support": 0.0,
+                    "support_factor": 0.0,
                     "evidence": [{"evidence_id": "", "source": "missing", "claim": "이 평가 차원에 대한 확인 근거 없음", "verification_state": "needs_verification", "confidence": 0.0}],
                 })
 
@@ -720,6 +736,13 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
         decision = "strong_match" if score >= 75 and evidence_count >= 3 else "review" if score >= 50 and evidence_count >= 1 else "not_enough_evidence"
         structured["dimensions"] = dimensions
         structured["score"] = score
+        structured["score_calibration"] = {
+            "method": "evidence_weighted_v1",
+            "description": "모델 제안 점수에 후보자 원문 근거의 검증 상태와 확신도를 반영했습니다.",
+            "model_score": round(sum(item.get("model_score", 0) for item in dimensions), 2),
+            "calibrated_score": round(score, 2),
+            "uncalibrated_dimensions": [item["name"] for item in dimensions if item.get("support_factor", 0) == 0],
+        }
         structured["decision"] = decision
         structured["gaps"] = [str(item) for item in structured.get("gaps", []) if item][:6] or ["핵심 경험의 실제 기여도 확인 필요"]
         structured["interview_focus"] = [str(item) for item in structured.get("interview_focus", []) if item][:6] or ["대표 프로젝트의 본인 기여와 결과 검증"]

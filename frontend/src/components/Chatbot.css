@@ -324,6 +324,32 @@
   padding-left: 1.2em;
 }
 
+.chatbot-source-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(31, 157, 123, 0.14);
+}
+
+.chatbot-source-label {
+  color: #4f7468;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.chatbot-source-chip {
+  border: 1px solid #ccefe2;
+  border-radius: 999px;
+  background: #f3fffa;
+  color: #26866d;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 7px;
+}
+
 
 .chatbot-bubble-user {
   background: #18dfb1;

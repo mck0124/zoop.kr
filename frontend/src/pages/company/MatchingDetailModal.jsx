@@ -118,6 +118,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                 const evidenceCoverage = reasonPayload?.evidence?.evidence_coverage;
                 const confidence = reasonPayload?.evidence?.confidence;
                 const audit = reasonPayload?.evidence?.audit;
+                const calibration = reasonPayload?.evidence?.score_calibration;
                 const selectedDelta = counterfactuals
                   .filter((_, index) => selectedCounterfactuals.includes(index))
                   .reduce((sum, item) => sum + Number(item.expected_score_delta || 0), 0);
@@ -159,14 +160,26 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                     </div>
                     <div style={{ marginTop: 10 }}><b>매칭 이유:</b></div>
                     <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, whiteSpace: 'pre-wrap', maxHeight: 240, overflow: 'auto' }}>{summary}</pre>
+                    {calibration && (
+                      <div style={{ marginTop: 12, padding: 12, background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 10, color: '#115e59', fontSize: 13 }}>
+                        <strong>근거 보정 점수</strong>
+                        <span style={{ marginLeft: 8 }}>AI 초안 {Number(calibration.model_score || 0).toFixed(0)}점 → 원문 근거 반영 {Number(calibration.calibrated_score || 0).toFixed(0)}점</span>
+                        <div style={{ marginTop: 5, color: '#0f766e' }}>{calibration.description || '후보자 원문 근거가 확인된 항목만 점수에 온전히 반영합니다.'}</div>
+                      </div>
+                    )}
                     {dimensions.length > 0 && (
                       <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>
                         <strong style={{ color: '#166534' }}>판단 근거 원장</strong>
                         {dimensions.map((dimension, index) => (
                           <div key={`${dimension.name}-${index}`} style={{ background: '#fff', border: '1px solid #d1fae5', borderRadius: 10, padding: 12 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                              <b>{dimension.name}</b><span>{dimension.score}/{dimension.max}</span>
+                              <b>{dimension.name}</b><span>{Number(dimension.score || 0).toFixed(0)}/{dimension.max}</span>
                             </div>
+                            {dimension.model_score !== undefined && (
+                              <div style={{ marginTop: 4, color: '#0f766e', fontSize: 11 }}>
+                                AI 초안 {Number(dimension.model_score || 0).toFixed(0)}점 · 근거 지지율 {Math.round(Number(dimension.evidence_support || 0) * 100)}%
+                              </div>
+                            )}
                             {(dimension.evidence || []).slice(0, 2).map((item, evidenceIndex) => (
                               <div key={evidenceIndex} style={{ marginTop: 8, color: '#4b5563', fontSize: 14 }}>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>

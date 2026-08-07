@@ -159,11 +159,18 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
   // ** AI 답변을 굵은 글씨/줄바꿈으로 렌더링하는 함수 **
   function renderAIContent(content) {
     if (typeof content !== "string") return content;
-    // '**텍스트**' → <b>텍스트</b>
-    let html = content
-      .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
-      .replace(/\n/g, "<br/>");
-    return <span dangerouslySetInnerHTML={{ __html: html }} />;
+    // AI 응답을 HTML로 주입하지 않고, 제한적인 굵은 글씨만 React 노드로 렌더링한다.
+    return content.split("\n").map((line, lineIndex) => (
+      <React.Fragment key={`line-${lineIndex}`}>
+        {line.split(/(\*\*[^*]+\*\*)/g).map((part, partIndex) => {
+          const isBold = part.startsWith("**") && part.endsWith("**") && part.length > 4;
+          return isBold
+            ? <strong key={`part-${partIndex}`}>{part.slice(2, -2)}</strong>
+            : <React.Fragment key={`part-${partIndex}`}>{part}</React.Fragment>;
+        })}
+        {lineIndex < content.split("\n").length - 1 && <br />}
+      </React.Fragment>
+    ));
   }
 
   const sendMessage = (text) => {
@@ -219,8 +226,9 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
           lang
         }),
       });
+      if (!res.ok) throw new Error(`chat request failed: ${res.status}`);
       const data = await res.json();
-      let botContent = data.answer, exBtns = [];
+      let botContent = typeof data.answer === "string" ? data.answer : "AI가 응답하지 않았습니다.", exBtns = [];
         const m = botContent.match(/<EXAMPLES>([\s\S]*?)<END>/);
         if (m) {
         botContent = botContent.replace(m[0], "").trim();
@@ -237,7 +245,7 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
 
       setMessages((msgs) => [
         ...msgs,
-        { type: "ai", content: botContent }
+        { type: "ai", content: botContent, sources: Array.isArray(data.sources) ? data.sources : [] }
       ]);
       setOptionButtons(exBtns.map((label) => ({ label })));
     } catch (e) {
@@ -313,9 +321,18 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
         <div style={{ position: "relative" }}>
           <HiOutlineGlobeAlt
             className="chatbot-globe"
+            role="button"
+            aria-label={langOpen ? "언어 선택 닫기" : "언어 선택"}
+            aria-expanded={langOpen}
             onClick={(e) => {
               e.stopPropagation();
               setLangOpen(prev => !prev);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setLangOpen(prev => !prev);
+              }
             }}
             tabIndex={0}
             style={{ marginLeft: 10 }}
@@ -368,9 +385,21 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
                   : "chatbot-bubble-msg chatbot-bubble-ai"
               }
             >
-              {msg.type === "ai"
-                ? renderAIContent(msg.content)
-                : msg.content}
+              {msg.type === "ai" ? (
+                <>
+                  {renderAIContent(msg.content)}
+                  {Array.isArray(msg.sources) && msg.sources.length > 0 && (
+                    <div className="chatbot-source-list" aria-label="답변 근거">
+                      <span className="chatbot-source-label">답변 근거</span>
+                      {msg.sources.slice(0, 3).map((source, sourceIndex) => (
+                        <span className="chatbot-source-chip" key={`${source.page}-${sourceIndex}`}>
+                          안내서 p.{source.page}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : msg.content}
             </div>
           </div>
         ))}
@@ -406,6 +435,7 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
           className="chatbot-flat-input"
           placeholder={lang === "ko" ? "메시지를 입력하세요" : "Type your message"}
           value={inputValue}
+          maxLength={2000}
           onChange={e => {
             setInputValue(e.target.value);
             setEmojiOpen(false);
