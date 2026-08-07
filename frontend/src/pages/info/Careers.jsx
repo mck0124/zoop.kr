@@ -39,7 +39,15 @@ function Careers() {
   const POSTS_PER_PAGE = 12; // 페이지당 공고 수
 
   // Fetch postings once
-  useEffect(() => { fetchPublicPostings(); fetchBookmarks(); }, []);
+  useEffect(() => {
+    fetchPublicPostings();
+  }, []);
+
+  useEffect(() => {
+    if (isInitialized && authState.userId) {
+      fetchBookmarks();
+    }
+  }, [isInitialized, authState.userId]);
 
   // Set video playback rate when video loads
   useEffect(() => {

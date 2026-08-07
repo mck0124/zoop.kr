@@ -343,7 +343,4 @@ public class SocialAuthService {
          return provider.toLowerCase() + "_" + socialId; // 예: "google_12345"
      }
 
-    // TODO: State 검증 메소드 validateState(String state) 구현 (필요시)
-    // TODO: PKCE 관련 메소드 구현 및 검증 로직 보강
-    // TODO: 사용자 정보 업데이트 로직 구현 (processSocialUser 메소드 내)
 }

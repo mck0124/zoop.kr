@@ -87,6 +87,10 @@ export function AuthProvider({ children }) {
 
     // 북마크 목록 가져오기
     const fetchBookmarks = async (userId) => {
+      if (!userId) {
+        setBookmarkedPostIds([]);
+        return;
+      }
       try {
         const res = await fetch(apiUrl(`/api/bookmarks/candidate/${userId}`));
         if (res.ok) {

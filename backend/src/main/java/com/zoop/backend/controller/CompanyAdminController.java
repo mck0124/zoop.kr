@@ -92,25 +92,13 @@ public class CompanyAdminController {
         @Parameter(description = "조회할 회사 관리자의 ID", required = true, example = "123")
         @PathVariable Long adminId) {
         try {
-            System.out.println("✅ [API 호출됨] /info/" + adminId);
-            
-            // 직접 repository에서 조회해보기
             CompanyAdmin admin = adminService.getAdminById(adminId);
-            System.out.println("✅ [관리자 조회 완료] adminId: " + admin.getCompanyAdminId());
             
             Company company = admin.getCompany();
-            System.out.println("✅ [회사 조회 완료] companyId: " + (company != null ? company.getCompanyId() : "null"));
             
             if (company == null) {
-                System.out.println("❌ [에러] company가 null입니다.");
                 return ResponseEntity.status(404).body(Map.of("error", "회사 정보를 찾을 수 없습니다."));
             }
-
-            // 각 필드별로 null 체크
-            System.out.println("🔍 [디버그] companyName: " + company.getCompanyName());
-            System.out.println("🔍 [디버그] businessNumber: " + company.getBusinessNumber());
-            System.out.println("🔍 [디버그] companyAddress: " + company.getCompanyAddress());
-            System.out.println("🔍 [디버그] ceoName: " + company.getCeoName());
 
             return ResponseEntity.ok(Map.of(
                 "companyId", company.getCompanyId(),

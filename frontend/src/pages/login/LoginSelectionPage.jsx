@@ -22,13 +22,10 @@ function LoginSelectionPage() {
 
   // navigate state에서 githubLogin과 메시지 가져오기
   useEffect(() => {
-    console.log('LoginSelectionPage - location.state:', location.state);
     if (location.state?.githubLogin) {
-      console.log('LoginSelectionPage - githubLogin 설정:', location.state.githubLogin);
       setLoginId(location.state.githubLogin);
     }
     if (location.state?.message) {
-      console.log('LoginSelectionPage - message 설정:', location.state.message);
       setError(location.state.message);
     }
   }, [location.state]);
@@ -216,37 +213,6 @@ function LoginSelectionPage() {
     return { verifier, challenge: base64UrlEncode(digest) };
   };
 
-  /* PKCE is generated per Google login attempt and the verifier stays in sessionStorage. */
-  /*
-   // PKCE는 SPA나 모바일 앱과 같이 클라이언트 시크릿을 안전하게 저장하기 어려운 환경에서
-   // 인가 코드 가로채기 공격(Authorization Code Injection)을 방지하기 위한 보안 확장입니다.
-   // Google OAuth 2.0 사용 시 강력 권장됩니다. (RFC 7636 참고)
-   /*
-   const generatePkcePair = async () => {
-        // RFC 7636에 따라 code_verifier (랜덤 문자열) 생성 (43~128자의 안전한 랜덤 문자열)
-        const verifier = generateRandomString(64); // 예: 64자 생성
-
-        // code_verifier를 SHA-256 해시한 후 Base64 URL 인코딩하여 code_challenge 생성 (RFC 4648 Section 5)
-        const encoder = new TextEncoder();
-        const data = encoder.encode(verifier);
-        const hash = await crypto.subtle.digest('SHA-256', data);
-        const challenge = base64UrlEncode(hash); // ArrayBuffer를 Base64 URL 인코딩하는 함수 필요
-
-        sessionStorage.setItem('pkce_code_verifier', verifier); // verifier를 세션 스토리지에 저장 (콜백 페이지에서 사용)
-
-        return { verifier, challenge };
-    };
-
-    // ArrayBuffer를 Base64 URL 인코딩하는 헬퍼 함수 (URL-safe 문자 사용, 패딩 제거)
-    const base64UrlEncode = (buffer) => {
-         return btoa(String.fromCharCode(...new Uint8Array(buffer)))
-            .replace(/\+/g, '-') // +를 -로
-            .replace(/\//g, '_') // /를 _로
-            .replace(/=+$/, ''); // = 패딩 제거
-    };
-   */
-
-
   // ✅ == 소셜 로그인 시작 핸들러 ==
   // 사용자가 소셜 로그인 버튼을 클릭했을 때 해당 소셜 서비스의 인증 페이지로 브라우저를 리다이렉트시키는 함수
   const handleSocialLogin = async (provider) => {
@@ -293,7 +259,6 @@ function LoginSelectionPage() {
 
     // 3. 구성된 인증 URL로 브라우저를 리다이렉트
     if (authUrl) {
-        console.log(`소셜 로그인 시작 - ${provider} 인증 URL:`, authUrl);
         // window.location.href를 사용하여 브라우저의 현재 페이지를 변경합니다.
       window.location.href = authUrl;
     } else {

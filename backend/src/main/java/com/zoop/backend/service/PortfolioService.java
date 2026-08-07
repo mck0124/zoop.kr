@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service; // JobCandProgress 엔티티 임포트
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile; // JobCandProgressRepository 임포트
@@ -51,7 +52,7 @@ public class PortfolioService {
     private final JobCandProgressService jobCandProgressService;
     private final CompanyNotificationService companyNotificationService;
     private final RestTemplate restTemplate = new RestTemplate();
-    private final String PYTHON_API_URL = "http://localhost:8000/analyze-portfolio";
+    private final String pythonApiUrl;
 
     @Autowired
     public PortfolioService(PortfolioRepository portfolioRepository, S3Service s3Service,
@@ -61,7 +62,8 @@ public class PortfolioService {
                             PostRepository postRepository,
                             AiAnalysisResultService aiAnalysisResultService,
                             JobCandProgressService jobCandProgressService,
-                            CompanyNotificationService companyNotificationService) { // 생성자 주입
+                            CompanyNotificationService companyNotificationService,
+                            @Value("${python.api.url:http://localhost:8000}") String pythonBaseUrl) { // 생성자 주입
         this.portfolioRepository = portfolioRepository;
         this.s3Service = s3Service;
         this.jobCandProgressRepository = jobCandProgressRepository;
@@ -71,6 +73,9 @@ public class PortfolioService {
         this.aiAnalysisResultService = aiAnalysisResultService;
         this.jobCandProgressService = jobCandProgressService;
         this.companyNotificationService = companyNotificationService;
+        this.pythonApiUrl = pythonBaseUrl.endsWith("/")
+                ? pythonBaseUrl + "analyze-portfolio"
+                : pythonBaseUrl + "/analyze-portfolio";
     }
     
     @Transactional
@@ -294,7 +299,7 @@ public class PortfolioService {
             requestBody.put("extra_info", extraInfo);
             
             HttpEntity<java.util.Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-            ResponseEntity<java.util.Map> resp = restTemplate.postForEntity(PYTHON_API_URL, entity, java.util.Map.class);
+            ResponseEntity<java.util.Map> resp = restTemplate.postForEntity(pythonApiUrl, entity, java.util.Map.class);
             String result = resp.getBody() != null ? (String) resp.getBody().get("result") : null;
             if (result != null && !result.isBlank()) {
                 AiAnalysisResultDto dto = AiAnalysisResultDto.builder()
@@ -474,7 +479,7 @@ public class PortfolioService {
                 body.put("file_url", fileUrl);
                 body.put("extra_info", extraInfo);
                 HttpEntity<java.util.Map<String, Object>> entity = new HttpEntity<>(body, headers);
-                ResponseEntity<java.util.Map> resp = restTemplate.postForEntity(PYTHON_API_URL, entity, java.util.Map.class);
+                ResponseEntity<java.util.Map> resp = restTemplate.postForEntity(pythonApiUrl, entity, java.util.Map.class);
                 String result = resp.getBody() != null ? (String) resp.getBody().get("result") : null;
                 if (result != null && !result.isBlank()) {
                     // 분석 결과 저장 전 jobCandidateId 체크

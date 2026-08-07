@@ -30,7 +30,6 @@ function GoogleAuthCallback() {
         const errorDescription = searchParams.get('error_description'); // Google에서 발생한 상세 오류 설명
         // ✅ 이미 처리 중이라면 다시 실행하지 않음
         if (isProcessing) {
-            console.log("처리 중이므로 useEffect 재실행 무시.");
             return;
         }
         // 1. Google 인증 중 에러가 발생했는지 확인
@@ -59,7 +58,6 @@ function GoogleAuthCallback() {
 
         // 2. 인가 코드(code)가 있는지 확인
         if (code) {
-            console.log(`Google 인가 코드 수신:`, code);
             setMessage('Google 인가 코드를 받아 백엔드에서 처리 중입니다...');
             // ✅ 처리 시작 상태로 설정하고 handleAuthCallback 호출
             setIsProcessing(true); // ✅ 처리 시작
