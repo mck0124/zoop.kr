@@ -575,7 +575,10 @@ JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므
                 source = str(evidence_item.get("source", "unknown"))
                 evidence_ref = str(evidence_item.get("evidence_ref", "")).strip()
                 supported_source = source in {"languages", "skills_analysis", "repo", "top_repos", "recent_events", "contribution_stats"}
-                grounded = supported_source and (valid_evidence_ref(source, evidence_ref) or not evidence_ref) and bool(str(evidence_item.get("claim", "")).strip())
+                # A source label without a concrete field reference is not
+                # reproducible evidence. Keep it visible as a claim, but do
+                # not let it influence the calibrated hiring score.
+                grounded = supported_source and valid_evidence_ref(source, evidence_ref) and bool(str(evidence_item.get("claim", "")).strip())
                 evidence.append({
                     "evidence_id": _evidence_id("github", name, source, evidence_ref, evidence_item.get("claim", "")),
                     "source": source,
