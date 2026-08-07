@@ -36,6 +36,7 @@ export default function IdealCandidate() {
 
   const loadingMessages = ["인재상과 채용 조건을 확인하는 중입니다..."];
 
+  /* Legacy time-based progress helpers retained in history; real progress follows API phases.
   // 동적 메시지 생성
   const getDynamicMessage = (progress, headcount) => {
     const actualHeadcount = headcount || filters.headcount || 5;
@@ -122,6 +123,7 @@ export default function IdealCandidate() {
       });
     }, 3000); // 3초로 증가
   };
+  */
 
   useEffect(() => {
     const globalChatbotBtn = document.querySelector('.chatbot-mint-btn');
