@@ -12,7 +12,15 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 PDF_PATH = os.getenv("PDF_PATH", "채용_관리자_가이드.pdf")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
-client = openai.OpenAI(api_key=OPENAI_API_KEY)
+client = None
+
+def get_openai_client():
+    global client
+    if client is None:
+        if not OPENAI_API_KEY:
+            raise RuntimeError("OPENAI_API_KEY is not configured")
+        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+    return client
 
 app = FastAPI()
 ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",") if origin.strip()]
@@ -42,7 +50,7 @@ PDF_TEXT = load_pdf_text(PDF_PATH)
 # --------- 중복 제거용 함수 ----------
 def call_openai_chat(messages, max_tokens=800, temperature=0.3):
     try:
-        response = client.chat.completions.create(
+        response = get_openai_client().chat.completions.create(
             model=OPENAI_MODEL,
             messages=messages,
             max_tokens=max_tokens,

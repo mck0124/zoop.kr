@@ -19,12 +19,20 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 SPRING_API_URL = os.getenv("SPRING_API_URL", "http://localhost:8081")
 
-client = openai.OpenAI(api_key=OPENAI_API_KEY)
+client = None
+
+def get_openai_client():
+    global client
+    if client is None:
+        if not OPENAI_API_KEY:
+            raise RuntimeError("OPENAI_API_KEY is not configured")
+        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+    return client
 
 def call_openai_chat(messages, max_tokens=800, temperature=0.3):
     """OpenAI API 호출 함수"""
     try:
-        response = client.chat.completions.create(
+        response = get_openai_client().chat.completions.create(
             model="gpt-4o-mini",
             messages=messages,
             max_tokens=max_tokens,
@@ -113,7 +121,7 @@ def analyze_portfolio_content(portfolio_content: str, desired_job: Optional[str]
 """
 
     try:
-        response = client.chat.completions.create(
+        response = get_openai_client().chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "당신은 IT 채용 전문가입니다. 객관적이고 정확하게 포트폴리오를 분석해주세요."},
@@ -491,7 +499,7 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
 """
 
     try:
-        response = client.chat.completions.create(
+        response = get_openai_client().chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "당신은 IT 채용 매칭 전문가입니다. 정확하고 객관적으로 매칭 분석을 해주세요."},
