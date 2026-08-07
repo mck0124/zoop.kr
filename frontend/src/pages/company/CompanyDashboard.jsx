@@ -967,6 +967,7 @@ export default function CompanyDashboard() {
   };
 
   // 개별 지원자 수락 처리
+  // eslint-disable-next-line no-unused-vars
   const handleAcceptSingleApplicant = async (candidate, index) => {
     // 추가지원자의 경우 candidate 객체 안에서 데이터를 가져옴
     const candidateName = candidate.candidate?.candidateName || candidate.candidateName;
@@ -1018,6 +1019,7 @@ export default function CompanyDashboard() {
   };
 
   // 개별 지원자 거절 처리
+  // eslint-disable-next-line no-unused-vars
   const handleRejectSingleApplicant = async (candidate, index) => {
     // 추가지원자의 경우 candidate 객체 안에서 데이터를 가져옴
     const candidateName = candidate.candidate?.candidateName || candidate.candidateName;

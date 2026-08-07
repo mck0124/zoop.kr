@@ -609,6 +609,15 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
               </div>
             )}
           </div>
+          {interviewAnalysis && (
+            <div className="mt-6 rounded-xl border border-violet-100 bg-violet-50/40 p-4">
+              <AIAnalysisSummary
+                analysis={interviewAnalysis}
+                score={interviewAnalysis.analysisScore}
+                title="면접 답변 근거·일관성 분석"
+              />
+            </div>
+          )}
         </div>
 
         {/* 하단 버튼 */}

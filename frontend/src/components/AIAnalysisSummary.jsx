@@ -51,14 +51,17 @@ function EvidenceBlock({ evidence }) {
 export default function AIAnalysisSummary({ analysis, score, title = 'AI 분석 결과' }) {
   const payload = parseAIAnalysisData(analysis?.analysisData ?? analysis);
   const legacyText = typeof analysis?.analysisData === 'string' && !payload ? analysis.analysisData : null;
-  const summary = payload?.summary || payload?.overall_summary || payload?.overallSummary || payload?.conclusion;
+  const analysisRoot = payload?.analysis && typeof payload.analysis === 'object' ? payload.analysis : payload;
+  const categories = asArray(analysisRoot?.categories);
+  const totalFeedback = analysisRoot?.total_feedback || analysisRoot?.totalFeedback;
+  const summary = payload?.summary || payload?.overall_summary || payload?.overallSummary || payload?.conclusion || totalFeedback?.summary || payload?.overallEvaluation;
   const coverage = payload?.evidence_coverage ?? payload?.evidenceCoverage;
   const confidence = payload?.confidence;
   const stack = payload?.stack || payload?.technical_stack || payload?.technicalStack;
   const gaps = payload?.gaps || payload?.missing_evidence || payload?.missingEvidence;
   const risks = payload?.risk_flags || payload?.riskFlags;
   const verificationPlan = payload?.verification_plan || payload?.verificationPlan;
-  const evidence = payload?.verified_evidence || payload?.evidence || payload?.claims;
+  const evidence = payload?.verified_evidence || payload?.evidence || payload?.claims || categories.flatMap(category => asArray(category.evidence).map(item => ({ ...item, claim: item.claim || category.name })));
   const fairness = payload?.fairness_guard || payload?.fairnessGuard;
   const trace = payload?.decision_trace || payload?.decisionTrace;
   const hasStructuredData = Boolean(payload);
@@ -80,6 +83,19 @@ export default function AIAnalysisSummary({ analysis, score, title = 'AI 분석 
       {!summary && !legacyText && <p className="mt-3 text-sm text-gray-400">아직 읽을 수 있는 분석 결과가 없습니다.</p>}
 
       {stack && <div className="mt-4"><div className="mb-1 text-xs font-semibold text-gray-500">기술·역량 신호</div><List items={Array.isArray(stack) ? stack : [stack]} /></div>}
+      {categories.length > 0 && (
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          {categories.slice(0, 6).map((category, index) => (
+            <div key={`${category.name || category.category}-${index}`} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+              <div className="flex items-center justify-between gap-2 text-sm font-semibold text-gray-700">
+                <span>{category.name || category.category || '평가 항목'}</span>
+                {category.score !== undefined && <span className="text-violet-700">{category.score}/{category.max_score || category.max || 25}</span>}
+              </div>
+              {(category.reason || category.improvement) && <p className="mt-1 text-xs leading-5 text-gray-600">{category.reason || category.improvement}</p>}
+            </div>
+          ))}
+        </div>
+      )}
       {(gaps || risks) && (
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {gaps && <div><div className="mb-1 text-xs font-semibold text-amber-700">확인할 빈틈</div><List items={gaps} /></div>}

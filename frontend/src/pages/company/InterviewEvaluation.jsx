@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import SEO from '../../components/SEO';
+import AIAnalysisSummary from '../../components/AIAnalysisSummary';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import { apiUrl } from '../../api/config';
 
@@ -517,14 +518,11 @@ export default function InterviewEvaluation() {
                   <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: '#2d3748' }}>
                     상세 분석
                   </h3>
-                  <div style={{ 
-                    whiteSpace: 'pre-line', 
-                    fontSize: '0.9rem', 
-                    lineHeight: '1.5',
-                    color: '#4a5568'
-                  }}>
-                    {analysisResult.analysisData}
-                  </div>
+                  <AIAnalysisSummary
+                    analysis={analysisResult}
+                    score={analysisResult.analysisScore}
+                    title="근거 기반 면접 분석 요약"
+                  />
                 </div>
               ) : (
                 <div style={{ 

@@ -4,6 +4,7 @@ import Navbar from '../../components/Navbar';
 import CompanySidebar from '../../components/CompanySidebar';
 import CandidateModal from '../../components/CandidateModal';
 import SEO from '../../components/SEO';
+import AIAnalysisSummary from '../../components/AIAnalysisSummary';
 
 import { pdfjs } from "react-pdf";
 pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL}/pdf.worker.min.mjs`;
@@ -221,8 +222,12 @@ export default function StatePage() {
                   </div>
                   <div className="flex-1">
                     <span className="font-semibold text-emerald-700">분석:</span>
-                    <div className="text-xs text-gray-600 mt-1 line-clamp-3">
-                      {r.analysisData}
+                    <div className="mt-2">
+                      <AIAnalysisSummary
+                        analysis={{ analysisData: r.analysisData }}
+                        score={r.githubAnalysisScore}
+                        title="근거 기반 분석 요약"
+                      />
                     </div>
                   </div>
                   <div>
