@@ -65,8 +65,6 @@ function InterviewGuideSlides({ onStart }) {
     // 면접 세션 페이지로 이동 (예: /interview-session/:id)
     if (id) {
       navigate(`/interview-session/${id}`);
-    } else {
-      navigate('/interview-session/1'); // fallback
     }
   };
 
@@ -498,4 +496,4 @@ function InterviewEnvironmentCheck({ onComplete }) {
   );
 }
 
-export default InterviewEnvironmentCheck; 
+export default InterviewEnvironmentCheck;

@@ -1199,8 +1199,7 @@ export default function CandidateList({ activeTab = 'all' }) {
   // ============ [CURRENT 버전에서 추가된 기능] ============
   // 개별 이메일 전송을 위한 로딩 상태 관리
   const [loadingId, setLoadingId] = useState(null);
-  // 1. Add state for companyAdminId (assume it's available from postInfo or a prop, fallback to 1)
-  const [companyAdminId, setCompanyAdminId] = useState(1);
+  const [companyAdminId, setCompanyAdminId] = useState(null);
   // ============ [CURRENT 버전에서 추가된 기능 끝] ============
 
   // 1. 이메일 템플릿 정의 (CompanyDashboard에서 복사)
@@ -1294,6 +1293,10 @@ export default function CandidateList({ activeTab = 'all' }) {
       return;
     }
     if (selected.length === 0) return;
+    if (!companyAdminId) {
+      alert('회사 관리자 정보를 확인하지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+      return;
+    }
     const candidatesToSend = candidates.filter(c => selected.includes(c.githubLogin || c.login) && c.candidateEmail);
     if (candidatesToSend.length === 0) {
       alert('이메일이 있는 후보자를 선택하세요.');
@@ -1450,6 +1453,10 @@ export default function CandidateList({ activeTab = 'all' }) {
   // ============ [CURRENT 버전에서 추가된 기능] ============
   // 개별 이메일 전송 기능
   const sendInvitation = async (postId, githubLogin, companyAdminId, candidateEmail) => {
+    if (!companyAdminId) {
+      alert('회사 관리자 정보를 확인하지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+      return;
+    }
     const payload = {
       postId: parseInt(postId),
       githubLogin,
