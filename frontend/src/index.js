@@ -9,7 +9,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { AuthProvider } from './context/AuthContext';
 import axios from 'axios';
-import { API_BASE_URL, withApiBase } from './api/config';
+import { API_BASE_URL, isTrustedApiUrl, withApiBase } from './api/config';
 
 // Transitional compatibility for legacy screens that still build absolute API URLs.
 // New code should use apiUrl() directly; this boundary keeps old flows deployable.
@@ -17,10 +17,7 @@ const nativeFetch = window.fetch.bind(window);
 window.fetch = (input, init) => {
   const originalUrl = typeof input === 'string' ? input : input?.url;
   const rewrittenUrl = withApiBase(originalUrl);
-  const isApiRequest = typeof rewrittenUrl === 'string' && (
-    rewrittenUrl.startsWith(API_BASE_URL) ||
-    rewrittenUrl.includes('/api/')
-  );
+  const isApiRequest = isTrustedApiUrl(rewrittenUrl);
   const token = localStorage.getItem('jwtToken');
   const headers = new Headers(input instanceof Request ? input.headers : init?.headers);
   if (isApiRequest && token && !headers.has('Authorization')) {
@@ -36,7 +33,7 @@ axios.interceptors.request.use(config => {
   if (typeof config.url === 'string') config.url = withApiBase(config.url);
   if (!config.baseURL) config.baseURL = API_BASE_URL;
   const token = localStorage.getItem('jwtToken');
-  if (token && !config.headers?.Authorization) {
+  if (token && isTrustedApiUrl(config.url, API_BASE_URL) && !config.headers?.Authorization) {
     config.headers = { ...config.headers, Authorization: `Bearer ${token}` };
   }
   return config;

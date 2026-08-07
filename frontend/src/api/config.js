@@ -12,6 +12,13 @@ export function apiUrl(path, baseUrl = API_BASE_URL) {
   return `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
+export function isTrustedApiUrl(url, baseUrl = API_BASE_URL) {
+  if (typeof url !== 'string' || !url) return false;
+  if (url.startsWith('/api/')) return true;
+  if (!baseUrl || !/^https?:\/\//i.test(url)) return false;
+  return url === baseUrl || url.startsWith(`${baseUrl}/`);
+}
+
 export function withApiBase(url, baseUrl = API_BASE_URL) {
   if (typeof url !== 'string') return url;
   return url

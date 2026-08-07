@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_BASE_URL } from './config';
+import { API_BASE_URL, isTrustedApiUrl } from './config';
 
 const instance = axios.create({
   baseURL: API_BASE_URL,
@@ -12,7 +12,7 @@ const instance = axios.create({
 instance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('jwtToken');
-    if (token) {
+    if (token && isTrustedApiUrl(config.url || config.baseURL, API_BASE_URL)) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
