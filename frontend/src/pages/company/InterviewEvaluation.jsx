@@ -136,11 +136,12 @@ export default function InterviewEvaluation() {
         
         // 새 구조: analysis.categories, analysis.total_feedback, analysis.visualization
         if (parsed.analysis && parsed.analysis.categories && Array.isArray(parsed.analysis.categories)) {
-          return {
-            categories: parsed.analysis.categories,
-            totalScore: parsed.analysis.visualization?.score_distribution?.current || parsed.score || null,
-            totalFeedback: parsed.analysis.total_feedback || null,
-            visualization: parsed.analysis.visualization || null
+            return {
+              categories: parsed.analysis.categories,
+              totalScore: parsed.analysis.visualization?.score_distribution?.current || parsed.score || null,
+              totalFeedback: parsed.analysis.total_feedback || null,
+              visualization: parsed.analysis.visualization || null,
+              consistencyAudit: parsed.analysis.consistency_audit || null
           };
         }
         
@@ -150,7 +151,8 @@ export default function InterviewEvaluation() {
             categories: parsed.categories,
             totalScore: parsed.visualization?.score_distribution?.current || parsed.score || null,
             totalFeedback: parsed.total_feedback || null,
-            visualization: parsed.visualization || null
+            visualization: parsed.visualization || null,
+            consistencyAudit: parsed.consistency_audit || null
           };
         }
       }
@@ -503,6 +505,22 @@ export default function InterviewEvaluation() {
                           }}>{tag}</span>
                         )) : <span style={{ color: '#bbb' }}>-</span>}
                       </div>
+                    </div>
+                  )}
+                  {parsedAnalysis.consistencyAudit && (
+                    <div style={{ background: '#f5f3ff', borderRadius: 14, padding: '1.35rem 1.5rem', border: '1.5px solid #ddd6fe', marginBottom: '2rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+                        <h3 style={{ fontSize: '1.13rem', fontWeight: 700, margin: 0, color: '#6d28d9' }}>답변 간 일관성 감사</h3>
+                        <span style={{ borderRadius: 999, padding: '5px 10px', background: parsedAnalysis.consistencyAudit.status === 'consistent' ? '#dcfce7' : parsedAnalysis.consistencyAudit.status === 'mixed' ? '#fef3c7' : '#e2e8f0', color: '#4c1d95', fontWeight: 700, fontSize: 12 }}>
+                          {parsedAnalysis.consistencyAudit.status === 'consistent' ? '일관된 신호' : parsedAnalysis.consistencyAudit.status === 'mixed' ? '추가 검증 필요' : '근거 부족'}
+                        </span>
+                      </div>
+                      {parsedAnalysis.consistencyAudit.checks?.length > 0 ? parsedAnalysis.consistencyAudit.checks.map((check, index) => (
+                        <div key={index} style={{ marginTop: 10, background: '#fff', borderRadius: 10, padding: 11, color: '#4c1d95', fontSize: 13 }}>
+                          <b>{check.topic}</b> · {check.observation}
+                          <div style={{ marginTop: 4, color: '#64748b' }}>답변 {check.answer_indices?.join(', ') || '-'} · 근거: {check.evidence || '확인되지 않음'} · 확신도 {Math.round((check.confidence || 0) * 100)}%</div>
+                        </div>
+                      )) : <p style={{ color: '#64748b', marginBottom: 0 }}>서로 다른 답변을 비교할 만큼 충분한 근거가 없습니다.</p>}
                     </div>
                   )}
                 </div>

@@ -178,6 +178,12 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
     "score_distribution": {{
       "current": ...
     }}
+  }},
+  "consistency_audit": {{
+    "status": "consistent|mixed|insufficient_evidence",
+    "checks": [
+      {{"topic":"답변 간 비교 주제","answer_indices":[1,2],"observation":"실제 답변에서 확인한 일관성 또는 차이","evidence":"짧은 원문 근거","confidence":0.0}}
+    ]
   }}
 }}
 """
@@ -283,6 +289,41 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                 "category_labels": labels,
                 "score_distribution": {"current": score}
             }
+            raw_audit = analysis_data.get("consistency_audit") if isinstance(analysis_data.get("consistency_audit"), dict) else {}
+            status = str(raw_audit.get("status", "insufficient_evidence"))
+            if status not in {"consistent", "mixed", "insufficient_evidence"}:
+                status = "insufficient_evidence"
+            checks = []
+            for check in raw_audit.get("checks", []) if isinstance(raw_audit.get("checks"), list) else []:
+                if not isinstance(check, dict):
+                    continue
+                indices = []
+                for index in check.get("answer_indices", []) if isinstance(check.get("answer_indices"), list) else []:
+                    try:
+                        value = int(index)
+                    except (TypeError, ValueError):
+                        continue
+                    if 1 <= value <= len(transcripts) and value not in indices:
+                        indices.append(value)
+                evidence = str(check.get("evidence", "")).strip()
+                confidence = check.get("confidence", 0) or 0
+                try:
+                    confidence = max(0.0, min(1.0, float(confidence)))
+                except (TypeError, ValueError):
+                    confidence = 0.0
+                if evidence and indices:
+                    source_text = " ".join(transcripts[index - 1] for index in indices)
+                    if not _quote_is_in_transcripts(evidence, [source_text]):
+                        evidence = "확인되지 않은 원문 근거"
+                        confidence *= 0.5
+                checks.append({
+                    "topic": str(check.get("topic", "답변 간 일관성")),
+                    "answer_indices": indices,
+                    "observation": str(check.get("observation", "확인된 비교 근거가 부족합니다.")),
+                    "evidence": evidence or "확인되지 않음",
+                    "confidence": round(confidence, 2),
+                })
+            analysis_data["consistency_audit"] = {"status": status, "checks": checks[:5]}
         except Exception as e:
             analysis_data = {"error": f"JSON 파싱 오류: {e}", "raw": analysis_json}
             score = 0.0
