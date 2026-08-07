@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import "./Chatbot.css";
 import { HiOutlineLightningBolt, HiOutlineGlobeAlt } from "react-icons/hi";
 import { apiUrl, PYTHON_API_URL } from '../api/config';
+import { useLanguage } from '../context/LanguageContext';
 
-// 한글/영문 옵션 버튼
+// 언어별 옵션 버튼
 const initialOptions = {
   ko: [
     { label: "기업 고객 이신가요?" },
@@ -12,6 +13,10 @@ const initialOptions = {
   en: [
     { label: "Are you a company client?" },
     { label: "Are you a job seeker?" }
+  ],
+  zh: [
+    { label: "你是企业客户吗？" },
+    { label: "你是求职者吗？" }
   ]
 };
 
@@ -42,6 +47,19 @@ const welcomeMsgs = {
         <div>We’ll respond as quickly as possible.</div>
       </div>
     )
+  },
+  zh: {
+    type: "ai",
+    content: (
+      <div>
+        <div>你好！ <span role="img" aria-label="smile">😊</span></div>
+        <div style={{ fontWeight: 700, margin: "0.32em 0", fontSize: "1.08em" }}>
+          这里是 <span style={{ fontWeight: 800 }}>ZOOP AI 招聘平台</span>
+        </div>
+        <div>如果你对 ZOOP 有任何问题，欢迎随时提问。</div>
+        <div>我们会尽快为你解答。</div>
+      </div>
+    )
   }
 };
 
@@ -49,14 +67,15 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
   const [visible, setVisible] = useState(open);
   const [animClass, setAnimClass] = useState(open ? "open" : "closed");
   const [langOpen, setLangOpen] = useState(false);
-  const [lang, setLang] = useState("ko");
+  const { language: globalLanguage, setLanguage: setGlobalLanguage } = useLanguage();
+  const [lang, setLang] = useState(globalLanguage);
   const [openTime, setOpenTime] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [attachedFile, setAttachedFile] = useState(null);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState([welcomeMsgs["ko"]]);
-  const [optionButtons, setOptionButtons] = useState(initialOptions["ko"]);
+  const [messages, setMessages] = useState([welcomeMsgs[globalLanguage] || welcomeMsgs.en]);
+  const [optionButtons, setOptionButtons] = useState(initialOptions[globalLanguage] || initialOptions.en);
   const [isComposing, setIsComposing] = useState(false);
 
   const fileInputRef = useRef(null);
@@ -83,9 +102,19 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
 
   // 언어 바뀔 때 옵션/웰컴 메시지 초기화
   useEffect(() => {
-    setOptionButtons(initialOptions[lang]);
-    setMessages([welcomeMsgs[lang]]);
+    setLang(globalLanguage);
+  }, [globalLanguage]);
+
+  useEffect(() => {
+    setOptionButtons(initialOptions[lang] || initialOptions.en);
+    setMessages([welcomeMsgs[lang] || welcomeMsgs.en]);
   }, [lang]);
+
+  const handleChatLanguageChange = (nextLanguage) => {
+    setGlobalLanguage(nextLanguage);
+    setLang(nextLanguage);
+    setLangOpen(false);
+  };
 
   useEffect(() => {
     if (open) {
@@ -253,6 +282,7 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
         ...msgs,
         { type: "ai", content: lang === "ko"
             ? "죄송합니다. AI 서버와 연결이 원활하지 않습니다."
+            : lang === "zh" ? "抱歉，AI 服务器连接不稳定。"
             : "Sorry, AI server connection failed."
           }
       ]);
@@ -339,8 +369,9 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
           />
           {langOpen && (
             <div className="chatbot-lang-dropdown">
-              <button onClick={() => { setLang("ko"); setLangOpen(false); }}>한국어</button>
-              <button onClick={() => { setLang("en"); setLangOpen(false); }}>English</button>
+              <button onClick={() => handleChatLanguageChange("en")}>English</button>
+              <button onClick={() => handleChatLanguageChange("ko")}>한국어</button>
+              <button onClick={() => handleChatLanguageChange("zh")}>中文</button>
             </div>
           )}
         </div>
@@ -349,9 +380,7 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
         <div className="chatbot-banner-row">
           <span className="chatbot-banner-icon">📢</span>
           <span className="chatbot-banner-text">
-            {lang === "ko"
-              ? "채용, 이제 쉽고 간편하게"
-              : "Hiring made easy and simple"}
+            {lang === "ko" ? "채용, 이제 쉽고 간편하게" : lang === "zh" ? "让招聘变得简单高效" : "Hiring made easy and simple"}
           </span>
         </div>
         <div className="chatbot-appicon-block">
@@ -433,7 +462,7 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
           ref={inputRef}
           type="text"
           className="chatbot-flat-input"
-          placeholder={lang === "ko" ? "메시지를 입력하세요" : "Type your message"}
+          placeholder={lang === "ko" ? "메시지를 입력하세요" : lang === "zh" ? "请输入消息" : "Type your message"}
           value={inputValue}
           maxLength={2000}
           onChange={e => {

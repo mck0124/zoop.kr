@@ -4,11 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 import { AccessibleButton, AccessibleLink, ScreenReaderOnly } from './Accessibility';
 import { apiUrl } from '../api/config';
+import { SUPPORTED_LANGUAGES, useLanguage } from '../context/LanguageContext';
 
 const Navbar = ({ onLangChange, hideAuth }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { authState, setAuthState } = useAuth();
+  const { language, setLanguage } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -136,6 +138,11 @@ const Navbar = ({ onLangChange, hideAuth }) => {
     setExpiringPosts([]);
 
     navigate('/auth/login');
+  };
+
+  const handleLanguageChange = (nextLanguage) => {
+    setLanguage(nextLanguage);
+    if (onLangChange) onLangChange(nextLanguage);
   };
 
   const toggleDropdown = () => {
@@ -700,6 +707,21 @@ const Navbar = ({ onLangChange, hideAuth }) => {
           >
             채용
           </AccessibleLink>
+
+          <div className="mobile-language-selector" role="group" aria-label="Language selection">
+            <span aria-hidden="true">Language</span>
+            {SUPPORTED_LANGUAGES.map(item => (
+              <button
+                type="button"
+                key={item.code}
+                onClick={() => handleLanguageChange(item.code)}
+                aria-pressed={language === item.code}
+                className={language === item.code ? 'active' : ''}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
           
           {authState.token ? (
             <>
@@ -758,44 +780,31 @@ const Navbar = ({ onLangChange, hideAuth }) => {
         </nav>
       )}
 
-      {/* 언어 변경 버튼 - hideAuth가 true여도 표시 */}
-      {onLangChange && (
-        <div className="lang-toggle desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', position: 'absolute', right: '12rem', top: '50%', transform: 'translateY(-50%)' }}>
-          <button
-            className="lang-btn"
-            style={{
-              fontWeight: (window.location.pathname === '/about' && (window.localStorage.getItem('aboutLang') || 'ko') === 'ko') ? 'bold' : 'normal',
-              color: (window.location.pathname === '/about' && (window.localStorage.getItem('aboutLang') || 'ko') === 'ko') ? '#19b47a' : '#888',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              padding: 0
-            }}
-            onClick={() => { onLangChange('ko'); window.localStorage.setItem('aboutLang', 'ko'); }}
-            aria-label="한국어로 보기"
-          >
-            KOR
-          </button>
-          <span style={{ color: '#bbb', fontWeight: 400 }}>|</span>
-          <button
-            className="lang-btn"
-            style={{
-              fontWeight: (window.location.pathname === '/about' && (window.localStorage.getItem('aboutLang') || 'ko') === 'en') ? 'bold' : 'normal',
-              color: (window.location.pathname === '/about' && (window.localStorage.getItem('aboutLang') || 'ko') === 'en') ? '#19b47a' : '#888',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              padding: 0
-            }}
-            onClick={() => { onLangChange('en'); window.localStorage.setItem('aboutLang', 'en'); }}
-            aria-label="View in English"
-          >
-            ENG
-          </button>
-        </div>
-      )}
+      {/* 전역 언어 변경 버튼 */}
+      <div className="lang-toggle desktop-only" role="group" aria-label="Language selection" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', position: 'absolute', right: '12rem', top: '50%', transform: 'translateY(-50%)' }}>
+        {SUPPORTED_LANGUAGES.map((item, index) => (
+          <React.Fragment key={item.code}>
+            {index > 0 && <span style={{ color: '#bbb', fontWeight: 400 }}>|</span>}
+            <button
+              className="lang-btn"
+              style={{
+                fontWeight: language === item.code ? 'bold' : 'normal',
+                color: language === item.code ? '#19b47a' : '#888',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                padding: 0
+              }}
+              onClick={() => handleLanguageChange(item.code)}
+              aria-label={`View in ${item.name}`}
+              aria-pressed={language === item.code}
+            >
+              {item.label}
+            </button>
+          </React.Fragment>
+        ))}
+      </div>
 
       {/* 데스크톱 사용자 프로필 드롭다운 */}
       {!hideAuth && (

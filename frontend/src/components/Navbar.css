@@ -15,7 +15,7 @@
     z-index: 10;
     transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
   }
-  
+
   .zoop-navbar.about {
     position: fixed;
     top: 0;
@@ -25,7 +25,7 @@
     background-color: transparent;
     transition: all 0.3s ease;
   }
-  
+
   .zoop-navbar.about.scrolled {
     background-color: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(14px);
@@ -546,6 +546,35 @@
     animation: dropdown 0.3s ease-out;
     flex-wrap: nowrap;
   }
+
+  .mobile-language-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.65rem 1rem;
+    margin: 0.25rem 0 0.5rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    color: #64748b;
+    font-size: 0.78rem;
+  }
+
+  .mobile-language-selector button {
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    background: #fff;
+    color: #64748b;
+    padding: 0.28rem 0.55rem;
+    font-size: 0.78rem;
+    cursor: pointer;
+  }
+
+  .mobile-language-selector button.active {
+    border-color: #19b47a;
+    background: #ecfdf5;
+    color: #047857;
+    font-weight: 700;
+  }
   
   @keyframes dropdown {
     0% {
@@ -676,4 +705,3 @@
   .mobile-menu-item.logout:hover {
     background-color: #ffeaea;
   }
-  

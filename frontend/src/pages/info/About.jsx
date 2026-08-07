@@ -4,6 +4,7 @@ import Navbar from '../../components/Navbar';
 import SEO from '../../components/SEO';
 import { useNavigate } from 'react-router-dom';
 import './About.css';
+import { useLanguage } from '../../context/LanguageContext';
 
 const wordVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -110,18 +111,45 @@ const TEXT = {
     ctaTitle: "Start the Future of Hiring Today",
     ctaDesc: "With ZOOP, your company’s recruitment is faster and smarter.",
     ctaButton: "Start Now"
+  },
+  zh: {
+    hero: "不止于招聘自动化",
+    slide1: "招聘应该更快，也更简单",
+    words: [
+      { text: '连接', isEmphasized: true }, { text: '自动完成，', isEmphasized: false },
+      { text: '推荐', isEmphasized: true }, { text: '即时发生，', isEmphasized: false },
+      { text: '招聘', isEmphasized: true }, { text: '更轻松', isEmphasized: false }
+    ],
+    fillerWords: ['自动完成，', '即时发生，', '更轻松'],
+    slide3: ['招聘的', '新标准，', '从', 'ZOOP', '开始'],
+    statsTitle: "ZOOP AI 如何做出判断",
+    stats: [
+      { key: "evidence", value: "6", label: "GitHub 证据信号" },
+      { key: "dimensions", value: "4", label: "岗位匹配维度" },
+      { key: "workflow", value: "1", label: "从分析到面试的流程" }
+    ],
+    processTitle: "自动化招聘的每一步",
+    processSteps: [
+      { step: "Step 1", title: "输入条件", desc: "轻松输入理想候选人的条件，自由设置岗位、技能和经验。" },
+      { step: "Step 2", title: "AI 分析与匹配", desc: "ZOOP AI 从全球人才池中找到合适候选人并自动联系。" },
+      { step: "Step 3", title: "AI 面试", desc: "AI 完成第一轮面试，深入分析能力并提供结果。" }
+    ],
+    testimonialTitle: "ZOOP 与其他招聘 AI 的不同",
+    testimonials: [
+      { text: "ZOOP 不只展示分数，还会解释哪些 GitHub 信号影响了判断。", author: "以证据为先的匹配" },
+      { text: "无法确认的信息会被标记为不确定性，而不是被悄悄猜测。", author: "透明的不确定性" },
+      { text: "作品集分析会转化为个性化面试问题和招聘方的验证流程。", author: "从分析到面试" }
+    ],
+    ctaTitle: "现在开启招聘的未来",
+    ctaDesc: "与 ZOOP 一起，让企业招聘更快、更智能。",
+    ctaButton: "立即开始"
   }
 };
 
 export default function About() {
   const navigate = useNavigate();
 
-  // 언어 상태: 'ko' 또는 'en'
-  const [lang, setLang] = useState(() => window.localStorage.getItem('aboutLang') || 'ko');
-
-  useEffect(() => {
-    window.localStorage.setItem('aboutLang', lang);
-  }, [lang]);
+  const { language: lang, setLanguage: setLang } = useLanguage();
 
   const slideRef1 = useRef(null);
   const slideRef2 = useRef(null);
@@ -154,9 +182,6 @@ export default function About() {
   }, [slideInView2]);
 
   const revealThresholds = [15, 45, 80];
-
-  // Navbar에서 언어 변경 (KOR/ENG) 버튼 클릭 시 호출
-  // const handleLangChange = (selected) => setLang(selected); // This line is removed as per the edit hint
 
   return (
     <>
