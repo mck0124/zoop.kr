@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import './Index.css';
-import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 
 const RADAR_WIDTH = 1100;
@@ -17,7 +16,6 @@ const WAVE_STROKE = 2.1;
 
 export default function Index() {
   const navigate = useNavigate();
-  const { authState, setAuthState } = useAuth();
   const [mountTime] = useState(() => performance.now());
 
   // 메인페이지 로드 시 Navbar 스타일 강제 재적용
@@ -61,16 +59,8 @@ export default function Index() {
       const triggerPoint = windowHeight * 0.8;
       const isVisible = rect.top < triggerPoint;
       
-      console.log('서브타이틀 체크:', {
-        top: rect.top,
-        windowHeight,
-        triggerPoint,
-        isVisible
-      });
-      
       if (isVisible) {
         subtitle.classList.add('visible');
-        console.log('✅ 서브타이틀 visible 클래스 추가됨');
       }
     };
 
