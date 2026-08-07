@@ -406,13 +406,17 @@ def get_github_candidate_details(username):
                 'updated_at': user_data.get('updated_at', '')
             }
         
-        # Get contribution statistics (simulated for now)
+        # GitHub's unauthenticated API does not provide reliable contribution
+        # totals. Keep unavailable values explicit instead of manufacturing
+        # activity from repository count.
         details['contribution_stats'] = {
-            'total_commits': len(repos) * 10,  # 예시 데이터
-            'recent_commits': len(repos) * 2,
-            'pull_requests': len(repos) * 3,
-            'issues_created': len(repos) * 2,
-            'repositories_contributed': len(repos)
+            'total_commits': None,
+            'recent_commits': None,
+            'pull_requests': None,
+            'issues_created': None,
+            'repositories_contributed': None,
+            'public_repositories': len(repos),
+            'data_quality': 'partial'
         }
         
         # Analyze skills based on repositories
@@ -468,11 +472,11 @@ GitHub 가입일: {details['profile_info'].get('created_at', '불명')}
 {chr(10).join([f"• {repo['name']}: {repo['description']} (⭐{repo['stars']}, 🔧{repo['language']})" for repo in details['top_repos']])}
 
 === 기여 통계 ===
-총 커밋 수: {details['contribution_stats'].get('total_commits', 0)}
-최근 커밋 수: {details['contribution_stats'].get('recent_commits', 0)}
-Pull Request 수: {details['contribution_stats'].get('pull_requests', 0)}
-이슈 생성 수: {details['contribution_stats'].get('issues_created', 0)}
-기여한 저장소 수: {details['contribution_stats'].get('repositories_contributed', 0)}
+총 커밋 수: {details['contribution_stats'].get('total_commits') or '확인 불가'}
+최근 커밋 수: {details['contribution_stats'].get('recent_commits') or '확인 불가'}
+Pull Request 수: {details['contribution_stats'].get('pull_requests') or '확인 불가'}
+이슈 생성 수: {details['contribution_stats'].get('issues_created') or '확인 불가'}
+기여한 저장소 수: {details['contribution_stats'].get('repositories_contributed') or '확인 불가'}
 
 이 정보를 바탕으로 다음을 종합적으로 분석해주세요:
 
@@ -494,7 +498,9 @@ Pull Request 수: {details['contribution_stats'].get('pull_requests', 0)}
    - 강점과 약점 분석
    - 적합한 직무 유형
    - 성장 가능성과 개선 방안
-   - 추천 이유
+- 추천 이유
+
+숫자가 '확인 불가'인 항목은 절대 추정하거나 공개 저장소 수로 대체하지 마세요. 해당 신호는 평가에서 제외하고, 추가 검증이 필요한 근거로 표시하세요.
 
 반드시 아래 형식으로 출력해주세요:
 이유: [구체적인 평가 근거와 각 항목별 점수] (점수: [총점]점)
@@ -578,7 +584,7 @@ def analyze_portfolio_file(file_path_or_url, extra_info=None):
     
     if not text or len(text.strip()) < 10:
         print(f"[분석] 텍스트가 너무 짧거나 비어있음: {len(text)} 문자")
-        return "지원자의 포트폴리오 내용이 제공되지 않아 구체적인 평가를 진행할 수 없습니다. 하지만 일반적인 평가 기준을 바탕으로 가상의 예시를 통해 설명드리겠습니다.\n\n---\n\n**강점**: 지원자는 관련 분야에서의 경력이 풍부하며, 다양한 프로젝트 경험을 통해 문제 해결 능력을 입증하였습니다. 또한, 최신 기술 트렌드에 대한 이해도가 높습니다.\n\n**약점**: 특정 기술 스택에 대한 깊이 있는 경험이 부족하며, 팀워크보다는 개인 작업에 치중하는 경향이 있습니다.\n\n**기술스택**: Python, JavaScript, React, SQL, AWS 등 다양한 기술을 보유하고 있으며, 특히 웹 개발에 강점을 보입니다.\n\n**경력**: 5년 이상의 경력을 보유하고 있으며, 다수의 성공적인 프로젝트를 이끌어온 경험이 있습니다.\n\n**성장 가능성**: 지속적인 학습 의지가 강하며, 새로운 기술을 빠르게 습득하는 능력이 뛰어납니다.\n\n**기업 적합성**: 지원하는 기업의 문화와 비전과 잘 맞아떨어지며, 팀에 긍정적인 영향을 미칠 것으로 예상됩니다.\n\n---\n\n종합 점수: 85점\n이유: \n- 경력 및 프로젝트 경험: 30/35\n- 기술 스택: 25/30\n- 팀워크 및 커뮤니케이션: 15/20\n- 성장 가능성: 10/10\n- 기업 적합성: 5/5\n\n종합요약: 지원자는 풍부한 경험과 기술적 역량을 보유하고 있으며, 빠른 학습 능력과 기업 문화에 잘 적응할 가능성이 높습니다. 다만, 팀워크에 대한 개선이 필요합니다."
+        return "분석 가능한 포트폴리오 텍스트가 부족합니다. 파일이 비어 있거나 텍스트 추출을 지원하지 않는 형식인지 확인해 주세요."
     
     print(f"[분석] 추출된 텍스트 길이: {len(text)} 문자")
     print(f"[분석] 텍스트 샘플: {text[:300]}...")
@@ -606,5 +612,3 @@ def analyze_portfolio_file(file_path_or_url, extra_info=None):
     result = call_openai_chat(messages, max_tokens=900, temperature=0.5)
     print(f"[분석 완료] 분석 결과 길이: {len(result) if result else 0} 문자")
     return result
-
-

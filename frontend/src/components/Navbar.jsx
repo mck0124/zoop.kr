@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 import { AccessibleButton, AccessibleLink, ScreenReaderOnly } from './Accessibility';
+import { apiUrl } from '../api/config';
 
 const Navbar = ({ onLangChange, hideAuth }) => {
   const navigate = useNavigate();
@@ -166,22 +167,12 @@ const Navbar = ({ onLangChange, hideAuth }) => {
     setLoadingNotifications(true);
     try {
       const endpoint = authState.userType === 'company' 
-        ? `http://localhost:8081/api/company-notifications/company/${authState.userId}?requestingAdminId=${authState.userId}`
-        : `http://localhost:8081/api/candidate-notifications/candidate/${authState.userId}?requestingCandidateId=${authState.userId}`;
+        ? apiUrl(`/api/company-notifications/company/${authState.userId}?requestingAdminId=${authState.userId}`)
+        : apiUrl(`/api/candidate-notifications/candidate/${authState.userId}?requestingCandidateId=${authState.userId}`);
       
       const response = await fetch(endpoint);
       if (response.ok) {
         const data = await response.json();
-        console.log('가져온 알림 데이터:', data);
-        console.log('알림 데이터 상세:', JSON.stringify(data.map(n => ({
-          id: n.notificationId,
-          message: n.notificationMessage,
-          isRead: n.isRead,
-          isReadType: typeof n.isRead,
-          isReadValue: n.isRead === true ? 'TRUE' : n.isRead === false ? 'FALSE' : 'OTHER',
-          allProperties: Object.keys(n),
-          rawObject: n
-        })), null, 2));
         setNotifications(data);
       } else if (response.status === 403) {
         console.error('알림 접근 권한이 없습니다.');
@@ -199,8 +190,8 @@ const Navbar = ({ onLangChange, hideAuth }) => {
     
     try {
       const endpoint = authState.userType === 'company'
-        ? `http://localhost:8081/api/company-notifications/company/${authState.userId}/unread-count?requestingAdminId=${authState.userId}`
-        : `http://localhost:8081/api/candidate-notifications/candidate/${authState.userId}/unread-count?requestingCandidateId=${authState.userId}`;
+        ? apiUrl(`/api/company-notifications/company/${authState.userId}/unread-count?requestingAdminId=${authState.userId}`)
+        : apiUrl(`/api/candidate-notifications/candidate/${authState.userId}/unread-count?requestingCandidateId=${authState.userId}`);
       
       const response = await fetch(endpoint);
       if (response.ok) {
@@ -328,21 +319,17 @@ const Navbar = ({ onLangChange, hideAuth }) => {
 
   // 알림 클릭 처리 (읽음 처리 + 관련 페이지 이동)
   const handleNotificationItemClick = async (notification) => {
-    console.log('=== 알림 클릭 이벤트 시작 ===');
-    console.log('클릭된 알림:', notification);
-    
     try {
       // 먼저 알림을 읽음 처리
       const endpoint = authState.userType === 'company'
-        ? `http://localhost:8081/api/company-notifications/${notification.notificationId}/read`
-        : `http://localhost:8081/api/candidate-notifications/${notification.notificationId}/read`;
+        ? apiUrl(`/api/company-notifications/${notification.notificationId}/read`)
+        : apiUrl(`/api/candidate-notifications/${notification.notificationId}/read`);
       
       const response = await fetch(endpoint, {
         method: 'POST'
       });
       
       if (response.ok) {
-        console.log('알림 읽음 처리 성공:', notification.notificationId);
         // 알림 목록과 읽지 않은 개수 새로고침
         fetchNotifications();
         fetchUnreadCount();
@@ -350,9 +337,6 @@ const Navbar = ({ onLangChange, hideAuth }) => {
         // 알림 내용에 따라 관련 페이지로 이동
         const message = notification.notificationMessage;
         const notificationType = notification.notificationType;
-        console.log('알림 메시지:', message);
-        console.log('알림 타입:', notificationType);
-        console.log('사용자 타입:', authState.userType);
         
         // 알림 팝업 닫기
         setIsNotificationOpen(false);
@@ -521,8 +505,8 @@ const Navbar = ({ onLangChange, hideAuth }) => {
     
     try {
       const endpoint = authState.userType === 'company'
-        ? `http://localhost:8081/api/company-notifications/company/${authState.userId}/read-all`
-        : `http://localhost:8081/api/candidate-notifications/candidate/${authState.userId}/read-all`;
+        ? apiUrl(`/api/company-notifications/company/${authState.userId}/read-all`)
+        : apiUrl(`/api/candidate-notifications/candidate/${authState.userId}/read-all`);
       
       const response = await fetch(endpoint, {
         method: 'POST'
@@ -559,9 +543,8 @@ const Navbar = ({ onLangChange, hideAuth }) => {
     setMenuOpen(false);
     setIsDropdownOpen(false);
     if (path) {
-      // 고객센터와 자주 묻는 질문은 새탭에서 열기
       if (path === '/support') {
-        window.open(path, '_blank');
+        navigate(path);
       } else if (path === '/mypage') {
         // 사용자 타입에 따라 다른 마이페이지로 이동
         if (authState.userType === 'company') {

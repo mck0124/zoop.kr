@@ -1,6 +1,7 @@
 // src/context/AuthContext.jsx
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiUrl } from '../api/config';
 
 // 1. Context 객체 생성
 const AuthContext = createContext();
@@ -87,7 +88,7 @@ export function AuthProvider({ children }) {
     // 북마크 목록 가져오기
     const fetchBookmarks = async (userId) => {
       try {
-        const res = await fetch(`http://localhost:8081/api/bookmarks/candidate/${userId}`);
+        const res = await fetch(apiUrl(`/api/bookmarks/candidate/${userId}`));
         if (res.ok) {
           const data = await res.json();
           setBookmarkedPostIds(data.map(bookmark => bookmark.postId));
@@ -150,7 +151,7 @@ export function AuthProvider({ children }) {
       
       try {
         if (isBookmarked) {
-          const response = await fetch(`http://localhost:8081/api/bookmarks?candidateId=${userId}&postId=${postId}`, { 
+          const response = await fetch(apiUrl(`/api/bookmarks?candidateId=${userId}&postId=${postId}`), {
             method: 'DELETE' 
           });
           if (response.ok) {
@@ -159,7 +160,7 @@ export function AuthProvider({ children }) {
             console.error('북마크 삭제 실패');
           }
         } else {
-          const response = await fetch('http://localhost:8081/api/bookmarks', {
+          const response = await fetch(apiUrl('/api/bookmarks'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({ candidateId: userId, postId })

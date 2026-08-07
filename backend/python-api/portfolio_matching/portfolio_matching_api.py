@@ -43,7 +43,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",") if origin.strip()],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -495,6 +495,11 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
 
 이 분석 결과를 바탕으로, 이 지원자와 채용공고의 매칭 점수를 계산해주세요.
 
+중요한 원칙:
+- 이름, 성별, 나이, 사진, 출신 학교처럼 직무와 무관한 정보는 절대 평가에 사용하지 마세요.
+- 포트폴리오에 실제로 나타난 내용만 근거로 사용하고, 추측은 '확인 필요'로 표시하세요.
+- 채용공고의 요구사항과 지원자의 증거를 1:1로 대조하여 설명 가능한 판단을 만드세요.
+
 다음 기준으로 매칭 점수를 계산해주세요:
 
 1. **기술 스택 일치도 (30점)**: 요구 기술과 보유 기술의 일치 정도
@@ -504,14 +509,22 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
 
 각 항목별 점수와 근거를 제시하고, 최종 매칭 점수를 계산해주세요.
 
-반드시 아래 형식으로 출력해주세요:
-기술 스택 일치도: [점수]점 - [근거]
-경력 수준 적합성: [점수]점 - [근거]
-프로젝트 경험 관련성: [점수]점 - [근거]
-성장 가능성: [점수]점 - [근거]
-총 매칭 점수: [총점]점
-추천 직무: [추천하는 직무 분야]
-매칭 근거: [3-4줄 매칭 근거]
+반드시 JSON 하나만 출력해주세요. Markdown이나 코드 펜스는 사용하지 마세요.
+스키마:
+{{
+  "score": 0,
+  "decision": "strong_match|review|not_enough_evidence",
+  "dimensions": [
+    {{"name":"기술 스택 일치도","score":0,"max":30,"evidence":[{{"source":"portfolio|job|missing","claim":"구체적인 근거","confidence":0.0}}]}},
+    {{"name":"경력 수준 적합성","score":0,"max":25,"evidence":[]}},
+    {{"name":"프로젝트 경험 관련성","score":0,"max":25,"evidence":[]}},
+    {{"name":"성장 가능성","score":0,"max":20,"evidence":[]}}
+  ],
+  "recommended_role": "추천 직무 분야",
+  "summary": "3~4문장 요약",
+  "gaps": ["추가 확인이 필요한 사항"],
+  "interview_focus": ["면접에서 검증할 질문 주제"]
+}}
 """
 
     try:
@@ -521,29 +534,47 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
                 {"role": "system", "content": "당신은 IT 채용 매칭 전문가입니다. 정확하고 객관적으로 매칭 분석을 해주세요."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=1000,
-            temperature=0.3
+            max_tokens=1200,
+            temperature=0.2,
+            response_format={"type": "json_object"}
         )
         
-        matching_analysis = response.choices[0].message.content
-        
-        # 점수 추출
-        import re
-        score_match = re.search(r"총 매칭 점수:\s*(\d+)점", matching_analysis)
-        score = float(score_match.group(1)) if score_match else 0.0
+        matching_analysis = response.choices[0].message.content or "{}"
+        structured = json.loads(matching_analysis)
+        score = float(structured.get("score", 0) or 0)
+        score = max(0.0, min(100.0, score))
+        dimensions = structured.get("dimensions", [])
+        evidence_lines = []
+        for dimension in dimensions:
+            name = dimension.get("name", "평가 항목")
+            dimension_score = dimension.get("score", 0)
+            maximum = dimension.get("max", 100)
+            evidence = dimension.get("evidence", [])
+            evidence_text = " / ".join(item.get("claim", "확인 필요") for item in evidence[:2])
+            evidence_lines.append(f"{name}: {dimension_score}/{maximum} — {evidence_text or '확인 필요'}")
+        readable_analysis = "\n".join([
+            f"종합 매칭 점수: {score:.0f}점 ({structured.get('decision', 'review')})",
+            f"추천 직무: {structured.get('recommended_role', job_title)}",
+            f"요약: {structured.get('summary', '')}",
+            *evidence_lines,
+            f"추가 확인: {', '.join(structured.get('gaps', [])) or '없음'}",
+            f"면접 검증 포인트: {', '.join(structured.get('interview_focus', [])) or '직무 핵심 경험'}"
+        ])
         
         return {
-            "matching_analysis": matching_analysis,
+            "matching_analysis": readable_analysis,
             "matching_score": score,
-            "recommended_job": job_title
+            "recommended_job": structured.get("recommended_role", job_title),
+            "matching_evidence": structured
         }
         
     except Exception as e:
         print(f"OpenAI matching error: {e}")
         return {
-            "matching_analysis": f"매칭 분석 중 오류가 발생했습니다: {e}",
+            "matching_analysis": "매칭 분석을 완료하지 못했습니다. 지원자의 증거를 확인한 뒤 다시 시도해 주세요.",
             "matching_score": 0.0,
-            "recommended_job": job_title
+            "recommended_job": job_title,
+            "matching_evidence": {"decision": "not_enough_evidence", "error": "AI 분석 결과를 검증하지 못함"}
         }
 
 def auto_analyze_pending_portfolios():
@@ -904,4 +935,4 @@ def start_auto_analyze():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8003) 
+    uvicorn.run(app, host="0.0.0.0", port=8003)

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiUrl } from '../api/config';
 
 const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => {
   const [questions, setQuestions] = useState([]);
@@ -12,7 +13,7 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
     
     try {
       const response = await fetch(
-        `http://localhost:8081/api/interview-questions/generate/${postId}/${candidateId}`,
+        apiUrl(`/api/interview-questions/generate/${postId}/${candidateId}`),
         { method: 'GET' }
       );
       
@@ -209,4 +210,4 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
   );
 };
 
-export default InterviewPreparationModal; 
+export default InterviewPreparationModal;

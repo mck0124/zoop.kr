@@ -163,4 +163,23 @@ public class PythonApiService {
             return false;
         }
     }
-} 
+
+    /** Server-side support assistant proxy. The OpenAI credential never reaches the browser. */
+    public String answerSupportQuestion(String question) {
+        try {
+            Map<String, Object> payload = Map.of(
+                "history", List.of(),
+                "user_input", question,
+                "lang", "ko"
+            );
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                pythonApiUrl + "/chat", payload, Map.class);
+            if (response.getBody() == null) return "AI 답변을 불러오지 못했습니다.";
+            Object answer = response.getBody().get("answer");
+            return answer != null ? answer.toString() : "AI 답변을 불러오지 못했습니다.";
+        } catch (Exception e) {
+            log.warn("고객센터 AI 호출 실패: {}", e.getMessage());
+            return "현재 AI 상담이 잠시 지연되고 있습니다. FAQ에서 먼저 확인해 주세요.";
+        }
+    }
+}

@@ -54,11 +54,11 @@ const TEXT = {
     ],
     fillerWords: ['자동으로,', '즉시,', '손쉽게'],
     slide3: ['채용의', '새로운', '기준,', 'ZOOP에서', '시작됩니다'],
-    statsTitle: "채용의 혁신, 숫자로 증명하다",
+    statsTitle: "ZOOP AI가 판단하는 방식",
     stats: [
-      { key: "timeSaved", label: "채용 시간 단축" },
-      { key: "matchAccuracy", label: "인재 매칭 정확도" },
-      { key: "interviewsConducted", label: "AI 면접 진행" }
+      { key: "evidence", value: "6", label: "GitHub 신호를 근거로 분석" },
+      { key: "dimensions", value: "4", label: "직무 적합도 평가 차원" },
+      { key: "workflow", value: "1", label: "분석에서 면접까지 연결" }
     ],
     processTitle: "채용의 모든 과정을 자동화",
     processSteps: [
@@ -66,11 +66,11 @@ const TEXT = {
       { step: "Step 2", title: "AI 분석 & 매칭", desc: "ZOOP의 AI가 전 세계 인재 풀에서 최적의 후보자를 찾아 자동으로 연락합니다." },
       { step: "Step 3", title: "AI 면접", desc: "AI가 1차 면접을 진행해 후보자의 역량을 심층 분석하고 결과를 제공합니다." }
     ],
-    testimonialTitle: "기업들이 ZOOP을 선택한 이유",
+    testimonialTitle: "다른 채용 AI와 ZOOP이 다른 이유",
     testimonials: [
-      { text: "“ZOOP 덕분에 채용 시간이 70% 단축되었고, 최적의 인재를 빠르게 찾을 수 있었습니다.”", author: "— TechCorp, CTO" },
-      { text: "“AI 면접 기능은 놀라울 정도로 정확했고, 인사팀의 업무 부담을 크게 줄여줬습니다.”", author: "— InnoVate, HR Manager" },
-      { text: "“ZOOP은 채용의 패러다임을 바꿨습니다. 이제 채용은 전략적 결정입니다.”", author: "— FutureWorks, CEO" }
+      { text: "후보자 점수만 보여주지 않고, 어떤 GitHub 신호가 판단에 사용됐는지 설명합니다.", author: "근거 기반 매칭" },
+      { text: "확인하지 못한 정보는 추측으로 채우지 않고, 불확실성과 추가 검증 포인트로 남깁니다.", author: "불확실성 공개" },
+      { text: "포트폴리오 분석 결과가 개인화된 면접 질문과 기업의 검증 흐름으로 이어집니다.", author: "분석에서 면접까지" }
     ],
     ctaTitle: "채용의 미래, 지금 시작하세요",
     ctaDesc: "ZOOP과 함께라면 기업의 채용이 더 빠르고, 더 스마트해집니다.",
@@ -89,11 +89,11 @@ const TEXT = {
     ],
     fillerWords: ['Automated,', 'Instant,', 'Easy'],
     slide3: ['Recruitment', 'Redefined,', 'Starts', 'with', 'ZOOP'],
-    statsTitle: "Recruitment Innovation, Proven by Numbers",
+    statsTitle: "How ZOOP AI Makes a Decision",
     stats: [
-      { key: "timeSaved", label: "Time Saved" },
-      { key: "matchAccuracy", label: "Matching Accuracy" },
-      { key: "interviewsConducted", label: "AI Interviews" }
+      { key: "evidence", value: "6", label: "GitHub evidence signals" },
+      { key: "dimensions", value: "4", label: "fit dimensions" },
+      { key: "workflow", value: "1", label: "connected hiring workflow" }
     ],
     processTitle: "Automating Every Step of Hiring",
     processSteps: [
@@ -101,11 +101,11 @@ const TEXT = {
       { step: "Step 2", title: "AI Analysis & Matching", desc: "ZOOP’s AI automatically contacts optimal candidates from a global talent pool." },
       { step: "Step 3", title: "AI Interview", desc: "AI conducts the first interview, thoroughly analyzing the candidate and providing results." }
     ],
-    testimonialTitle: "Why Companies Choose ZOOP",
+    testimonialTitle: "What Makes ZOOP Different",
     testimonials: [
-      { text: "“Thanks to ZOOP, hiring time was reduced by 70%, and we found top talent quickly.”", author: "— TechCorp, CTO" },
-      { text: "“The AI interview feature was incredibly accurate and greatly reduced our HR workload.”", author: "— InnoVate, HR Manager" },
-      { text: "“ZOOP has changed the recruitment paradigm. Hiring is now a strategic decision.”", author: "— FutureWorks, CEO" }
+      { text: "ZOOP explains which GitHub signals influenced a candidate score instead of showing an opaque number.", author: "Evidence-first matching" },
+      { text: "Missing evidence is surfaced as uncertainty and follow-up checks, never silently invented.", author: "Uncertainty made visible" },
+      { text: "Portfolio analysis flows into personalized interview questions and recruiter verification.", author: "From analysis to interview" }
     ],
     ctaTitle: "Start the Future of Hiring Today",
     ctaDesc: "With ZOOP, your company’s recruitment is faster and smarter.",
@@ -154,28 +154,6 @@ export default function About() {
   }, [slideInView2]);
 
   const revealThresholds = [15, 45, 80];
-
-  // Stats counter effect
-  const [stats, setStats] = useState({
-    timeSaved: 0,
-    matchAccuracy: 0,
-    interviewsConducted: 0
-  });
-
-  useEffect(() => {
-    if (!statsInView) return;
-    const controls = animate(0, 1, {
-      duration: 2,
-      onUpdate: latest => {
-        setStats({
-          timeSaved: Math.round(latest * 70),
-          matchAccuracy: Math.round(latest * 95),
-          interviewsConducted: Math.round(latest * 10000)
-        });
-      }
-    });
-    return () => controls.stop();
-  }, [statsInView]);
 
   // Navbar에서 언어 변경 (KOR/ENG) 버튼 클릭 시 호출
   // const handleLangChange = (selected) => setLang(selected); // This line is removed as per the edit hint
@@ -359,15 +337,15 @@ export default function About() {
           </motion.h2>
           <div className="stats-grid">
             <motion.div variants={counterVariants} initial="hidden" animate={statsInView ? 'visible' : 'hidden'}>
-              <h3>{stats.timeSaved}%</h3>
+              <h3>{TEXT[lang].stats[0].value}</h3>
               <p>{TEXT[lang].stats[0].label}</p>
             </motion.div>
             <motion.div variants={counterVariants} initial="hidden" animate={statsInView ? 'visible' : 'hidden'}>
-              <h3>{stats.matchAccuracy}%</h3>
+              <h3>{TEXT[lang].stats[1].value}</h3>
               <p>{TEXT[lang].stats[1].label}</p>
             </motion.div>
             <motion.div variants={counterVariants} initial="hidden" animate={statsInView ? 'visible' : 'hidden'}>
-              <h3>{stats.interviewsConducted.toLocaleString()}+</h3>
+              <h3>{TEXT[lang].stats[2].value}</h3>
               <p>{TEXT[lang].stats[2].label}</p>
             </motion.div>
           </div>

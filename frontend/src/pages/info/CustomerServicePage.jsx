@@ -18,32 +18,6 @@ const categories = [
   '기업회원 문의',
 ];
 
-// OpenAI API 호출 함수
-async function fetchOpenAIAssistant(question) {
-  const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
-  const endpoint = 'https://api.openai.com/v1/chat/completions';
-  const body = {
-    model: 'gpt-3.5-turbo',
-    messages: [
-      { role: 'system', content: '당신은 친절한 고객센터 AI 상담원입니다.' },
-      { role: 'user', content: question }
-    ],
-    max_tokens: 512,
-    temperature: 0.2
-  };
-  const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) throw new Error('AI 답변 요청 실패');
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content || 'AI 답변을 불러오지 못했습니다.';
-}
-
 // 상담원 이모티콘 이미지
 function SupportMascot({ size = 80 }) {
   return (
@@ -211,4 +185,4 @@ function CustomerServicePage() {
   );
 }
 
-export default CustomerServicePage; 
+export default CustomerServicePage;

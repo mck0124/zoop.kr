@@ -18,10 +18,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 @Tag(name = "ApplicationController", description = "지원 신청 관련 API")
 @RestController
@@ -33,6 +35,7 @@ public class ApplicationController {
     private final JobCandProgressRepository jobCandProgressRepository;
     private final PostRepository postRepository;
     private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
     @Operation(summary = "지원 신청", description = "공개 채용 공고에 지원 신청을 합니다.")
     @ApiResponses(value={
@@ -46,14 +49,6 @@ public class ApplicationController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> applyForJob(@RequestBody ApplicationRequestDto dto) {
         try {
-            // 디버깅을 위한 로그 추가
-            System.out.println("=== 지원 신청 데이터 ===");
-            System.out.println("GitHub Login: '" + dto.getGithubLogin() + "'");
-            System.out.println("Email: '" + dto.getEmail() + "'");
-            System.out.println("Name: '" + dto.getName() + "'");
-            System.out.println("Phone: '" + dto.getPhone() + "'");
-            System.out.println("=========================");
-            
             // 1. 공고 존재 확인
             Post post = postRepository.findById(dto.getPostId())
                 .orElse(null);
@@ -69,7 +64,6 @@ public class ApplicationController {
 
             // 2. GitHub 아이디 유효성 검사
             if (dto.getGithubLogin() == null || dto.getGithubLogin().trim().isEmpty()) {
-                System.out.println("GitHub 아이디가 비어있음: '" + dto.getGithubLogin() + "'");
                 return ResponseEntity.badRequest()
                     .body(Map.of("error", "GitHub 아이디는 필수입니다."));
             }
@@ -101,12 +95,12 @@ public class ApplicationController {
             } else {
                 // 새로운 지원자 생성
                 String githubLogin = dto.getGithubLogin().trim();
-                System.out.println("새 지원자 생성 - GitHub Login: '" + githubLogin + "'");
-                
                 candidate = Candidate.builder()
                     .githubLogin(githubLogin)
                     .candidateEmail(dto.getEmail())
-                    .candidatePassword("default_password_123") // 기본 비밀번호 설정 (공개 지원용)
+                    // 공개 지원 계정에는 알려진 기본 비밀번호를 저장하지 않는다.
+                    // 지원자는 비밀번호 찾기 흐름으로 최초 비밀번호를 설정한다.
+                    .candidatePassword(passwordEncoder.encode(UUID.randomUUID().toString()))
                     .candidateName(dto.getName())
                     .candidatePhoneNumber(dto.getPhone())
                     .candidateRegistrationDate(LocalDateTime.now())
@@ -154,4 +148,4 @@ public class ApplicationController {
                 .body(Map.of("error", "지원 신청 처리 중 오류가 발생했습니다."));
         }
     }
-} 
+}

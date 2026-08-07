@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./Chatbot.css";
 import { HiOutlineLightningBolt, HiOutlineGlobeAlt } from "react-icons/hi";
+import { apiUrl, PYTHON_API_URL } from '../api/config';
 
 // 한글/영문 옵션 버튼
 const initialOptions = {
@@ -209,7 +210,7 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
     isSending.current = true;
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8001/chat", {
+      const res = await fetch(apiUrl('/chat', PYTHON_API_URL), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

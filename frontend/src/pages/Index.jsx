@@ -303,8 +303,8 @@ export default function Index() {
         </div>
         <div className="footer-bottom">
           <strong>(주)줍스튜디오</strong>
-          <p>사업자 등록번호: 120-88-01280 │ 대표: 홍길동</p>
-          <p>서울특별시 강남구 테헤란로 133, 9층 (역삼동, Zoop타워)</p>
+          <p>ZOOP AI Recruiting Platform · KOSA Capstone Prototype</p>
+          <p>본 서비스는 기술 시연을 위한 프로젝트입니다.</p>
           <div className="footer-terms">
             <p><strong>서비스 이용약관</strong></p>
             <p><strong>개인정보 처리방침</strong></p>

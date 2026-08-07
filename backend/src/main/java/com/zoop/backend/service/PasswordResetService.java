@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -25,6 +26,9 @@ public class PasswordResetService {
     private final PasswordResetTokenRepository tokenRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${zoop.frontend.url:http://localhost:3000}")
+    private String frontendUrl;
 
 
     public void requestPasswordReset(PasswordResetRequest request) {
@@ -48,7 +52,7 @@ public class PasswordResetService {
 
         tokenRepository.save(resetToken);       // 객체 저장
 
-        String resetLink = "http://localhost:3000/auth/applicant/reset-password/" + token;
+        String resetLink = frontendUrl + "/auth/applicant/reset-password/" + token;
         try {
             emailService.sendPasswordResetEmail(request.getEmail(), request.getGithubLogin(), resetLink);
         } catch (MessagingException e) {

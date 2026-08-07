@@ -9,6 +9,8 @@ Original file is located at
 # 문서 -> pdf
 """
 
+import os
+
 !pip install fpdf
 
 from fpdf import FPDF
@@ -89,7 +91,7 @@ documents = loader.load()
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=50)
 texts = text_splitter.split_documents(documents)
 
-openai_api_key="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"
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
 # 3. 임베딩 및 벡터 DB 생성 (OpenAI API 키 필요)
 embedding = OpenAIEmbeddings(openai_api_key=openai_api_key)

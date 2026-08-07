@@ -8,9 +8,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 public class AppConfig {
+
+    @Value("${zoop.frontend.url:http://localhost:3000}")
+    private String frontendUrl;
 
     // 🔐 비밀번호 인코더 Bean 등록
     @Bean
@@ -34,7 +38,7 @@ public class AppConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**") // 모든 경로 허용
-                        .allowedOrigins("http://localhost:3000") // 프론트 주소
+                        .allowedOrigins(frontendUrl)
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH")
                         .allowedHeaders("*")
                         .exposedHeaders("*")

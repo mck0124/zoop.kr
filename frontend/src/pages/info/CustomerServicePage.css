@@ -178,6 +178,71 @@ nav.customer-nav {
   height: auto;
 }
 
+.search-section {
+  width: min(680px, calc(100vw - 32px));
+  margin: 28px auto 0;
+}
+
+.search-input-wrap {
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 12px 34px rgba(20, 110, 76, 0.16);
+}
+
+.search-input-wrap .search-input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: #17382d;
+  font-size: 1rem;
+  outline: none;
+}
+
+.search-input-wrap > button {
+  border: 0;
+  border-radius: 12px;
+  padding: 0 18px;
+  background: #122c24;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.search-input-wrap > button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.support-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.support-suggestions button {
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  cursor: pointer;
+}
+
+@media (max-width: 560px) {
+  .search-input-wrap > button {
+    padding: 0 12px;
+    font-size: 0.85rem;
+  }
+}
+
 @media (max-width: 900px) {
   .customer-info-section {
     flex-direction: column;

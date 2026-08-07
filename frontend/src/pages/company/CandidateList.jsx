@@ -1092,8 +1092,8 @@ function getCandidateLanguages(candidate) {
     }
   }
   
-  // 기본 언어들 (예시)
-  return ['JavaScript', 'Python', 'Java', 'React', 'Node.js'];
+  // 확인 가능한 언어가 없으면 추정하지 않는다.
+  return [];
 }
 function formatTechStack(langs) {
   const arr = getStackArray(langs);
@@ -1440,8 +1440,6 @@ export default function CandidateList({ activeTab = 'all' }) {
   };
 
   const openAnalysisModal = (analysis, score, candidate) => {
-    console.log('openAnalysisModal 호출됨:', { analysis, score, candidate });
-    
     // 점수 추출 개선
     let finalScore = score || 0;
     if (typeof finalScore !== 'number' || finalScore === 0) {
@@ -1503,6 +1501,24 @@ export default function CandidateList({ activeTab = 'all' }) {
 
   const [showMatchingDetailModal, setShowMatchingDetailModal] = useState(false);
   const [selectedMatchingCandidate, setSelectedMatchingCandidate] = useState(null);
+
+  const comparableScores = candidates
+    .map(candidate => {
+      const value = candidate?.analysisScore ?? candidate?.score ?? candidate?.aiAnalysis?.analysisScore;
+      return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : null;
+    })
+    .filter(value => value !== null);
+  const averageCandidateScore = comparableScores.length
+    ? Math.round(comparableScores.reduce((sum, value) => sum + value, 0) / comparableScores.length)
+    : null;
+  const percentileScore = (percentile) => {
+    if (!comparableScores.length) return null;
+    const sorted = [...comparableScores].sort((a, b) => a - b);
+    const index = Math.min(sorted.length - 1, Math.ceil((percentile / 100) * sorted.length) - 1);
+    return sorted[Math.max(0, index)];
+  };
+  const top25CandidateScore = percentileScore(75);
+  const top10CandidateScore = percentileScore(90);
 
   if (loading) {
     return <Wrapper><Navbar /><Container>후보자 목록을 불러오는 중...</Container></Wrapper>;
@@ -1689,6 +1705,7 @@ export default function CandidateList({ activeTab = 'all' }) {
             {/* 스크롤 컨텐츠 */}
             <div style={{ padding: '0 32px 32px 32px', maxHeight: '70vh', overflowY: 'auto' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                <EvidenceTrustPanel candidate={selectedCandidate} analysisText={selectedAnalysis} />
                 {/* 1. 종합 역량 분석 섹션 */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                   {/* 왼쪽: 레이더 차트 */}
@@ -1838,9 +1855,9 @@ export default function CandidateList({ activeTab = 'all' }) {
                   }}>
                     <ScoreDistributionChart 
                       currentScore={modalScore}
-                      averageScore={75}
-                      top10Percent={90}
-                      top25Percent={85}
+                      averageScore={averageCandidateScore}
+                      top10Percent={top10CandidateScore}
+                      top25Percent={top25CandidateScore}
                       width={500}
                       height={350}
                     />
@@ -1858,7 +1875,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                       활동 히스토리
                     </h3>
                     <CommitHeatmap 
-                      commits={Array.from({ length: 365 }, (_, i) => Math.floor(Math.random() * 5))}
+                      commits={Array.isArray(selectedCandidate?.commitHistory) ? selectedCandidate.commitHistory : []}
                       width={'100%'}
                       height={200}
                     />
@@ -1877,11 +1894,8 @@ export default function CandidateList({ activeTab = 'all' }) {
                     대표 프로젝트
                   </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                    {[
-                      { name: '웹 애플리케이션', description: 'React와 Node.js를 사용한 풀스택 프로젝트', stars: 45, language: 'JavaScript' },
-                      { name: '모바일 앱', description: 'React Native로 개발한 크로스 플랫폼 앱', stars: 32, language: 'TypeScript' },
-                      { name: 'API 서버', description: 'Express.js와 MongoDB를 활용한 REST API', stars: 28, language: 'JavaScript' }
-                    ].map((project, index) => (
+                    {(Array.isArray(selectedCandidate?.topRepos) ? selectedCandidate.topRepos :
+                      Array.isArray(selectedCandidate?.repositories) ? selectedCandidate.repositories : []).map((project, index) => (
                       <div key={index} style={{
                 padding: '20px',
                         borderRadius: '16px',
@@ -1931,6 +1945,12 @@ export default function CandidateList({ activeTab = 'all' }) {
                   </p>
                       </div>
                 ))}
+                {!(Array.isArray(selectedCandidate?.topRepos) && selectedCandidate.topRepos.length) &&
+                 !(Array.isArray(selectedCandidate?.repositories) && selectedCandidate.repositories.length) && (
+                  <div style={{ padding: '24px', textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: '12px' }}>
+                    저장된 대표 프로젝트 데이터가 없습니다. 원본 GitHub 프로필에서 직접 확인해 주세요.
+                  </div>
+                )}
               </div>
             </div>
               </div>
@@ -2276,17 +2296,14 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
     };
   }
 
-  // For debugging: print score data
-  console.log('TossCard', { login, radarScores, realScore, analysisResult });
-  // If all scores are zero, show demo chart for visual check
+  // Never invent a score for an unprocessed candidate. A recruiter must be able
+  // to distinguish a real model result from a pending or insufficient-evidence state.
   const isAllZero = radarLabels.every(label => (radarScores[label] || 0) === 0);
-  const demoScores = { '팔로워 수': 8, '공개 저장소 수': 12, '언어 다양성': 10, '최근 활동성': 15, '프로젝트 품질': 13, '기술적 깊이': 9 };
-  // realScore가 undefined면 radarScores의 합산으로 대체
   let displayScore = realScore;
   if (typeof displayScore !== 'number' || isNaN(displayScore)) {
     displayScore = Object.values(radarScores).reduce((a, b) => a + (typeof b === 'number' ? b : 0), 0);
-    if (isAllZero) displayScore = 88; // demo
   }
+  const hasVerifiedScore = !isAllZero && displayScore > 0;
   return (
     <TossCard
       key={login}
@@ -2362,7 +2379,7 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
                 transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
               }}>
                 <RadarChartSVG 
-                  scores={isAllZero ? demoScores : radarScores} 
+                  scores={radarScores}
                   size={130} 
                   totalScore={displayScore}
                   showLabels={true}
@@ -2371,6 +2388,20 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
               </div>
         </div>
           </div>
+
+          {!hasVerifiedScore && (
+            <div style={{
+              color: '#64748b',
+              fontSize: '0.78rem',
+              textAlign: 'center',
+              background: '#f8fafc',
+              border: '1px dashed #cbd5e1',
+              borderRadius: '10px',
+              padding: '7px 12px'
+            }}>
+              분석 대기 · 확인 가능한 GitHub 근거가 아직 없습니다
+            </div>
+          )}
           
           {/* 기술 스택 시각화 */}
           {langsArr.length > 0 && (
@@ -2598,6 +2629,18 @@ const ScoreBarChart = ({ scores, maxScores, height = 420, width = 600 }) => {
 
 // 점수 분포 히스토그램
 const ScoreDistributionChart = ({ currentScore, averageScore, top10Percent, top25Percent, width = 400, height = 200 }) => {
+  const hasComparisonData = [currentScore, averageScore, top10Percent, top25Percent]
+    .every(value => typeof value === 'number' && Number.isFinite(value));
+
+  if (!hasComparisonData) {
+    return (
+      <div style={{ width: '100%', minWidth: 0, minHeight: height, padding: '32px', boxShadow: '0 6px 32px rgba(80,120,255,0.10)', borderRadius: '24px', background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+        <h3 style={{ margin: '0 0 14px 0', fontSize: '22px', fontWeight: '800', color: '#1e40af' }}>다른 지원자들과의 비교</h3>
+        <p style={{ margin: 0, color: '#475569', lineHeight: 1.6 }}>비교 가능한 AI 분석 점수가 아직 충분하지 않습니다.<br />분석 결과가 쌓이면 실제 후보자 데이터로 표시됩니다.</p>
+      </div>
+    );
+  }
+
   return (
     <div style={{ width: '100%', minWidth: 0, height, padding: '32px', boxShadow: '0 6px 32px rgba(80,120,255,0.10)', borderRadius: '24px', background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)' }}>
       <h3 style={{ margin: '0 0 32px 0', fontSize: '22px', fontWeight: '800', color: '#1e40af', letterSpacing: '-1px', textAlign: 'center' }}>
@@ -2802,13 +2845,14 @@ const LanguageDistributionChart = ({ candidate, width = 300, height = 300 }) => 
       })).sort((a, b) => b.weight - a.weight);
     }
     
-    // 실제 데이터가 없는 경우 기본 언어 리스트 사용
+    // If only a language list is available, preserve the language signal but do
+    // not fabricate stars, repository size, or other GitHub measurements.
     const languages = getCandidateLanguages(candidate);
     return languages.map((lang, index) => ({
       language: lang,
       count: 1,
-      stars: Math.floor(Math.random() * 10) + 1, // 임시 데이터
-      size: Math.floor(Math.random() * 1000) + 100,
+      stars: 0,
+      size: 0,
       weight: languages.length - index // 순서대로 가중치 부여
     }));
   };
@@ -3126,13 +3170,13 @@ const LanguagePieChart = ({ languages, width = 300, height = 300 }) => {
 
 // 커밋 히트맵
 const CommitHeatmap = ({ commits = [], width = 400, height = 120 }) => {
-  // 52주 x 7일 히트맵 생성 (예시 데이터)
+  // 52주 x 7일 히트맵. Never generate synthetic activity for missing data.
   const weeks = 52;
   const days = 7;
   const cells = [];
   for (let week = 0; week < weeks; week++) {
     for (let day = 0; day < days; day++) {
-      const commitCount = Math.floor(Math.random() * 5); // 실제로는 실제 커밋 데이터 사용
+      const commitCount = Number(commits[week * days + day] || 0);
       cells.push({ week, day, count: commitCount });
     }
   }
@@ -3147,7 +3191,12 @@ const CommitHeatmap = ({ commits = [], width = 400, height = 120 }) => {
       <h3 style={{ margin: '0 0 32px 0', fontSize: '22px', fontWeight: '800', color: '#1e40af', letterSpacing: '-1px', textAlign: 'center' }}>
         활동 히스토리
       </h3>
-      <div style={{ width: '100%', overflowX: 'auto' }}>
+      {!commits.length && (
+        <div style={{ padding: '24px', textAlign: 'center', color: '#64748b', background: '#fff', borderRadius: '12px' }}>
+          최근 활동 원본 데이터가 연결되면 여기에 표시됩니다.
+        </div>
+      )}
+      <div style={{ width: '100%', overflowX: 'auto', display: commits.length ? 'block' : 'none' }}>
         <svg width="100%" height={svgHeight} viewBox={`0 0 ${svgWidth} ${svgHeight}`} style={{ display: 'block', margin: '0 auto', background: 'none' }}>
           {cells.map(({ week, day, count }) => {
             const color = colors[Math.min(count, colors.length - 1)];
@@ -3176,6 +3225,65 @@ const CommitHeatmap = ({ commits = [], width = 400, height = 120 }) => {
         <span style={{ fontWeight: 600, color: '#1d4ed8' }}>많음</span>
       </div>
     </div>
+  );
+};
+
+// 채용 AI의 판단 근거와 한계를 한눈에 보여주는 신뢰성 패널
+const EvidenceTrustPanel = ({ candidate, analysisText }) => {
+  let structured = null;
+  try {
+    const parsed = JSON.parse(analysisText || '{}');
+    if (parsed && Array.isArray(parsed.dimensions)) structured = parsed;
+  } catch (_) {
+    // 기존 자연어 분석 결과도 계속 지원한다.
+  }
+
+  const evidenceCount = structured
+    ? structured.dimensions.reduce((count, dimension) => count + (dimension.evidence || []).length, 0)
+    : null;
+  const signals = [
+    candidate?.githubProfileUrl || candidate?.profileUrl ? 'GitHub 원본 프로필' : null,
+    getCandidateLanguages(candidate || {}).length ? '사용 언어 데이터' : null,
+    candidate?.analysisScore !== undefined || candidate?.aiAnalysis?.analysisScore !== undefined ? 'AI 분석 점수' : null,
+    structured ? '항목별 근거와 확신도' : '자연어 분석 결과'
+  ].filter(Boolean);
+
+  return (
+    <section style={{
+      background: 'linear-gradient(135deg, #0f2923 0%, #173e32 100%)',
+      color: '#ecfdf5',
+      borderRadius: '18px',
+      padding: '22px 24px',
+      boxShadow: '0 12px 28px rgba(15, 41, 35, 0.18)'
+    }} aria-label="AI 판단 근거 및 한계">
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontSize: '0.75rem', color: '#86efac', fontWeight: 800, letterSpacing: '0.08em' }}>ZOOP TRUST LAYER</div>
+          <h3 style={{ margin: '6px 0 6px', fontSize: '1.25rem', color: '#fff' }}>AI 판단을 설명할 수 있습니다</h3>
+          <p style={{ margin: 0, color: '#c7f9df', lineHeight: 1.6, fontSize: '0.9rem' }}>
+            점수만으로 후보자를 결정하지 않습니다. 실제 입력 신호와 확인되지 않은 정보를 분리해 보여줍니다.
+          </p>
+        </div>
+        <span style={{ background: '#34d399', color: '#063b2b', borderRadius: '999px', padding: '7px 12px', fontWeight: 800, fontSize: '0.78rem' }}>
+          {structured ? `${evidenceCount}개 근거 추출됨` : '근거 확인 필요'}
+        </span>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '16px' }}>
+        {signals.map(signal => (
+          <span key={signal} style={{ border: '1px solid rgba(167, 243, 208, 0.35)', background: 'rgba(167, 243, 208, 0.1)', borderRadius: '999px', padding: '6px 10px', fontSize: '0.78rem', color: '#d1fae5' }}>
+            ✓ {signal}
+          </span>
+        ))}
+      </div>
+      {structured?.gaps?.length > 0 && (
+        <div style={{ marginTop: '16px', padding: '12px 14px', background: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(253, 230, 138, 0.35)', borderRadius: '12px', color: '#fef3c7', fontSize: '0.84rem' }}>
+          <strong>추가 검증이 필요한 정보:</strong> {structured.gaps.join(', ')}
+        </div>
+      )}
+      <div style={{ marginTop: '14px', color: '#a7f3d0', fontSize: '0.78rem' }}>
+        AI는 의사결정을 보조하며, 최종 채용 판단은 담당자가 원본 자료와 면접을 확인한 뒤 내려야 합니다.
+      </div>
+    </section>
   );
 };
 

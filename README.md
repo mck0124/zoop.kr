@@ -49,6 +49,8 @@ The project was developed by a **4-person team** as a Korea Software Industry As
 - **Interview question generation:** creates role- and candidate-specific questions
 - **Interview analysis:** evaluates answer content and produces structured feedback
 - **Portfolio matching:** compares candidate experience with job-description requirements
+- **Evidence-first matching:** returns dimension scores, source-backed evidence, confidence, missing evidence, and interview follow-up topics instead of an opaque single score.
+- **Support assistant:** routes customer questions through the server-side AI service; no OpenAI credential is shipped to the browser.
 
 ## System Architecture
 
@@ -134,7 +136,7 @@ npm install
 npm start
 ```
 
-The development server runs at `http://localhost:3000` and proxies API requests to `http://localhost:8081`.
+The development server runs at `http://localhost:3000`. Copy `frontend/.env.example` to a local environment file and set `REACT_APP_API_URL` plus the Python service URLs for the services you run.
 
 ### 3. Run the Spring Boot Backend
 
@@ -158,6 +160,14 @@ python <service-entry-point>.py
 ```
 
 Keep API keys and other credentials in local environment variables or untracked configuration files. Do not expose OpenAI or database credentials in frontend code.
+
+### Environment configuration
+
+- Frontend: `frontend/.env.example` contains public service URLs only.
+- Spring Boot: `backend/.env.example` contains required server-side secrets.
+- Python AI services: `backend/python-api/.env.example` contains the OpenAI key and allowed browser origins.
+
+Production configuration must provide real values for every required `${...}` variable in `application-prod.yml`; the repository intentionally contains no fallback credentials.
 
 ## Representative API Areas
 

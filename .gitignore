@@ -71,6 +71,7 @@ frontend/.env.production
 .env.example
 .env.sample
 .env.template
+!**/.env.example
 
 # Python cache files
 __pycache__/

@@ -4,6 +4,7 @@ import SEO from '../../components/SEO';
 import './CustomerServicePage.css';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom'; // Added Link import
+import { apiUrl } from '../../api/config';
 
 const ICON_SIZE = 32;
 
@@ -48,15 +49,6 @@ const supportCategories = [
   '기업회원 문의',
 ];
 
-const supportCategorySummaries = {
-  '회원가입/로그인': '회원가입, 로그인, 계정 찾기, 비밀번호 재설정 등 계정 관련 문의를 도와드립니다.',
-  '이력서 작성': '이력서 및 프로필 작성, 첨부파일 등록, 포트폴리오 업로드 방법을 안내합니다.',
-  '채용 공고 지원': '채용 공고 지원, 지원 현황 확인, 지원 취소 등 지원 관련 문의를 안내합니다.',
-  '면접 일정/결과': '면접 일정 확인, 면접 결과 조회, 면접 관련 문의를 도와드립니다.',
-  '포인트/마일리지': '포인트 적립, 사용, 마일리지 정책 등 포인트 관련 문의를 안내합니다.',
-  '기업회원 문의': '기업회원 가입, 공고 등록, 지원자 관리 등 기업 서비스 이용 문의를 안내합니다.'
-};
-
 // FAQ 데이터 (FaqPage.jsx와 동일하게 복사)
 const faqData = [
   { category: '회원가입/로그인', question: '회원가입은 어떻게 하나요?(개인/기업별 안내)', answer: "홈페이지 우측 상단의 '회원가입' 버튼을 클릭 후, 이메일 또는 소셜 계정으로 가입할 수 있습니다." },
@@ -82,33 +74,13 @@ function Support() {
   const [matchedCategory, setMatchedCategory] = useState(null);
   const inputRef = useRef();
 
-  // OpenAI API 호출 함수 (실제 배포 시 백엔드 프록시 권장)
-  const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
-  async function fetchOpenAISuggestions(prompt) {
-    try {
-      const res = await fetch("https://api.openai.com/v1/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "text-davinci-003",
-          prompt: prompt + "\n", // 입력값 기반
-          max_tokens: 20,
-          temperature: 0.5,
-          n: 3,
-          stop: ["\n"]
-        })
-      });
-      const data = await res.json();
-      if (data.choices) {
-        return data.choices.map(choice => choice.text.trim()).filter(Boolean);
-      }
-      return [];
-    } catch (e) {
-      return [];
-    }
+  // Keep search suggestions local. AI credentials must never be shipped to a browser.
+  async function fetchSuggestions(prompt) {
+    const normalized = prompt.trim().toLowerCase();
+    return faqData
+      .filter(item => `${item.question} ${item.category}`.toLowerCase().includes(normalized))
+      .slice(0, 3)
+      .map(item => item.question);
   }
 
   async function fetchOpenAISearch(query) {
@@ -116,28 +88,14 @@ function Support() {
     setAiError("");
     setAiAnswer("");
     try {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [
-            { role: "system", content: "당신은 ZOOP 고객센터 AI 도우미입니다. 사용자의 질문에 친절하고 정확하게 답변하세요." },
-            { role: "user", content: query }
-          ],
-          max_tokens: 512,
-          temperature: 0.2
-        })
+      const res = await fetch(apiUrl('/api/ai/support'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: query })
       });
       const data = await res.json();
-      if (data.choices && data.choices[0]?.message?.content) {
-        setAiAnswer(data.choices[0].message.content.trim());
-      } else {
-        setAiError("AI 답변을 가져오지 못했습니다.");
-      }
+      if (!res.ok) throw new Error(data.error || 'AI 답변 요청 실패');
+      setAiAnswer(data.answer || "관련 도움말을 찾지 못했습니다.");
     } catch (e) {
       setAiError("AI 답변 요청에 실패했습니다.");
     } finally {
@@ -156,7 +114,7 @@ function Support() {
     setMatchedCategory(cat);
     if (value.trim().length > 0) {
       setShowSuggestions(true);
-      const suggs = await fetchOpenAISuggestions(value);
+      const suggs = await fetchSuggestions(value);
       setSuggestions(suggs);
     } else {
       setShowSuggestions(false);
@@ -205,12 +163,8 @@ function Support() {
   };
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      const matchedCategory = getCategoryBySearch(searchValue);
-      if (matchedCategory) {
-        navigate('/faq?category=' + encodeURIComponent(matchedCategory));
-      } else {
-        navigate('/faq');
-      }
+      e.preventDefault();
+      handleAISearch();
     }
   };
   const goToFaqCategory = (category) => {
@@ -258,25 +212,39 @@ function Support() {
         {/* 검색창 및 추천 태그 (사용자 요청 UI) */}
         <div className="search-section mt-4">
           <div className="search-bar-container">
-            <input type="text" placeholder ="🔍궁금한 점을 검색해보세요." 
-            className="search-input" 
-              //onClick={handleSearchClick} 
-            />
+            <div className="search-input-wrap">
+              <input
+                ref={inputRef}
+                type="search"
+                placeholder="🔍 궁금한 점을 검색해보세요."
+                className="search-input"
+                value={searchValue}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                aria-label="고객센터 질문 검색"
+              />
+              <button type="button" onClick={handleAISearch} disabled={!searchValue.trim() || aiLoading}>
+                {aiLoading ? '답변 중…' : 'AI에게 질문'}
+              </button>
+            </div>
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="support-suggestions" role="listbox" aria-label="추천 질문">
+                {suggestions.map(suggestion => (
+                  <button key={suggestion} type="button" onClick={() => handleSuggestionClick(suggestion)}>
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div className="suggestion-tags">
-            <Link to="/faq#signup-login">
-              <button className="tag-button">비밀번호를 잊어버렸어요. </button>
-              <button className="tag-button">회원가입은 어떻게 하나요?</button>
-            </Link>   
-            <Link to="/faq#service-usage">
-              <button className="tag-button">프로필은 어떻게 작성하나요?</button>
-              <button className="tag-button">채용공고는 어떻게 등록하나요?</button>
-            </Link>
+            <Link className="tag-button" to="/faq#signup-login">비밀번호를 잊어버렸어요.</Link>
+            <Link className="tag-button" to="/faq#signup-login">회원가입은 어떻게 하나요?</Link>
+            <Link className="tag-button" to="/faq#service-usage">프로필은 어떻게 작성하나요?</Link>
+            <Link className="tag-button" to="/faq#service-usage">채용공고는 어떻게 등록하나요?</Link>
             <br />
-            <Link to="/faq#service-usage">
-              <button className="tag-button">구인공고는 어떻게 확인하고 지원하나요?</button>
-              <button className="tag-button">후보자 정보 검색</button>
-            </Link>     
+            <Link className="tag-button" to="/faq#service-usage">구인공고는 어떻게 확인하고 지원하나요?</Link>
+            <Link className="tag-button" to="/faq#service-usage">후보자 정보 검색</Link>
           </div>
         </div>
         {/* AI 답변 결과 */}

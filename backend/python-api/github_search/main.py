@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Body
@@ -10,7 +11,7 @@ app = FastAPI()
 # CORS 미들웨어 등록
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 개발환경에선 * 허용, 운영시 도메인 제한
+    allow_origins=[origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",") if origin.strip()],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

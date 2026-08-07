@@ -803,7 +803,7 @@ function CandidateDashboard() {
                           <button 
                             onClick={() => openInterviewPreparationModal(post.postId)}
                             style={{ display: 'none' }}
-                          /> {/* dummy for key consistency, not rendered */}
+                          />
                           <button 
                             onClick={() => navigateToInterview(post.postId)}
                             className={`action-button interview-button ${!isInterviewStarted ? 'disabled' : ''}`}

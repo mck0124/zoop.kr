@@ -18,16 +18,7 @@ function ApplyForm({ post, onSubmit, onCancel }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log(`=== handleChange 호출됨: ${name} = "${value}" ===`);
-    
-    setFormData(prev => {
-      const newData = {
-        ...prev,
-        [name]: value
-      };
-      console.log('업데이트된 formData:', newData);
-      return newData;
-    });
+    setFormData(prev => ({ ...prev, [name]: value }));
     
     // Clear error when user starts typing
     if (errors[name]) {
@@ -72,35 +63,20 @@ function ApplyForm({ post, onSubmit, onCancel }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    console.log('=== ApplyForm handleSubmit 호출됨 ===');
-    console.log('현재 formData:', formData);
-    console.log('GitHub Login 값:', formData.githubLogin);
-    console.log('=====================================');
-    
     if (!validateForm()) {
-      console.log('유효성 검사 실패');
       return;
     }
 
     setIsSubmitting(true);
     
     try {
-      // TODO: API 호출로 교체
-      await new Promise(resolve => setTimeout(resolve, 2000)); // 임시 딜레이
-      
-      // 성공 처리
       const submitData = {
         ...formData,
         postId: post.postId,
         postTitle: post.postTitle
       };
       
-      console.log('=== onSubmit에 전달할 데이터 ===');
-      console.log('submitData:', submitData);
-      console.log('GitHub Login:', submitData.githubLogin);
-      console.log('=====================================');
-      
-      onSubmit(submitData);
+      await onSubmit(submitData);
     } catch (error) {
       console.error('지원 신청 오류:', error);
       alert('지원 신청 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -284,4 +260,4 @@ function ApplyForm({ post, onSubmit, onCancel }) {
   );
 }
 
-export default ApplyForm; 
+export default ApplyForm;

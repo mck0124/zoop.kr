@@ -10,6 +10,7 @@ import '../../components/ApplyForm.css';
 import '../../components/CompactJobCard.css';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { apiUrl } from '../../api/config';
 
 const LANGUAGES = [
   'Python', 'JavaScript', 'Java', 'C++', 'Go', 'Ruby', 'Kotlin', 'TypeScript', '기타'
@@ -66,12 +67,9 @@ function Careers() {
 
   const fetchPublicPostings = async () => {
     try {
-      const res = await fetch('http://localhost:8081/api/postings/public');
+      const res = await fetch(apiUrl('/api/postings/public'));
       if (res.ok) {
         const data = await res.json();
-        console.log('=== 채용 페이지 API 응답 ===');
-        console.log('API에서 받은 공고 수:', data.length);
-        console.log('공고 데이터 샘플:', data.slice(0, 3));
         setPostings(data.map(p => ({ ...p, companyName: p.companyName || 'ZOOP' })));
       } else setPostings([]);
     } catch {
@@ -84,16 +82,8 @@ function Careers() {
   const handleApply = post => { setSelectedPost(post); setShowApplyModal(true); };
   const handleCancelApplication = () => setShowApplyModal(false);
   const handleSubmitApplication = async formData => {
-    console.log('=== 프론트엔드에서 전송하는 데이터 ===');
-    console.log('전체 formData:', formData);
-    console.log('GitHub Login:', formData.githubLogin);
-    console.log('Email:', formData.email);
-    console.log('Name:', formData.name);
-    console.log('Phone:', formData.phone);
-    console.log('=====================================');
-    
     try {
-      const res = await fetch('http://localhost:8081/api/applications', {
+      const res = await fetch(apiUrl('/api/applications'), {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData)
       });
       if (res.ok) {
@@ -137,11 +127,6 @@ function Careers() {
     return true;
   });
   
-  console.log('=== 필터링 결과 ===');
-  console.log('필터링 전 공고 수:', postings.length);
-  console.log('필터링 후 공고 수:', filtered.length);
-  console.log('현재 필터 상태 - 언어:', languageFilter, '지역:', locationFilter, '검색:', search);
-
   // 페이지네이션 계산
   const totalPages = Math.max(1, Math.ceil(filtered.length / POSTS_PER_PAGE));
   const startIndex = (currentPage - 1) * POSTS_PER_PAGE;

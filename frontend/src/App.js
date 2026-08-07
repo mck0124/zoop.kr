@@ -50,7 +50,6 @@ const BookmarksPage = lazy(() => import('./pages/candidate/BookmarksPage'));
 const About = lazy(() => import('./pages/info/About'));
 const Notice = lazy(() => import('./pages/info/Notice'));
 const Support = lazy(() => import('./pages/info/Support'));
-const CustomerServicePage = lazy(() => import('./pages/info/CustomerServicePage'));
 const FaqPage = lazy(() => import('./pages/info/FaqPage'));
 const Careers = lazy(() => import('./pages/info/Careers'));
 const JobDetailPage = lazy(() => import('./pages/info/JobDetailPage'));
@@ -102,12 +101,12 @@ function AppContent() {
         <Route path="/google-auth" element={<GoogleAuthCallback />} />
         <Route path="/about" element={<About />} />
         <Route path="/notice" element={<Notice />} />
-        <Route path="/support" element={<CustomerServicePage />} />
+        <Route path="/support" element={<Support />} />
         <Route path="/faq" element={<FaqPage />} />
         <Route path="/careers" element={<Careers />} />
         <Route path="/job/:postId" element={<JobDetailPage />} />
         <Route path="/report" element={<IncidentReportPage />} />
-        <Route path="/company/candidates/:postId" element={<CandidateList />} />
+        <Route path="/company/candidates/:postId" element={<PrivateRoute allowedUserType="company"><CandidateList /></PrivateRoute>} />
         <Route
           path="/company/dashboard"
           element={

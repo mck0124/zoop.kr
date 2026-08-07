@@ -23,10 +23,11 @@ SPRING_API_URL = os.getenv("SPRING_API_URL", "http://localhost:8081")
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 app = FastAPI()
+ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",") if origin.strip()]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -112,7 +113,7 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
 4. **자신감과 태도 (15점)**: 자신감 있는 답변과 긍정적 태도
 5. **경험의 구체성 (20점)**: 구체적인 사례와 경험 제시
 
-각 항목별로 아래 JSON 포맷에 맞춰서, 점수, 근거, 좋은 예시, 아쉬운 예시, 개선점, 다른 지원자와의 비교, 카테고리별 태그를 반드시 포함해서 작성해주세요. 전체 요약, 헤드헌팅 추천 포인트, 태그, 시각화용 점수 배열, 평균/상위10% 비교도 포함해주세요.
+각 항목별로 아래 JSON 포맷에 맞춰서, 점수, 실제 답변에서 확인한 근거, 좋은 예시, 아쉬운 예시, 개선점, 확신도를 작성해주세요. 근거가 없는 내용은 추정하지 말고 '확인되지 않음'으로 표시하세요. 다른 지원자와의 비교나 모집단 평균은 제공된 데이터가 없으므로 생성하지 마세요.
 
 반드시 아래 JSON 포맷으로만 출력하세요:
 {{
@@ -124,7 +125,8 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
       "good_example": "...",
       "bad_example": "...",
       "improvement": "...",
-      "compare_to_others": "...",
+      "evidence": [{"source":"answer|question|missing", "claim":"실제 답변에서 확인한 내용", "confidence":0.0}],
+      "confidence": 0.0,
       "tags": ["...", "..."]
     }},
     ...
@@ -133,13 +135,14 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
     "summary": "...",
     "headhunting_point": "...",
     "recommendation": "...",
+    "limitations": ["이 분석만으로 확인할 수 없는 사항"],
     "tags": ["...", "..."]
   }},
   "visualization": {{
     "category_scores": [...],
     "category_labels": ["전문성", "의사소통", "문제해결", "자신감", "경험의 구체성"],
     "score_distribution": {{
-      "current": ..., "average": ..., "top_10_percent": ...
+      "current": ...
     }}
   }}
 }}
@@ -559,4 +562,4 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8002) 
+    uvicorn.run(app, host="0.0.0.0", port=8002)

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { HiOutlineLightningBolt } from "react-icons/hi";
+import { apiUrl, CHATBOT_API_URL } from "../api/config";
 
 // ✅ 기본 프리셋 예시 (아무 입력도 없을 때)
 const defaultCandidatePhrases = [
@@ -49,14 +50,8 @@ function getDynamicCandidatePhrases(messages) {
   let pool = Array.from(new Set([...picks, ...defaultCandidatePhrases]));
   // 최근에 보여준 phrase는 제외
   pool = pool.filter(p => !recentPhraseHistory.includes(p));
-  // 랜덤 셔플
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
-  }
-  // 4~6개 랜덤 추출
-  const num = Math.floor(Math.random() * 3) + 4; // 4~6개
-  const result = pool.slice(0, num);
+  // 동일한 입력은 동일한 제안을 반환해 재현 가능한 UX를 유지합니다.
+  const result = pool.slice(0, 6);
   // 최근 phrase 히스토리 갱신 (최대 10개)
   recentPhraseHistory = [...recentPhraseHistory, ...result].slice(-10);
   // 만약 후보가 부족하면 프리셋에서 추가
@@ -162,7 +157,7 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
             ? msg.content
             : ""
         }));
-      const response = await fetch("http://localhost:8001/ideal-candidate-chat", {
+      const response = await fetch(apiUrl('/ideal-candidate-chat', CHATBOT_API_URL), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,23 +1,30 @@
 server:
   port: 8080
 
+zoop:
+  frontend:
+    url: ${FRONTEND_URL}
+
 file:
   upload-dir: ./uploads
 
 jwt:
-  secret: ${JWT_SECRET:zGrmhqRd5uvsXOUU47XZm6fcmuPGpwJL}
+  secret: ${JWT_SECRET}
   expiration: 3600000
 
 python:
   api:
-    url: ${PYTHON_API_URL:http://localhost:8000}
+    url: ${PYTHON_API_URL}
+  interview:
+    api:
+      url: ${PYTHON_INTERVIEW_API_URL}
 
 spring:
   datasource:
     driver-class-name: oracle.jdbc.OracleDriver
-    url: ${DATABASE_URL:jdbc:oracle:thin:@localhost:1521/XEPDB1}
-    username: ${DATABASE_USERNAME:myproject}
-    password: ${DATABASE_PASSWORD:1234}
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
 
   servlet:
     multipart:
@@ -39,8 +46,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME:no.reply.zoop.kr@gmail.com}
-    password: ${MAIL_PASSWORD:vjop irka csvg vphv}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -50,16 +57,16 @@ spring:
 
 social:
   google:
-    client-id: ${GOOGLE_CLIENT_ID:714723992076-dm6hcint1cm3uthpriiljk0gdc7cqhtk.apps.googleusercontent.com}
-    client-secret: ${GOOGLE_CLIENT_SECRET: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}
-    redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:3000/google-auth}
+    client-id: ${GOOGLE_CLIENT_ID}
+    client-secret: ${GOOGLE_CLIENT_SECRET}
+    redirect-uri: ${GOOGLE_REDIRECT_URI}
     token-uri: https://oauth2.googleapis.com/token
     user-info-uri: https://www.googleapis.com/oauth2/v2/userinfo
 
   github:
-    client-id: ${GITHUB_CLIENT_ID:Iv23lifHLoovJWxUx7hn}
-    client-secret: ${GITHUB_CLIENT_SECRET:CrNtn91chUmlD+oa2LpgTcykLAQxCYG8JC9FN3Ii4QI=}
-    redirect-uri: ${GITHUB_REDIRECT_URI:http://localhost:3000/github-auth}
+    client-id: ${GITHUB_CLIENT_ID}
+    client-secret: ${GITHUB_CLIENT_SECRET}
+    redirect-uri: ${GITHUB_REDIRECT_URI}
     token-uri: https://github.com/login/oauth/access_token
     user-info-uri: https://api.github.com/user
     scope: rerad:user user:email
@@ -67,16 +74,16 @@ social:
 cloud:
   aws:
     credentials:
-      access-key: ${AWS_ACCESS_KEY:AKIAX5JA2R5F7A7RHPMM}
-      secret-key: ${AWS_SECRET_KEY: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}
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
     region:
       static: ap-northeast-2
     s3:
-      bucket: ${AWS_S3_BUCKET:zoop-seoul-bucket}
+      bucket: ${AWS_S3_BUCKET}
 
 logging:
   level:
     org.hibernate.SQL: INFO
     org.hibernate.type.descriptor.sql.BasicBinder: INFO
     org.springframework.transaction: INFO
-    com.zoop.backend.service.CandidateNotificationService: INFO 
+    com.zoop.backend.service.CandidateNotificationService: INFO
