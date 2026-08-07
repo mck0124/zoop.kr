@@ -13,6 +13,7 @@ load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+GITHUB_HTTP_TIMEOUT_SECONDS = float(os.getenv("GITHUB_HTTP_TIMEOUT_SECONDS", "20"))
 
 def get_headers():
     headers = {
@@ -40,7 +41,7 @@ def _evidence_id(*parts):
 def extract_email_from_profile_html(username):
     url = f"https://github.com/{username}"
     try:
-        res = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+        res = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=GITHUB_HTTP_TIMEOUT_SECONDS)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
             email_li = soup.find("li", {"itemprop": "email"})
@@ -64,7 +65,7 @@ def extract_email_from_profile_html(username):
 def extract_email_from_readme(username):
     try:
         repo_url = f"https://api.github.com/users/{username}/repos?sort=stars&per_page=1"
-        repo_res = requests.get(repo_url, headers=get_headers())
+        repo_res = requests.get(repo_url, headers=get_headers(), timeout=GITHUB_HTTP_TIMEOUT_SECONDS)
         if repo_res.status_code != 200:
             return None
 
@@ -74,7 +75,7 @@ def extract_email_from_readme(username):
 
         repo_name = repos[0]["name"]
         readme_url = f"https://api.github.com/repos/{username}/{repo_name}/readme"
-        readme_res = requests.get(readme_url, headers=get_headers())
+        readme_res = requests.get(readme_url, headers=get_headers(), timeout=GITHUB_HTTP_TIMEOUT_SECONDS)
         if readme_res.status_code != 200:
             return None
 
@@ -129,7 +130,7 @@ def expand_locations(filters):
 def get_user_bio(username):
     try:
         user_url = f"https://api.github.com/users/{username}"
-        user_res = requests.get(user_url, headers=get_headers())
+        user_res = requests.get(user_url, headers=get_headers(), timeout=GITHUB_HTTP_TIMEOUT_SECONDS)
         if user_res.status_code != 200:
             return ""
         user_info = user_res.json()
@@ -141,7 +142,7 @@ def get_user_bio(username):
 def get_user_readme(username):
     try:
         repo_url = f"https://api.github.com/users/{username}/repos?sort=stars&per_page=1"
-        repo_res = requests.get(repo_url, headers=get_headers())
+        repo_res = requests.get(repo_url, headers=get_headers(), timeout=GITHUB_HTTP_TIMEOUT_SECONDS)
         if repo_res.status_code != 200:
             return ""
         repos = repo_res.json()
@@ -149,7 +150,7 @@ def get_user_readme(username):
             return ""
         repo_name = repos[0]["name"]
         readme_url = f"https://api.github.com/repos/{username}/{repo_name}/readme"
-        readme_res = requests.get(readme_url, headers=get_headers())
+        readme_res = requests.get(readme_url, headers=get_headers(), timeout=GITHUB_HTTP_TIMEOUT_SECONDS)
         if readme_res.status_code != 200:
             return ""
         content = readme_res.json().get("content", "")
@@ -357,7 +358,7 @@ def get_github_candidate_details(username):
     try:
         # Get repos
         repo_url = f"https://api.github.com/users/{username}/repos?per_page=100"
-        repo_res = requests.get(repo_url, headers=get_headers())
+        repo_res = requests.get(repo_url, headers=get_headers(), timeout=GITHUB_HTTP_TIMEOUT_SECONDS)
         if repo_res.status_code == 200:
             repos = repo_res.json()
             language_count = {}
@@ -373,7 +374,7 @@ def get_github_candidate_details(username):
             for repo in sorted_repos:
                 repo_name = repo['name']
                 readme_url = f"https://api.github.com/repos/{username}/{repo_name}/readme"
-                readme_res = requests.get(readme_url, headers=get_headers())
+        readme_res = requests.get(readme_url, headers=get_headers(), timeout=GITHUB_HTTP_TIMEOUT_SECONDS)
                 if readme_res.status_code == 200:
                     content = readme_res.json().get("content", "")
                     decoded_readme = base64.b64decode(content).decode("utf-8", errors="ignore")
@@ -384,7 +385,7 @@ def get_github_candidate_details(username):
                 details['languages'] = list(language_count.keys())
         # Get recent events
         events_url = f"https://api.github.com/users/{username}/events/public"
-        events_res = requests.get(events_url, headers=get_headers())
+        events_res = requests.get(events_url, headers=get_headers(), timeout=GITHUB_HTTP_TIMEOUT_SECONDS)
         if events_res.status_code == 200:
             events = events_res.json()
             for event in events[:10]:  # 최근 10개 이벤트
@@ -410,7 +411,7 @@ def get_github_candidate_details(username):
         
         # Get user profile info
         user_url = f"https://api.github.com/users/{username}"
-        user_res = requests.get(user_url, headers=get_headers())
+        user_res = requests.get(user_url, headers=get_headers(), timeout=GITHUB_HTTP_TIMEOUT_SECONDS)
         if user_res.status_code == 200:
             user_data = user_res.json()
             details['profile_info'] = {
@@ -618,7 +619,7 @@ def extract_text_from_file(file_path_or_url):
     import os
     # URL이면 다운로드, 아니면 로컬 파일로 처리
     if file_path_or_url.startswith('http://') or file_path_or_url.startswith('https://'):
-        resp = requests.get(file_path_or_url)
+        resp = requests.get(file_path_or_url, timeout=GITHUB_HTTP_TIMEOUT_SECONDS)
         if resp.status_code != 200:
             raise Exception(f"파일 다운로드 실패: {file_path_or_url}")
         
