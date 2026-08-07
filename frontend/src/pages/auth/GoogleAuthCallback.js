@@ -72,7 +72,9 @@ function GoogleAuthCallback() {
             navigate(`/auth/login?error=${encodeURIComponent('Google authorization code missing.')}`, { replace: true });
         }
 
-    }, [searchParams]); // searchParams, navigate, setAuthState가 변경될 때마다 Effect 재실행
+        // OAuth 콜백은 URL의 code/state가 바뀔 때만 한 번 처리한다.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
 
     // 인가 코드를 백엔드로 전송하고 응답을 처리하는 비동기 함수
     const handleAuthCallback = async (code, state, pkceVerifier) => {

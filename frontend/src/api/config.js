@@ -4,7 +4,7 @@ export const PYTHON_API_URL = (process.env.REACT_APP_PYTHON_API_URL || API_BASE_
 export const CHATBOT_API_URL = (process.env.REACT_APP_CHATBOT_API_URL || PYTHON_API_URL).replace(/\/$/, '');
 export const INTERVIEW_API_URL = (process.env.REACT_APP_INTERVIEW_API_URL || PYTHON_API_URL).replace(/\/$/, '');
 export const MATCHING_API_URL = (process.env.REACT_APP_MATCHING_API_URL || PYTHON_API_URL).replace(/\/$/, '');
-export const OCR_API_URL = (process.env.REACT_APP_OCR_API_URL || 'http://localhost:5003').replace(/\/$/, '');
+export const OCR_API_URL = (process.env.REACT_APP_OCR_API_URL || API_BASE_URL).replace(/\/$/, '');
 
 export function apiUrl(path, baseUrl = API_BASE_URL) {
   if (!path) return baseUrl;
