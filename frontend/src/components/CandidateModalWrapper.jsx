@@ -7,7 +7,6 @@ const CandidateModalWrapper = ({ children, postId, fromMatchingTab }) => {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   const handleDetail = async (candidate) => {
-    console.log("상세보기 :", candidate);
     setSelectedCandidate(candidate);
     setModalOpen(true);
 
@@ -19,7 +18,6 @@ const CandidateModalWrapper = ({ children, postId, fromMatchingTab }) => {
         if (!res.ok) throw new Error("포트폴리오 경로 요청 실패");
         const data = await res.json();
         const filePath = data.filePath;
-        console.log("filePath : ", filePath);
         setSelectedCandidate((prev) => ({ ...prev, filePath }));
       } catch (err) {
         console.error("파일 경로 불러오기 오류:", err);

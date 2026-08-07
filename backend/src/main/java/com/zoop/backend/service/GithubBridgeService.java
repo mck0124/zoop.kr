@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zoop.backend.config.GithubBridgeConfig;
 import com.zoop.backend.domain.dto.FilterRequestDto;
 import com.zoop.backend.domain.dto.GithubCandidateDto;
@@ -58,7 +57,6 @@ public class GithubBridgeService {
                 throw new RuntimeException("Post ID가 null입니다.");
             }
             
-            ObjectMapper mapper = new ObjectMapper();
             // 1. postId로 Post 엔티티 조회
             Post post = postRepository.findById(filter.getPostId())
                 .orElseThrow(() -> new RuntimeException("해당 postId의 공고가 없습니다: " + filter.getPostId()));
@@ -78,7 +76,6 @@ public class GithubBridgeService {
             pythonFilter.put("nationwide", false); // 필요시 post에서 추출
             pythonFilter.put("headcount", headcount);
             pythonFilter.put("idealCandidate", idealCandidate != null ? idealCandidate : "");
-            System.out.println("[DEBUG] Python으로 보낼 JSON: " + mapper.writeValueAsString(pythonFilter));
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -100,35 +97,24 @@ public class GithubBridgeService {
             }
 
             for (Map<String, Object> user : candidates) {
-                // 디버깅: 받은 데이터 출력
-                System.out.println("[DEBUG] 받은 사용자 데이터: " + user);
-                System.out.println("[DEBUG] llm_score: " + user.get("llm_score") + " (타입: " + (user.get("llm_score") != null ? user.get("llm_score").getClass().getSimpleName() : "null") + ")");
-                System.out.println("[DEBUG] score: " + user.get("score") + " (타입: " + (user.get("score") != null ? user.get("score").getClass().getSimpleName() : "null") + ")");
-                
                 // 점수 파싱 개선 (llm_score 또는 score 둘 다 시도)
                 Double score = null;
                 if (user.get("llm_score") != null) {
-                    System.out.println("[DEBUG] llm_score 처리 시작: " + user.get("llm_score"));
                     if (user.get("llm_score") instanceof Number) {
                         score = ((Number) user.get("llm_score")).doubleValue();
-                        System.out.println("[DEBUG] llm_score Number 변환 성공: " + score);
                     } else if (user.get("llm_score") instanceof String) {
                         try {
                             score = Double.parseDouble((String) user.get("llm_score"));
-                            System.out.println("[DEBUG] llm_score String 변환 성공: " + score);
                         } catch (NumberFormatException e) {
                             System.err.println("[ERROR] llm_score 파싱 실패: " + user.get("llm_score"));
                         }
                     }
                 } else if (user.get("score") != null) {
-                    System.out.println("[DEBUG] score 처리 시작: " + user.get("score"));
                     if (user.get("score") instanceof Number) {
                         score = ((Number) user.get("score")).doubleValue();
-                        System.out.println("[DEBUG] score Number 변환 성공: " + score);
                     } else if (user.get("score") instanceof String) {
                         try {
                             score = Double.parseDouble((String) user.get("score"));
-                            System.out.println("[DEBUG] score String 변환 성공: " + score);
                         } catch (NumberFormatException e) {
                             System.err.println("[ERROR] score 파싱 실패: " + user.get("score"));
                         }
@@ -136,11 +122,8 @@ public class GithubBridgeService {
                 } else {
                     System.out.println("[WARNING] llm_score와 score 모두 null 또는 0");
                 }
-                
-                System.out.println("[DEBUG] 최종 파싱된 점수: " + score);
-                
+
                 // GitHub 검색 결과 저장
-                System.out.println("[DEBUG] GitHub 검색 결과 저장 시작: " + user.get("login"));
                 
                 GithubSearchResult result = GithubSearchResult.builder()
                     .postId(post.getPostId())
@@ -152,9 +135,7 @@ public class GithubBridgeService {
                     .githubCreatedAt(LocalDateTime.now())
                     .build();
 
-                System.out.println("[DEBUG] 저장할 GitHub 결과: " + result);
                 GithubSearchResult savedResult = resultRepo.save(result);
-                System.out.println("[DEBUG] GitHub 결과 저장 완료: ID = " + savedResult.getGithubSearchResultId());
                 
                 // === AI 분석 결과 저장 ===
                 if (user.get("analysis") != null) {
@@ -173,8 +154,6 @@ public class GithubBridgeService {
                             .build();
                         
                         AiAnalysisResult savedAiAnalysis = aiAnalysisResultRepository.save(aiAnalysis);
-                        System.out.println("[DEBUG] AI 분석 결과 저장 완료: ID = " + savedAiAnalysis.getAnalysisId());
-                        
                         // GitHub 검색 결과에 AI 분석 ID 연결
                         savedResult.setAiGithubAnalysisId(savedAiAnalysis.getAnalysisId());
                         resultRepo.save(savedResult);

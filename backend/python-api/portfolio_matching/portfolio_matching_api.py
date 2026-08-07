@@ -118,6 +118,30 @@ def _audit_metadata(source_text: str, source_type: str, evidence_count: int) -> 
     }
 
 
+def _candidate_evidence_catalog(analysis_data: str) -> Dict[str, Dict[str, Any]]:
+    """매칭 모델이 인용할 수 있는 후보자 원문 근거의 허용 목록을 만든다."""
+    try:
+        parsed = json.loads(analysis_data or "{}")
+    except (TypeError, ValueError):
+        return {}
+    if not isinstance(parsed, dict):
+        return {}
+    catalog = {}
+    for item in parsed.get("evidence", []) if isinstance(parsed.get("evidence"), list) else []:
+        if not isinstance(item, dict):
+            continue
+        evidence_id = str(item.get("evidence_id", "")).strip()
+        if evidence_id and item.get("source") in {"portfolio", "portfolio_analysis", "resume", "github"}:
+            catalog[evidence_id] = {
+                "evidence_id": evidence_id,
+                "topic": str(item.get("topic", "기타")),
+                "claim": str(item.get("claim", "확인된 근거 없음")),
+                "quote": str(item.get("quote", "")),
+                "source": str(item.get("source", "portfolio_analysis")),
+            }
+    return catalog
+
+
 def _normalize_portfolio_analysis(raw_analysis: Dict[str, Any], source_text: str) -> Dict[str, Any]:
     """구조화된 분석을 정규화하고 원문에 없는 주장을 근거로 쓰지 못하게 한다."""
     if not isinstance(raw_analysis, dict):
@@ -184,7 +208,7 @@ def _normalize_portfolio_analysis(raw_analysis: Dict[str, Any], source_text: str
             "직무와 무관한 개인정보는 평가에서 제외",
             f"검증 가능한 근거 {verified_count}개, 근거 커버리지 {coverage}%",
         ],
-        "audit": _audit_metadata(source_text, "portfolio_submission", len(evidence)),
+        "audit": _audit_metadata(source_text, "portfolio_submission", verified_count),
     }
 
 
@@ -549,12 +573,17 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
     job_location = job_data.get("postLocation", "")
     job_salary_min = job_data.get("postSalaryStart", 0)
     job_salary_max = job_data.get("postSalaryEnd", 0)
+    evidence_catalog = _candidate_evidence_catalog(analysis_data)
+    evidence_catalog_text = json.dumps(list(evidence_catalog.values())[:20], ensure_ascii=False)
     
     prompt = f"""
 다음은 지원자의 포트폴리오 분석 결과와 채용공고 정보입니다.
 
 [포트폴리오 분석 결과]
 {analysis_data}
+
+[후보자 근거 원장 허용 목록]
+{evidence_catalog_text}
 
 [채용공고 정보]
 제목: {job_title}
@@ -570,6 +599,8 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
 - 이름, 성별, 나이, 사진, 출신 학교처럼 직무와 무관한 정보는 절대 평가에 사용하지 마세요.
 - 포트폴리오에 실제로 나타난 내용만 근거로 사용하고, 추측은 '확인 필요'로 표시하세요.
 - 채용공고의 요구사항과 지원자의 증거를 1:1로 대조하여 설명 가능한 판단을 만드세요.
+- 후보자 근거를 사용하는 evidence에는 위 허용 목록의 evidence_id를 반드시 그대로 인용하세요.
+- 허용 목록에 없는 evidence_id를 만들지 마세요. evidence_id가 없거나 목록과 일치하지 않으면 source를 "needs_verification"으로 표시하세요.
 
 다음 기준으로 매칭 점수를 계산해주세요:
 
@@ -586,7 +617,7 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
   "score": 0,
   "decision": "strong_match|review|not_enough_evidence",
   "dimensions": [
-    {{"name":"기술 스택 일치도","score":0,"max":30,"evidence":[{{"source":"portfolio|job|missing","claim":"구체적인 근거","confidence":0.0}}]}},
+    {{"name":"기술 스택 일치도","score":0,"max":30,"evidence":[{{"evidence_id":"허용 목록의 ID 또는 빈 문자열","source":"portfolio|job|missing|needs_verification","claim":"구체적인 근거","confidence":0.0}}]}},
     {{"name":"경력 수준 적합성","score":0,"max":25,"evidence":[]}},
     {{"name":"프로젝트 경험 관련성","score":0,"max":25,"evidence":[]}},
     {{"name":"성장 가능성","score":0,"max":20,"evidence":[]}}
@@ -628,6 +659,7 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
             "프로젝트 경험 관련성": 25,
             "성장 가능성": 20,
         }
+        candidate_sources = {"portfolio", "portfolio_analysis", "resume", "github"}
         raw_dimensions = structured.get("dimensions", [])
         dimensions = []
         for raw_dimension in raw_dimensions if isinstance(raw_dimensions, list) else []:
@@ -645,30 +677,36 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
             for item in evidence if isinstance(evidence, list) else []:
                 if not isinstance(item, dict):
                     continue
+                raw_source = str(item.get("source", "missing"))
+                requested_evidence_id = str(item.get("evidence_id", "")).strip()
+                catalog_item = evidence_catalog.get(requested_evidence_id)
+                is_grounded = bool(catalog_item and raw_source in candidate_sources)
+                if raw_source in candidate_sources and not is_grounded:
+                    normalized_source = "needs_verification"
+                elif raw_source == "job":
+                    normalized_source = "job"
+                else:
+                    normalized_source = raw_source if raw_source in {"missing", "needs_verification"} else "needs_verification"
                 try:
                     confidence = float(item.get("confidence", 0) or 0)
                 except (TypeError, ValueError):
                     confidence = 0.0
                 clean_evidence.append({
-                    "evidence_id": _evidence_id("match", name, item.get("source", "missing"), item.get("claim", "")),
-                    "source": str(item.get("source", "missing")),
-                    "claim": str(item.get("claim", "확인된 근거 없음")),
-                    "verification_state": "grounded" if str(item.get("source", "missing")) in {"portfolio", "portfolio_analysis", "resume", "github"} else "context_only" if str(item.get("source", "missing")) == "job" else "needs_verification",
-                    "confidence": max(0.0, min(1.0, confidence)),
+                    "evidence_id": requested_evidence_id or _evidence_id("match", name, raw_source, item.get("claim", "")),
+                    "source": normalized_source,
+                    "claim": catalog_item["claim"] if is_grounded else str(item.get("claim", "확인된 근거 없음")),
+                    "verification_state": "grounded" if is_grounded else "context_only" if normalized_source == "job" else "needs_verification",
+                    "confidence": max(0.0, min(1.0, confidence if is_grounded or normalized_source == "job" else confidence * 0.25)),
                 })
             dimensions.append({
                 "name": name,
                 "score": max(0.0, min(float(maximum), dimension_score)),
                 "max": maximum,
-                "evidence": clean_evidence or [{"source": "missing", "claim": "확인된 근거 없음", "confidence": 0.0}],
+                "evidence": clean_evidence or [{"evidence_id": "", "source": "missing", "claim": "확인된 근거 없음", "verification_state": "needs_verification", "confidence": 0.0}],
             })
 
         score = max(0.0, min(100.0, sum(item["score"] for item in dimensions)))
-        candidate_sources = {"portfolio", "portfolio_analysis", "resume", "github"}
-        evidence_count = sum(
-            1 for dimension in dimensions for item in dimension["evidence"]
-            if item["source"] in candidate_sources and item["claim"] != "확인된 근거 없음"
-        )
+        evidence_count = sum(1 for dimension in dimensions for item in dimension["evidence"] if item["verification_state"] == "grounded")
         decision = "strong_match" if score >= 75 and evidence_count >= 3 else "review" if score >= 50 and evidence_count >= 1 else "not_enough_evidence"
         structured["dimensions"] = dimensions
         structured["score"] = score
@@ -701,9 +739,9 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
             "evaluated_attributes": [str(item) for item in fairness_guard.get("evaluated_attributes", []) if item] or ["직무 기술", "프로젝트 근거", "경력 수준", "직무 관련 성장 신호"],
             "status": "pass",
         }
-        total_possible = sum(item["max"] for item in dimensions) or 100
         evidence_items = [item for dimension in dimensions for item in dimension["evidence"]]
-        grounded_items = [item for item in evidence_items if item["source"] in candidate_sources and item["claim"] != "확인된 근거 없음"]
+        grounded_items = [item for item in evidence_items if item.get("verification_state") == "grounded" and item.get("source") in candidate_sources and item.get("claim") != "확인된 근거 없음"]
+        structured["grounded_evidence_ids"] = [item["evidence_id"] for item in grounded_items if item.get("evidence_id") in evidence_catalog]
         structured["evidence_coverage"] = round(min(100.0, len(grounded_items) / max(1, len(dimensions)) * 100), 1)
         structured["confidence"] = round(min(1.0, sum(item["confidence"] for item in grounded_items) / max(1, len(grounded_items))), 2)
         structured["decision_trace"] = [

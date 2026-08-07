@@ -55,9 +55,6 @@ export default function CompanySettings() {
       const userId = localStorage.getItem('userId');
       const token = localStorage.getItem('jwtToken');
       
-      console.log('🔍 Debug - userId:', userId);
-      console.log('🔍 Debug - token exists:', !!token);
-      
       if (!userId || !token) {
         navigate('/auth/login');
         return;
