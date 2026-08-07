@@ -21,7 +21,6 @@ const RESUME_OFFER_OPTIONS = [
 const ResumeSubmissionPage = () => {
   const { authState } = useAuth();
   const navigate = useNavigate();
-  const [userName, setUserName] = useState('게스트');
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -58,11 +57,9 @@ const ResumeSubmissionPage = () => {
         const res = await fetch(apiUrl(`/api/candidates/${authState.userId}`));
         if (res.ok) {
           userData = await res.json();
-          setUserName(userData.candidateName || '사용자');
         }
       } catch (e) {
         console.error('사용자 정보 조회 오류:', e);
-        setUserName('사용자');
       }
       // 2. 이력서 정보는 실패해도 무시
       try {

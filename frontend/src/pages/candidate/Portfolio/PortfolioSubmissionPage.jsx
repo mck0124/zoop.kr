@@ -10,12 +10,11 @@ function PortfolioSubmissionPage() {
   const { postId } = useParams();
   const navigate = useNavigate();
   const { authState, isInitialized } = useAuth();
-  const [userName, setUserName] = useState('게스트');
 
   // Portfolio form input states
   const [portfolioFile, setPortfolioFile] = useState(null);
-  const [portfolioContent, setPortfolioContent] = useState('');
-  const [portfolioUrl, setPortfolioUrl] = useState('');
+  const portfolioContent = '';
+  const portfolioUrl = '';
 
   // Career experience states
   const [isExperienced, setIsExperienced] = useState(true);
@@ -38,7 +37,6 @@ function PortfolioSubmissionPage() {
 
   // Job posting information
   const [jobPosting, setJobPosting] = useState(null);
-  const [companyName, setCompanyName] = useState('');
   const [loading, setLoading] = useState(true);
   const isFetchingRef = useRef(false);
 
@@ -85,26 +83,9 @@ function PortfolioSubmissionPage() {
         const data = await response.json();
         setJobPosting(data);
         
-        // 회사 정보 가져오기
-        if (data.companyId) {
-          try {
-            const companyResponse = await fetch(apiUrl(`/api/companies/${data.companyId}`));
-            if (companyResponse.ok) {
-              const companyData = await companyResponse.json();
-              setCompanyName(companyData.companyName || '회사명을 불러올 수 없습니다');
-            } else {
-              setCompanyName('회사명을 불러올 수 없습니다');
-            }
-          } catch (companyError) {
-            console.error('회사 정보를 가져오는 중 오류 발생:', companyError);
-            setCompanyName('회사명을 불러올 수 없습니다');
-          }
-        }
-        
       } catch (error) {
         console.error('공고 정보를 가져오는 중 오류 발생:', error);
         setJobPosting(null);
-        setCompanyName('');
       } finally {
         setLoading(false);
         isFetchingRef.current = false;
@@ -244,23 +225,6 @@ function PortfolioSubmissionPage() {
         setIsSubmitting(false);
     }
   };
-
-  // 사용자 이름 fetch
-  useEffect(() => {
-    const fetchUserName = async () => {
-      try {
-        if (!authState.userId) return;
-          const userResponse = await fetch(apiUrl(`/api/candidates/${authState.userId}`));
-        if (userResponse.ok) {
-          const userData = await userResponse.json();
-          setUserName(userData.candidateName || '사용자');
-        }
-      } catch (error) {
-        setUserName('사용자');
-      }
-    };
-    fetchUserName();
-  }, [authState.userId]);
 
   // 1. AuthContext 초기화 대기
   if (!isInitialized) {

@@ -1553,11 +1553,6 @@ export default function CandidateList({ activeTab = 'all' }) {
   };
   // ============ [CURRENT 버전에서 추가된 기능 끝] ============
 
-  const handleSendMail = () => {
-    const selectedEmails = candidates.filter(c => selected.includes(c.githubLogin || c.login)).map(c => c.candidateEmail);
-    alert(`${selectedEmails.length}명에게 메일을 보냅니다:\n` + selectedEmails.join(', '));
-  };
-
   const [showMatchingDetailModal, setShowMatchingDetailModal] = useState(false);
   const [selectedMatchingCandidate, setSelectedMatchingCandidate] = useState(null);
 
