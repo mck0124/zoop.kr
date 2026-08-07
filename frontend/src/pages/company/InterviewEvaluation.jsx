@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import SEO from '../../components/SEO';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
+import { apiUrl } from '../../api/config';
 
 // SVG 아이콘 컴포넌트 (단색, 흰색/회색)
 const LightbulbIcon = ({size=28, color='#bbb'}) => (
@@ -48,7 +49,7 @@ export default function InterviewEvaluation() {
 
   const fetchCandidateData = async () => {
     try {
-      const response = await fetch(`http://localhost:8081/api/progress/job-cand-progress/${candidateId}/with-candidate`, {
+      const response = await fetch(apiUrl(`/api/progress/job-cand-progress/${candidateId}/with-candidate`), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
         },
@@ -64,7 +65,7 @@ export default function InterviewEvaluation() {
 
   const fetchInterviewVideos = async () => {
     try {
-      const response = await fetch(`http://localhost:8081/api/interview-videos/by-job-candidate/${candidateId}`, {
+      const response = await fetch(apiUrl(`/api/interview-videos/by-job-candidate/${candidateId}`), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
         },
@@ -83,7 +84,7 @@ export default function InterviewEvaluation() {
   const fetchAnalysisResult = async () => {
     try {
       // jobCandidateId로 직접 면접 분석 결과 조회
-      const response = await fetch(`http://localhost:8081/api/analysis/${candidateId}/interview`, {
+      const response = await fetch(apiUrl(`/api/analysis/${candidateId}/interview`), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
         },
@@ -102,7 +103,7 @@ export default function InterviewEvaluation() {
 
   const fetchExistingEvaluation = async () => {
     try {
-      const response = await fetch(`http://localhost:8081/api/admin-interview-evaluations/${candidateId}`, {
+      const response = await fetch(apiUrl(`/api/admin-interview-evaluations/${candidateId}`), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
         },
@@ -197,7 +198,7 @@ export default function InterviewEvaluation() {
     setSubmitting(true);
 
     try {
-      const response = await fetch('http://localhost:8081/api/admin-interview-evaluations', {
+      const response = await fetch(apiUrl('/api/admin-interview-evaluations'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

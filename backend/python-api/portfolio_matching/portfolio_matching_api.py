@@ -484,7 +484,9 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
   "recommended_role": "추천 직무 분야",
   "summary": "3~4문장 요약",
   "gaps": ["추가 확인이 필요한 사항"],
-  "interview_focus": ["면접에서 검증할 질문 주제"]
+  "interview_focus": ["면접에서 검증할 질문 주제"],
+  "risk_flags": ["근거가 약하거나 과대해석될 수 있는 부분"],
+  "verification_plan": ["이 판단을 바꾸거나 확정할 다음 검증 행동"]
 }}
 """
 
@@ -502,9 +504,58 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
         
         matching_analysis = response.choices[0].message.content or "{}"
         structured = json.loads(matching_analysis)
-        score = float(structured.get("score", 0) or 0)
-        score = max(0.0, min(100.0, score))
-        dimensions = structured.get("dimensions", [])
+        max_by_name = {
+            "기술 스택 일치도": 30,
+            "경력 수준 적합성": 25,
+            "프로젝트 경험 관련성": 25,
+            "성장 가능성": 20,
+        }
+        raw_dimensions = structured.get("dimensions", [])
+        dimensions = []
+        for raw_dimension in raw_dimensions if isinstance(raw_dimensions, list) else []:
+            if not isinstance(raw_dimension, dict):
+                continue
+            name = str(raw_dimension.get("name", "평가 항목"))
+            maximum = int(raw_dimension.get("max", max_by_name.get(name, 20)) or 20)
+            maximum = max(1, min(100, maximum))
+            try:
+                dimension_score = float(raw_dimension.get("score", 0) or 0)
+            except (TypeError, ValueError):
+                dimension_score = 0.0
+            evidence = raw_dimension.get("evidence", [])
+            clean_evidence = []
+            for item in evidence if isinstance(evidence, list) else []:
+                if not isinstance(item, dict):
+                    continue
+                try:
+                    confidence = float(item.get("confidence", 0) or 0)
+                except (TypeError, ValueError):
+                    confidence = 0.0
+                clean_evidence.append({
+                    "source": str(item.get("source", "missing")),
+                    "claim": str(item.get("claim", "확인된 근거 없음")),
+                    "confidence": max(0.0, min(1.0, confidence)),
+                })
+            dimensions.append({
+                "name": name,
+                "score": max(0.0, min(float(maximum), dimension_score)),
+                "max": maximum,
+                "evidence": clean_evidence or [{"source": "missing", "claim": "확인된 근거 없음", "confidence": 0.0}],
+            })
+
+        score = max(0.0, min(100.0, sum(item["score"] for item in dimensions)))
+        evidence_count = sum(
+            1 for dimension in dimensions for item in dimension["evidence"]
+            if item["source"] not in {"missing", "unknown"} and item["claim"] != "확인된 근거 없음"
+        )
+        decision = "strong_match" if score >= 75 and evidence_count >= 3 else "review" if score >= 50 and evidence_count >= 1 else "not_enough_evidence"
+        structured["dimensions"] = dimensions
+        structured["score"] = score
+        structured["decision"] = decision
+        structured["gaps"] = [str(item) for item in structured.get("gaps", []) if item][:6] or ["핵심 경험의 실제 기여도 확인 필요"]
+        structured["interview_focus"] = [str(item) for item in structured.get("interview_focus", []) if item][:6] or ["대표 프로젝트의 본인 기여와 결과 검증"]
+        structured["risk_flags"] = [str(item) for item in structured.get("risk_flags", []) if item][:6] or ["포트폴리오에 없는 정보는 평가하지 않음"]
+        structured["verification_plan"] = [str(item) for item in structured.get("verification_plan", []) if item][:6] or ["대표 프로젝트의 문제·역할·성과를 구조화 질문으로 확인"]
         evidence_lines = []
         for dimension in dimensions:
             name = dimension.get("name", "평가 항목")
@@ -519,7 +570,9 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
             f"요약: {structured.get('summary', '')}",
             *evidence_lines,
             f"추가 확인: {', '.join(structured.get('gaps', [])) or '없음'}",
-            f"면접 검증 포인트: {', '.join(structured.get('interview_focus', [])) or '직무 핵심 경험'}"
+            f"면접 검증 포인트: {', '.join(structured.get('interview_focus', [])) or '직무 핵심 경험'}",
+            f"위험 신호: {', '.join(structured.get('risk_flags', []))}",
+            f"다음 검증: {', '.join(structured.get('verification_plan', []))}"
         ])
         
         return {

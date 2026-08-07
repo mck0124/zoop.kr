@@ -19,6 +19,17 @@ export default function MatchingDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const getMatchEvidence = () => {
+    if (!match) return null;
+    const rawReason = match.matchReason || match.matchingReason;
+    if (typeof rawReason !== 'string') return rawReason?.evidence || null;
+    try {
+      return JSON.parse(rawReason)?.evidence || null;
+    } catch (_) {
+      return null;
+    }
+  };
+
   useEffect(() => {
     if (!candPortfolioId || !jobCandidateId || !analysisId) {
       setError('필수 정보가 누락되었습니다.');
@@ -44,6 +55,7 @@ export default function MatchingDetailPage() {
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center' }}>불러오는 중...</div>;
   if (error) return <div style={{ padding: 40, color: 'red', textAlign: 'center' }}>{error}</div>;
+  const matchEvidence = getMatchEvidence();
 
   return (
     <div style={{ maxWidth: 800, margin: '40px auto', background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(48,197,155,0.10)', padding: '2.5rem 2.5rem 2rem 2.5rem' }}>
@@ -81,6 +93,18 @@ export default function MatchingDetailPage() {
             <div><b>매칭 점수:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{match.matchScore ?? match.matchingScore}</span></div>
             <div style={{ marginTop: 10 }}><b>매칭 이유:</b></div>
             <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, maxHeight: 200, overflow: 'auto', whiteSpace: 'pre-wrap' }}>{match.matchReason || match.matchingReason || '매칭 이유 정보 없음'}</pre>
+            {matchEvidence && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 14 }}>
+                <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: 12 }}>
+                  <b style={{ color: '#9a3412' }}>추가 확인이 필요한 이유</b>
+                  <ul style={{ margin: '8px 0 0 18px', padding: 0, fontSize: 13 }}>{(matchEvidence.gaps || ['확인된 부족 정보 없음']).slice(0, 4).map((item, i) => <li key={i}>{item}</li>)}</ul>
+                </div>
+                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: 12 }}>
+                  <b style={{ color: '#1d4ed8' }}>다음 검증 행동</b>
+                  <ul style={{ margin: '8px 0 0 18px', padding: 0, fontSize: 13 }}>{(matchEvidence.verification_plan || matchEvidence.interview_focus || ['대표 프로젝트의 기여도 확인']).slice(0, 4).map((item, i) => <li key={i}>{item}</li>)}</ul>
+                </div>
+              </div>
+            )}
           </div>
         ) : <div style={{ color: '#888' }}>매칭 점수/이유 정보를 찾을 수 없습니다.</div>}
       </section>

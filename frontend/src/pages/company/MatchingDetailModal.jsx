@@ -99,6 +99,10 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                 }
                 const summary = reasonPayload?.summary || reason || '매칭 이유 정보 없음';
                 const dimensions = reasonPayload?.evidence?.dimensions || [];
+                const gaps = reasonPayload?.evidence?.gaps || [];
+                const interviewFocus = reasonPayload?.evidence?.interview_focus || [];
+                const riskFlags = reasonPayload?.evidence?.risk_flags || [];
+                const verificationPlan = reasonPayload?.evidence?.verification_plan || [];
                 return score !== undefined ? (
                   <div style={{ background: '#f8fafd', borderRadius: 10, padding: 18, fontSize: 16 }}>
                     <div><b>매칭 점수:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{score}</span></div>
@@ -117,6 +121,25 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                             ))}
                           </div>
                         ))}
+                      </div>
+                    )}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 14 }}>
+                      <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: 12 }}>
+                        <strong style={{ color: '#9a3412' }}>판단을 보류한 이유</strong>
+                        <ul style={{ margin: '8px 0 0 18px', padding: 0, color: '#7c2d12', fontSize: 13 }}>
+                          {(gaps.length ? gaps : ['추가 확인이 필요한 정보가 없습니다.']).slice(0, 4).map((item, index) => <li key={index}>{item}</li>)}
+                        </ul>
+                      </div>
+                      <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: 12 }}>
+                        <strong style={{ color: '#1d4ed8' }}>다음 검증 행동</strong>
+                        <ul style={{ margin: '8px 0 0 18px', padding: 0, color: '#1e3a8a', fontSize: 13 }}>
+                          {(verificationPlan.length ? verificationPlan : interviewFocus).slice(0, 4).map((item, index) => <li key={index}>{item}</li>)}
+                        </ul>
+                      </div>
+                    </div>
+                    {riskFlags.length > 0 && (
+                      <div style={{ marginTop: 12, color: '#475569', fontSize: 13 }}>
+                        <b>주의 신호:</b> {riskFlags.slice(0, 4).join(' · ')}
                       </div>
                     )}
                   </div>
