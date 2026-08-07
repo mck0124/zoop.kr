@@ -3,3 +3,6 @@ uvicorn
 requests
 pydantic
 openai
+python-dotenv
+beautifulsoup4
+PyPDF2

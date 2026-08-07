@@ -1,85 +1,88 @@
+"""Evidence-first orchestration example for the ZOOP AI pipeline.
+
+This module is intentionally side-effect free on import.  ``run_workflow``
+connects the four independently deployable services and returns a traceable
+state object instead of the old hard-coded demo values.
+"""
+
+from __future__ import annotations
+
+import os
+from typing import Any, Dict
+
 import requests
-from langgraph.graph import StateGraph
 
-# 1. 인재상 생성 agent (챗봇)
-def chatbot_agent(input_data):
-    print("[chatbot_agent] input:", input_data)
-    # 실제로는 FastAPI 엔드포인트 호출 (예: requests.post)
-    # response = requests.post('http://localhost:8001/ideal-candidate-chat', json=input_data)
-    # return response.json()
-    # 테스트용 더미 인재상 생성
-    ideal_candidate = "AI 프로젝트 경험, 팀워크, 문제해결력"
-    print("[chatbot_agent] output:", ideal_candidate)
-    input_data["idealCandidate"] = ideal_candidate
-    return input_data
 
-# 2. 깃허브 후보자 탐색 agent (포폴 분석 포함)
-def github_search_agent(input_data):
-    print("[github_search_agent] input:", input_data)
-    response = requests.post('http://localhost:8000/search', json=input_data)
+SERVICE_URLS = {
+    "github": os.getenv("ZOOP_GITHUB_SERVICE_URL", "http://localhost:8000"),
+    "questions": os.getenv("ZOOP_QUESTIONS_SERVICE_URL", "http://localhost:8004"),
+    "interview": os.getenv("ZOOP_INTERVIEW_SERVICE_URL", "http://localhost:8002"),
+}
+REQUEST_TIMEOUT = float(os.getenv("ZOOP_WORKFLOW_TIMEOUT_SECONDS", "30"))
+
+
+def _post_json(url: str, *, json_body: Dict[str, Any] | None = None, form: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    response = requests.post(url, json=json_body, data=form, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()
-    print("[github_search_agent] output:", response.json())
-    return response.json()  # {"candidates": [...]}
+    payload = response.json()
+    if not isinstance(payload, dict):
+        raise RuntimeError("AI 서비스가 객체 형태의 응답을 반환하지 않았습니다.")
+    return payload
 
-# 3. 면접 질문 생성 agent
-def interview_questions_agent(candidates):
-    print("[interview_questions_agent] input:", candidates)
-    # 실제로는 FastAPI 엔드포인트 호출 (예: requests.post)
-    # response = requests.post('http://localhost:8004/generate-questions', data=payload)
-    # return response.json()
-    # 테스트용 더미 질문 생성
-    questions = ["AI 프로젝트에서 겪은 가장 큰 도전은 무엇이었나요?", "팀워크를 발휘한 경험을 말씀해 주세요."]
-    print("[interview_questions_agent] output:", questions)
-    return {"questions": questions, "candidates": candidates["candidates"]}
 
-# 4. 면접 분석 agent
-def interview_analysis_agent(data):
-    print("[interview_analysis_agent] input:", data)
-    results = []
-    for idx, cand in enumerate(data["candidates"]):
+def github_search_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+    """공고 조건으로 공개 후보자를 검색하고 단계 trace를 남긴다."""
+
+    result = _post_json(f"{SERVICE_URLS['github']}/search", json_body=state)
+    return {**state, "candidates": result.get("candidates", []), "trace": [*state.get("trace", []), "github_search"]}
+
+
+def interview_questions_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+    """후보자별 질문 생성은 실제 질문 서비스에 위임한다."""
+
+    questions = []
+    for candidate in state.get("candidates", []):
         payload = {
-            "schedule_id": idx + 1,  # 더미
-            "job_candidate_id": idx + 1,  # 더미
-            "post_title": "AI 엔지니어",
-            "post_description": "AI 서비스 개발 및 운영",
-            "ideal_candidate": "AI 프로젝트 경험, 팀워크, 문제해결력"
+            "post_title": state.get("post_title", ""),
+            "post_description": state.get("post_description", ""),
+            "programming_language": ", ".join(state.get("languages", [])),
+            "ideal_candidate": state.get("idealCandidate", ""),
+            "location": ", ".join(state.get("regions", [])) or "전국",
+            "headcount": state.get("headcount", 1),
+            "portfolio_analysis": candidate.get("analysisData", ""),
         }
-        response = requests.post('http://localhost:8002/analyze-interview', data=payload)
-        response.raise_for_status()
-        print(f"[interview_analysis_agent] {cand.get('login', idx+1)} output:", response.json())
-        results.append(response.json())
-    return {"interview_results": results}
+        result = _post_json(f"{SERVICE_URLS['questions']}/generate-preparation-questions", form=payload)
+        questions.append({"candidate": candidate, "questions": result.get("questions", [])})
+    return {**state, "interview_questions": questions, "trace": [*state.get("trace", []), "interview_questions"]}
 
-# LangGraph 워크플로우 정의
-graph = StateGraph(dict)
-graph.add_node("chatbot_agent", chatbot_agent)
-graph.add_node("github_search_agent", github_search_agent)
-graph.add_node("interview_questions_agent", interview_questions_agent)
-graph.add_node("interview_analysis_agent", interview_analysis_agent)
-graph.add_edge("__start__", "chatbot_agent")
-graph.add_edge("chatbot_agent", "github_search_agent")
-graph.add_edge("github_search_agent", "interview_questions_agent")
-graph.add_edge("interview_questions_agent", "interview_analysis_agent")
 
-def run_workflow(input_data):
-    step1 = chatbot_agent(input_data)
-    step2 = github_search_agent(step1)
-    step3 = interview_questions_agent(step2)
-    step4 = interview_analysis_agent(step3)
-    return step4
+def run_workflow(input_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Run the auditable search → question pipeline.
+
+    Interview video analysis is deliberately a follow-up action because it
+    requires a real schedule and recorded answers; fabricating those IDs would
+    create an invalid hiring record.
+    """
+
+    state = {**input_data, "trace": ["input_validated"]}
+    state = github_search_agent(state)
+    state = interview_questions_agent(state)
+    state["next_action"] = "run_interview_analysis_after_real_schedule"
+    state["trace"] = [*state["trace"], "await_real_interview_schedule"]
+    return state
+
+
+try:
+    from langgraph.graph import StateGraph
+
+    graph = StateGraph(dict)
+    graph.add_node("github_search", github_search_agent)
+    graph.add_node("interview_questions", interview_questions_agent)
+    graph.add_edge("__start__", "github_search")
+    graph.add_edge("github_search", "interview_questions")
+except ImportError:  # LangGraph is optional for the standalone service bundle.
+    graph = None
+
 
 if __name__ == "__main__":
-    input_data = {
-        "languages": ["Python", "JavaScript"],
-        "regions": ["서울", "부산"],
-        "nationwide": True,
-        "headcount": 1,
-        "post_id": 0
-    }
-    result = run_workflow(input_data)
-    print("\n[최종 결과]", result)
-    print("\n[Mermaid 그래프]")
-    print("""
-flowchart TD
-    chatbot_agent --> github_search_agent --> interview_questions_agent --> interview_analysis_agent
-""")
+    print("ZOOP evidence workflow is import-safe. Call run_workflow(input_data) with service URLs configured.")

@@ -16,22 +16,22 @@ ZOOP 백엔드의 Python API 서비스들을 관리하는 디렉토리입니다.
 - **실행**: `python -m uvicorn portfolio_matching_api:app --host 0.0.0.0 --port 8003 --reload`
 - **API 문서**: http://localhost:8003/docs
 
-## 🔧 Flask 서비스 (기존)
+## 🚀 FastAPI 서비스
 
-### Chatbot API (포트 5000)
-- **기술**: Flask
+### Chatbot API (포트 8001)
+- **기술**: FastAPI + Uvicorn
 - **기능**: AI 챗봇 서비스
-- **실행**: `python chatbot_api.py`
+- **실행**: `python -m uvicorn chatbot_api:app --host 0.0.0.0 --port 8001`
 
-### GitHub Search API (포트 5001)
-- **기술**: Flask
+### GitHub Search API (포트 8000)
+- **기술**: FastAPI + Uvicorn
 - **기능**: GitHub 프로필 검색 및 분석
-- **실행**: `python main.py`
+- **실행**: `python -m uvicorn main:app --host 0.0.0.0 --port 8000`
 
-### Interview Questions API (포트 5002)
-- **기술**: Flask
+### Interview Questions API (포트 8004)
+- **기술**: FastAPI + Uvicorn
 - **기능**: AI 면접 질문 생성
-- **실행**: `python interview_questions_api.py`
+- **실행**: `python -m uvicorn interview_questions_api:app --host 0.0.0.0 --port 8004`
 
 ### OCR API (포트 5003)
 - **기술**: Flask
@@ -131,9 +131,9 @@ python ocr_api.py
 # 헬스 체크
 curl http://localhost:8002/health  # Interview Analysis API
 curl http://localhost:8003/health  # Portfolio Matching API
-curl http://localhost:5000/health  # Chatbot API
-curl http://localhost:5001/health  # GitHub Search API
-curl http://localhost:5002/health  # Interview Questions API
+curl http://localhost:8001/health  # Chatbot API
+curl http://localhost:8000/health  # GitHub Search API
+curl http://localhost:8004/health  # Interview Questions API
 curl http://localhost:5003/health  # OCR API
 ```
 

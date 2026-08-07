@@ -35,6 +35,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "zoop-chatbot", "guide_pages": len(PDF_PAGES), "model_configured": bool(OPENAI_API_KEY)}
+
 def load_pdf_text(pdf_path):
     path = Path(pdf_path)
     if not path.is_absolute():

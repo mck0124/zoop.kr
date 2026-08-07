@@ -17,6 +17,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "github-search", "github_token_configured": bool(os.getenv("GITHUB_TOKEN"))}
+
 @app.post("/search")
 def search(filters: FilterRequest):
     results = search_github_candidates(filters, getattr(filters, 'post_id', None))

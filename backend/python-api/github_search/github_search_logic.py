@@ -467,6 +467,23 @@ def analyze_candidate_with_prompt(candidate, details):
         "contribution_stats": details.get("contribution_stats", {}),
         "bio": details.get("profile_info", {}).get("bio", ""),
     }
+
+    def valid_evidence_ref(source, reference):
+        """Only accept model claims that point to an observed public field."""
+        reference = str(reference or "").strip()
+        if not reference:
+            return False
+        if source == "languages":
+            return reference in safe_details["languages"]
+        if source == "skills_analysis":
+            return reference in safe_details["skills_analysis"]
+        if source == "recent_events":
+            return reference.isdigit() and 0 <= int(reference) < len(safe_details["recent_events"])
+        if source == "contribution_stats":
+            return reference in safe_details["contribution_stats"]
+        if source in {"repo", "top_repos"}:
+            return reference.isdigit() and 0 <= int(reference) < len(safe_details["top_repos"])
+        return False
     prompt = f"""
 아래 GitHub 공개 데이터만으로 개발자 후보자를 평가하세요.
 <github_public_snapshot>
@@ -480,6 +497,7 @@ def analyze_candidate_with_prompt(candidate, details):
 - 모든 claim은 위 데이터의 구체적 필드에 근거해야 합니다.
 
     evidence.source는 반드시 다음 중 하나만 사용하세요: languages, skills_analysis, repo, top_repos, recent_events, contribution_stats.
+    evidence.evidence_ref에는 실제 입력의 필드 위치를 적으세요: languages는 언어명, skills_analysis는 키, repo/top_repos/recent_events는 0부터 시작하는 배열 인덱스 문자열, contribution_stats는 통계 키입니다.
     아래 JSON만 반환하세요:
 {{
   "score": 0,
@@ -536,12 +554,17 @@ def analyze_candidate_with_prompt(candidate, details):
                     confidence = float(evidence_item.get("confidence", 0) or 0)
                 except (TypeError, ValueError):
                     confidence = 0.0
+                source = str(evidence_item.get("source", "unknown"))
+                evidence_ref = str(evidence_item.get("evidence_ref", "")).strip()
+                supported_source = source in {"languages", "skills_analysis", "repo", "top_repos", "recent_events", "contribution_stats"}
+                grounded = supported_source and (valid_evidence_ref(source, evidence_ref) or not evidence_ref) and bool(str(evidence_item.get("claim", "")).strip())
                 evidence.append({
-                    "evidence_id": _evidence_id("github", name, evidence_item.get("source", "unknown"), evidence_item.get("claim", "")),
-                    "source": str(evidence_item.get("source", "unknown")),
+                    "evidence_id": _evidence_id("github", name, source, evidence_ref, evidence_item.get("claim", "")),
+                    "source": source,
+                    "evidence_ref": evidence_ref,
                     "claim": str(evidence_item.get("claim", "확인된 근거 없음")),
-                    "verification_state": "grounded" if str(evidence_item.get("source", "unknown")) in {"languages", "skills_analysis", "repo", "top_repos", "recent_events", "contribution_stats"} and str(evidence_item.get("claim", "")).strip() else "needs_verification",
-                    "confidence": round(max(0.0, min(1.0, confidence if str(evidence_item.get("source", "unknown")) in {"languages", "skills_analysis", "repo", "top_repos", "recent_events", "contribution_stats"} else confidence * 0.25)), 2),
+                    "verification_state": "grounded" if grounded else "needs_verification",
+                    "confidence": round(max(0.0, min(1.0, confidence if grounded else confidence * 0.25)), 2),
                 })
             dimensions.append({"name": name, "score": score, "max": maximum, "evidence": evidence or [{"evidence_id": _evidence_id("github", name, "missing"), "source": "missing", "claim": "확인된 근거 없음", "verification_state": "needs_verification", "confidence": 0.0}]})
         for name, maximum in max_scores.items():
