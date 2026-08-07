@@ -103,6 +103,11 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                 const interviewFocus = reasonPayload?.evidence?.interview_focus || [];
                 const riskFlags = reasonPayload?.evidence?.risk_flags || [];
                 const verificationPlan = reasonPayload?.evidence?.verification_plan || [];
+                const counterfactuals = reasonPayload?.evidence?.counterfactuals || [];
+                const fairnessGuard = reasonPayload?.evidence?.fairness_guard || null;
+                const decisionTrace = reasonPayload?.evidence?.decision_trace || [];
+                const evidenceCoverage = reasonPayload?.evidence?.evidence_coverage;
+                const confidence = reasonPayload?.evidence?.confidence;
                 return score !== undefined ? (
                   <div style={{ background: '#f8fafd', borderRadius: 10, padding: 18, fontSize: 16 }}>
                     <div><b>매칭 점수:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{score}</span></div>
@@ -140,6 +145,34 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                     {riskFlags.length > 0 && (
                       <div style={{ marginTop: 12, color: '#475569', fontSize: 13 }}>
                         <b>주의 신호:</b> {riskFlags.slice(0, 4).join(' · ')}
+                      </div>
+                    )}
+                    {(counterfactuals.length > 0 || fairnessGuard || decisionTrace.length > 0) && (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10, marginTop: 16 }}>
+                        <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 10, padding: 12 }}>
+                          <strong style={{ color: '#6d28d9' }}>판단을 바꿀 수 있는 증거</strong>
+                          <ul style={{ margin: '8px 0 0 18px', padding: 0, color: '#4c1d95', fontSize: 13 }}>
+                            {(counterfactuals.length ? counterfactuals : [{ missing_signal: '추가 검증 신호 없음', validation_action: '원본 자료 확인' }]).slice(0, 3).map((item, index) => (
+                              <li key={index} style={{ marginBottom: 7 }}><b>{item.missing_signal}</b><br /><span>{item.validation_action}</span>{item.expected_score_delta ? ` (${item.expected_score_delta > 0 ? '+' : ''}${item.expected_score_delta}점 가능)` : ''}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div style={{ background: '#ecfeff', border: '1px solid #a5f3fc', borderRadius: 10, padding: 12 }}>
+                          <strong style={{ color: '#0e7490' }}>AI 신뢰도 계기판</strong>
+                          <div style={{ marginTop: 10, color: '#164e63', fontSize: 13 }}>
+                            <div>근거 커버리지: <b>{evidenceCoverage ?? '-'}%</b></div>
+                            <div>근거 확신도: <b>{confidence !== undefined ? `${Math.round(confidence * 100)}%` : '-'}</b></div>
+                            {fairnessGuard && <div style={{ marginTop: 7 }}>편향 방지: <b>{fairnessGuard.status === 'pass' ? '직무 관련 신호만 평가' : '확인 필요'}</b></div>}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {decisionTrace.length > 0 && (
+                      <div style={{ marginTop: 14, padding: 12, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10 }}>
+                        <strong style={{ color: '#334155' }}>판단 추적 로그</strong>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 9 }}>
+                          {decisionTrace.map((step, index) => <span key={index} style={{ background: '#fff', border: '1px solid #cbd5e1', borderRadius: 999, padding: '5px 9px', color: '#475569', fontSize: 12 }}>{index + 1}. {step}</span>)}
+                        </div>
                       </div>
                     )}
                   </div>

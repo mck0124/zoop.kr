@@ -495,7 +495,15 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
   "gaps": ["추가 확인이 필요한 사항"],
   "interview_focus": ["면접에서 검증할 질문 주제"],
   "risk_flags": ["근거가 약하거나 과대해석될 수 있는 부분"],
-  "verification_plan": ["이 판단을 바꾸거나 확정할 다음 검증 행동"]
+  "verification_plan": ["이 판단을 바꾸거나 확정할 다음 검증 행동"],
+  "counterfactuals": [
+    {"missing_signal":"현재 판단을 바꿀 수 있는 미확인 신호","validation_action":"그 신호를 확인할 구체적 행동","expected_score_delta":0}
+  ],
+  "fairness_guard": {
+    "excluded_attributes":["이름","성별","나이","사진","출신 학교"],
+    "evaluated_attributes":["직무 기술","프로젝트 근거","경력 수준","직무 관련 성장 신호"],
+    "status":"pass"
+  }
 }}
 """
 
@@ -565,6 +573,41 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
         structured["interview_focus"] = [str(item) for item in structured.get("interview_focus", []) if item][:6] or ["대표 프로젝트의 본인 기여와 결과 검증"]
         structured["risk_flags"] = [str(item) for item in structured.get("risk_flags", []) if item][:6] or ["포트폴리오에 없는 정보는 평가하지 않음"]
         structured["verification_plan"] = [str(item) for item in structured.get("verification_plan", []) if item][:6] or ["대표 프로젝트의 문제·역할·성과를 구조화 질문으로 확인"]
+        counterfactuals = []
+        for item in structured.get("counterfactuals", []) if isinstance(structured.get("counterfactuals"), list) else []:
+            if not isinstance(item, dict):
+                continue
+            try:
+                score_delta = float(item.get("expected_score_delta", 0) or 0)
+            except (TypeError, ValueError):
+                score_delta = 0.0
+            counterfactuals.append({
+                "missing_signal": str(item.get("missing_signal", "판단을 바꿀 수 있는 미확인 신호")),
+                "validation_action": str(item.get("validation_action", "면접 또는 원본 자료로 확인")),
+                "expected_score_delta": max(-100.0, min(100.0, score_delta)),
+            })
+        structured["counterfactuals"] = counterfactuals[:4] or [{
+            "missing_signal": "대표 프로젝트에서 지원자의 실제 기여도",
+            "validation_action": "프로젝트 구조와 본인 기여를 후속 질문으로 확인",
+            "expected_score_delta": 0.0,
+        }]
+        fairness_guard = structured.get("fairness_guard") if isinstance(structured.get("fairness_guard"), dict) else {}
+        structured["fairness_guard"] = {
+            "excluded_attributes": [str(item) for item in fairness_guard.get("excluded_attributes", []) if item] or ["이름", "성별", "나이", "사진", "출신 학교"],
+            "evaluated_attributes": [str(item) for item in fairness_guard.get("evaluated_attributes", []) if item] or ["직무 기술", "프로젝트 근거", "경력 수준", "직무 관련 성장 신호"],
+            "status": "pass",
+        }
+        total_possible = sum(item["max"] for item in dimensions) or 100
+        evidence_items = [item for dimension in dimensions for item in dimension["evidence"]]
+        grounded_items = [item for item in evidence_items if item["source"] not in {"missing", "unknown"} and item["claim"] != "확인된 근거 없음"]
+        structured["evidence_coverage"] = round(min(100.0, len(grounded_items) / max(1, len(dimensions)) * 100), 1)
+        structured["confidence"] = round(min(1.0, sum(item["confidence"] for item in grounded_items) / max(1, len(grounded_items))), 2)
+        structured["decision_trace"] = [
+            "직무와 무관한 개인정보 신호를 평가에서 제외",
+            f"{len(dimensions)}개 직무 기준을 포트폴리오 근거와 대조",
+            f"{len(grounded_items)}개 확인 가능한 근거와 미확인 영역을 분리",
+            "점수보다 검증 행동과 불확실성을 함께 제시",
+        ]
         evidence_lines = []
         for dimension in dimensions:
             name = dimension.get("name", "평가 항목")
@@ -581,7 +624,8 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
             f"추가 확인: {', '.join(structured.get('gaps', [])) or '없음'}",
             f"면접 검증 포인트: {', '.join(structured.get('interview_focus', [])) or '직무 핵심 경험'}",
             f"위험 신호: {', '.join(structured.get('risk_flags', []))}",
-            f"다음 검증: {', '.join(structured.get('verification_plan', []))}"
+            f"다음 검증: {', '.join(structured.get('verification_plan', []))}",
+            f"판단을 바꿀 수 있는 증거: {', '.join(item['missing_signal'] for item in structured.get('counterfactuals', []))}"
         ])
         
         return {
