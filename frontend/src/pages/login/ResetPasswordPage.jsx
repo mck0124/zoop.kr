@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../../components/Navbar';
+import { apiUrl } from '../../api/config';
 
 export default function ResetPasswordPage() {
   const { token } = useParams();
@@ -16,12 +17,11 @@ export default function ResetPasswordPage() {
     if (!passwordsMatch) return;
 
     try {
-      await axios.post('http://localhost:8081/api/candidate/reset-password', {
+      await axios.post(apiUrl('/api/candidate/reset-password'), {
         token,
         newPassword,
       });
       setResult('success');
-      console.log(token);
       alert("비밀번호 변경 완료!");
     } catch (err) {
       setResult('fail');

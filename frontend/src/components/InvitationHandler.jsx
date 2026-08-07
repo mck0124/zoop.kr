@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
+import { apiUrl } from '../api/config';
 
 export default function InvitationHandler() {
   const { token } = useParams();
@@ -13,7 +14,7 @@ export default function InvitationHandler() {
     const handleInvitation = async () => {
       try {
         // 1. 백엔드에 토큰 정보 요청
-        const response = await fetch(`http://localhost:8081/api/invitations/clicked/${token}`, {
+        const response = await fetch(apiUrl(`/api/invitations/clicked/${encodeURIComponent(token)}`), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -27,10 +28,6 @@ export default function InvitationHandler() {
         const data = await response.json();
         const { githubLogin, isSignedUp } = data;
         
-        console.log('초대 링크 응답 데이터:', data);
-        console.log('githubLogin:', githubLogin);
-        console.log('isSignedUp:', isSignedUp);
-
         // 2. 회원가입 여부에 따라 적절한 페이지로 리다이렉트
         if (isSignedUp) {
           // 이미 회원가입된 경우 -> 로그인 페이지로 이동 (아이디 자동 기입)
@@ -142,4 +139,4 @@ export default function InvitationHandler() {
   }
 
   return null;
-} 
+}

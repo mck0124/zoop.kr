@@ -4,7 +4,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
-import axios from '../../api/axios';
 
 
 export default function ApplicantSignupProcess() {
@@ -15,7 +14,7 @@ export default function ApplicantSignupProcess() {
   // ============ [초대 링크 관련 상태 변수들 추가] ============
   const [fromInvite, setFromInvite] = useState(false); // 초대 링크로 들어왔는지 여부
   const [isFormValid, setIsFormValid] = useState(false); // 폼 유효성 검사 결과
-  const [isLoading, setIsLoading] = useState(false); // 로딩 상태
+  const [isLoading] = useState(false); // 로딩 상태
   // ============ [초대 링크 관련 상태 변수들 추가 끝] ============
   //==================================================================================================
 
@@ -98,27 +97,14 @@ const [individualAgree, setIndividualAgree] = useState({
 
   // ============ [초대 링크로 들어온 경우 쿼리파라미터 email 처리] ============
   useEffect(() => {
-    console.log('=== Email 파라미터 디버깅 ===');
-    console.log('fromInvite:', fromInvite);
-    console.log('location.search:', location.search);
-    console.log('location.pathname:', location.pathname);
-    console.log('전체 URL:', window.location.href);
-    
     if (fromInvite) {
       const params = new URLSearchParams(location.search);
       const email = params.get('email');
-      console.log('email:', email);
       if (email) {
         const [local, domain] = email.split('@');
         setEmailLocal(local);
         setEmailDomain(domain);
-        console.log('설정할 emailLocal:', local);
-        console.log('설정할 emailDomain:', domain);
-      } else {
-        console.log('❌ email 파라미터가 없습니다!');
       }
-    } else {
-      console.log('❌ fromInvite가 false입니다!');
     }
   }, [fromInvite, location.search]);
   // ============ [폼 유효성 검사 useEffect 추가 끝] ============
