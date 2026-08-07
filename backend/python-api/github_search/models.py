@@ -9,3 +9,4 @@ class FilterRequest(BaseModel):
     headcount: Optional[int] = None 
     idealCandidate: Optional[str] = None
     post_id: Optional[int] = None
+    language: str = "en"

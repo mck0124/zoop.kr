@@ -179,6 +179,7 @@ def enhanced_search_github_candidates(filters, post_id=None):
     except (TypeError, ValueError):
         headcount = 5
     ideal = getattr(filters, 'idealCandidate', None)
+    language = getattr(filters, 'language', 'en') if getattr(filters, 'language', 'en') in {'en', 'ko', 'zh'} else 'en'
     for location in locations:
         for language in filters.languages:
             page = 1
@@ -221,7 +222,7 @@ def enhanced_search_github_candidates(filters, post_id=None):
                             "public_repos": public_repos
                         }
                         try:
-                            analysis = analyze_candidate_with_prompt(candidate_obj, details, ideal_candidate=ideal)
+                            analysis = analyze_candidate_with_prompt(candidate_obj, details, ideal_candidate=ideal, language=language)
                         except Exception as e:
                             print(f"[WARN] 후보자 분석 실패로 결과에서 제외: {login} - {e}")
                             continue
@@ -459,7 +460,7 @@ def get_github_candidate_details(username):
         print(f"[Error fetching details for {username}] {e}")
     return details
 
-def analyze_candidate_with_prompt(candidate, details, ideal_candidate=None):
+def analyze_candidate_with_prompt(candidate, details, ideal_candidate=None, language='en'):
     """GitHub 공개 신호를 설명 가능한 구조화 평가로 변환한다."""
     safe_details = {
         "followers": candidate.get("followers"),
@@ -489,6 +490,11 @@ def analyze_candidate_with_prompt(candidate, details, ideal_candidate=None):
         if source in {"repo", "top_repos"}:
             return reference.isdigit() and 0 <= int(reference) < len(safe_details["top_repos"])
         return False
+    language_instruction = {
+        "en": "Write all human-readable values such as summary, claims, strengths, gaps, risks, roles, growth_signal, verification_plan, and fairness_guard status in English.",
+        "ko": "summary, claims, strengths, gaps, risks, roles, growth_signal, verification_plan, fairness_guard status 등 사람이 읽는 값은 모두 한국어로 작성하세요.",
+        "zh": "请将 summary、claims、strengths、gaps、risks、roles、growth_signal、verification_plan、fairness_guard status 等所有自然语言值写成中文。",
+    }[language]
     prompt = f"""
 아래 GitHub 공개 데이터만으로 개발자 후보자를 평가하세요.
 <job_requirements>
@@ -497,6 +503,9 @@ def analyze_candidate_with_prompt(candidate, details, ideal_candidate=None):
 <github_public_snapshot>
 {json.dumps(safe_details, ensure_ascii=False, default=str)[:18000]}
 </github_public_snapshot>
+
+출력 언어 규칙: {language_instruction}
+JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므로 그대로 유지하세요.
 
 규칙:
 - 이름, 이메일, 위치, 회사, 사진, 성별, 나이 등 직무와 무관한 개인정보는 평가에서 제외하세요.

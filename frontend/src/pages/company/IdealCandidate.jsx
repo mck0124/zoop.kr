@@ -5,8 +5,10 @@ import IdealCandidateCard from "../../components/IdealCandidateCard";
 import Navbar from "../../components/Navbar";
 import SEO from "../../components/SEO";
 import { apiUrl } from "../../api/config";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function IdealCandidate() {
+  const { language } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const { postId } = useParams();
@@ -184,7 +186,8 @@ export default function IdealCandidate() {
         regions: filters.regions,
         nationwide: filters.nationwide,
         headcount: filters.headcount,
-        idealCandidate: summary
+        idealCandidate: summary,
+        language
       };
       const searchResponse = await fetch(apiUrl("/api/github-search"), {
         method: "POST",

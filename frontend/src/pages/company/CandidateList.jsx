@@ -803,6 +803,66 @@ const DecisionLens = ({ candidates, aiAnalysisResults }) => {
   );
 };
 
+const CandidateComparisonModal = ({ candidates, aiAnalysisResults, selectedLogins, onClose }) => {
+  const selectedCandidates = candidates.filter(candidate => selectedLogins.includes(candidate.githubLogin || candidate.login)).slice(0, 3);
+  const rows = selectedCandidates.map(candidate => {
+    const analysisResult = aiAnalysisResults.find(item => item.githubSearchResultId === candidate.githubSearchResultId);
+    return { candidate, ...getAnalysisPayload(candidate, analysisResult) };
+  });
+  const dimensions = [...new Set(rows.flatMap(row => {
+    try {
+      const parsed = JSON.parse(row.analysisText || '{}');
+      return Array.isArray(parsed?.dimensions) ? parsed.dimensions.map(item => item.name).filter(Boolean) : [];
+    } catch (_) {
+      return [];
+    }
+  }))].slice(0, 6);
+
+  if (!rows.length) return null;
+  const decisionLabel = { strong_match: '근거 충분', review: '검토 권장', not_enough_evidence: '근거 부족' };
+  const getDimension = (row, name) => {
+    try {
+      const parsed = JSON.parse(row.analysisText || '{}');
+      return Array.isArray(parsed?.dimensions) ? parsed.dimensions.find(item => item.name === name) : null;
+    } catch (_) {
+      return null;
+    }
+  };
+
+  return (
+    <ModalOverlay onClick={onClose}>
+      <ModalCard onClick={event => event.stopPropagation()} style={{ maxWidth: 1180, width: '95vw', maxHeight: '90vh', overflow: 'auto' }}>
+        <ModalCloseBtn onClick={onClose}><FaTimes /></ModalCloseBtn>
+        <div style={{ padding: '2rem 2rem 1rem' }}>
+          <div style={{ color: '#0f766e', fontSize: 11, fontWeight: 850, letterSpacing: '0.1em' }}>EVIDENCE LEDGER · COMPARISON</div>
+          <h2 style={{ margin: '0.4rem 0 0.35rem', color: '#172033' }}>후보자를 점수가 아닌 근거로 비교합니다</h2>
+          <p style={{ margin: 0, color: '#64748b', lineHeight: 1.55 }}>높은 점수는 우선 검토 순서입니다. 최종 판단 전, 근거 커버리지와 확인해야 할 빈틈을 함께 확인하세요.</p>
+        </div>
+        <div style={{ padding: '0 2rem 2rem', overflowX: 'auto' }}>
+          <div style={{ minWidth: Math.max(720, rows.length * 260) }}>
+            <div style={{ display: 'grid', gridTemplateColumns: `180px repeat(${rows.length}, minmax(220px, 1fr))`, gap: 1, background: '#e2e8f0', border: '1px solid #e2e8f0', borderRadius: 16, overflow: 'hidden' }}>
+              <div style={{ padding: 16, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>판단 항목</div>
+              {rows.map(row => <div key={row.candidate.githubLogin || row.candidate.login} style={{ padding: 16, background: '#fff', color: '#172033', fontWeight: 850, fontSize: 16 }}>{row.candidate.githubLogin || row.candidate.login || '이름 미확인'}</div>)}
+              <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>보정 점수</div>
+              {rows.map(row => <div key={`score-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: '#0f766e', fontSize: 25, fontWeight: 900 }}>{row.score === null ? '대기' : `${row.score}/100`}</div>)}
+              <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>판단 상태</div>
+              {rows.map(row => <div key={`decision-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff' }}><span style={{ display: 'inline-block', borderRadius: 999, padding: '5px 9px', background: row.decision === 'strong_match' ? '#dcfce7' : row.decision === 'not_enough_evidence' ? '#fef3c7' : '#dbeafe', color: row.decision === 'strong_match' ? '#166534' : row.decision === 'not_enough_evidence' ? '#92400e' : '#1d4ed8', fontSize: 12, fontWeight: 800 }}>{decisionLabel[row.decision] || '검토 필요'}</span></div>)}
+              <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>근거 커버리지</div>
+              {rows.map(row => <div key={`coverage-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: row.coverage !== null && row.coverage >= 70 ? '#047857' : '#b45309', fontWeight: 800 }}>{row.coverage === null ? '확인 필요' : `${row.coverage}%`} {row.evidenceCount ? `· ${row.evidenceCount}개 근거` : ''}</div>)}
+              {dimensions.map(dimension => <React.Fragment key={dimension}>
+                <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>{dimension}</div>
+                {rows.map(row => { const item = getDimension(row, dimension); return <div key={`${dimension}-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: '#334155', fontSize: 13 }}><strong>{item?.score ?? '—'}</strong>{item?.max ? `/${item.max}` : ''}<div style={{ marginTop: 4, color: '#64748b', lineHeight: 1.45 }}>{item?.evidence?.find(evidence => evidence.verification_state === 'grounded')?.claim || '검증된 근거 없음'}</div></div>; })}
+              </React.Fragment>)}
+              <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>다음 검증</div>
+              {rows.map(row => <div key={`gap-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: '#475569', fontSize: 13, lineHeight: 1.5 }}>{row.gaps.length ? row.gaps.slice(0, 2).join(' · ') : '대표 프로젝트의 실제 기여와 설계 선택을 확인하세요.'}</div>)}
+            </div>
+          </div>
+        </div>
+      </ModalCard>
+    </ModalOverlay>
+  );
+};
+
 function getStackArray(langs) {
   if (!langs) return [];
   if (Array.isArray(langs)) return langs;
@@ -1026,6 +1086,8 @@ export default function CandidateList({ activeTab = 'all' }) {
   const [modalScore, setModalScore] = useState(0);
 
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [compareSelected, setCompareSelected] = useState([]);
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
 
   const [companyAdminId, setCompanyAdminId] = useState(null);
 
@@ -1260,6 +1322,14 @@ export default function CandidateList({ activeTab = 'all' }) {
     );
   };
 
+  const toggleCompare = (login) => {
+    setCompareSelected(prev => {
+      if (prev.includes(login)) return prev.filter(item => item !== login);
+      if (prev.length >= 3) return prev;
+      return [...prev, login];
+    });
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -1365,13 +1435,22 @@ export default function CandidateList({ activeTab = 'all' }) {
             <b style={{ color: '#30c59b', fontWeight: 800, fontSize: '1.18em', margin: '0 0.1em' }}>{candidates.length}</b>명
           </SectionTitle>
           {candidates.length > 0 && (
-            <TossAnalysisButton
-              onClick={openBulkEmailModal}
-              disabled={selected.length === 0}
-              style={{ width: 220, minWidth: 180 }}
-            >
-              {selected.length > 0 ? `메일 보내기 (${selected.length}명)` : '메일 보내기'}
-            </TossAnalysisButton>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <TossAnalysisButton
+                onClick={() => setShowComparisonModal(true)}
+                disabled={compareSelected.length < 2}
+                style={{ width: 190, minWidth: 170, background: compareSelected.length >= 2 ? '#0f766e' : '#dbe5e3' }}
+              >
+                {compareSelected.length >= 2 ? `비교하기 (${compareSelected.length}명)` : '2~3명 비교'}
+              </TossAnalysisButton>
+              <TossAnalysisButton
+                onClick={openBulkEmailModal}
+                disabled={selected.length === 0}
+                style={{ width: 220, minWidth: 180 }}
+              >
+                {selected.length > 0 ? `메일 보내기 (${selected.length}명)` : '메일 보내기'}
+              </TossAnalysisButton>
+            </div>
           )}
         </CandidatesHeader>
 
@@ -1396,6 +1475,8 @@ export default function CandidateList({ activeTab = 'all' }) {
                       onClick={() => toggleSelect(candidate.githubLogin || candidate.login)}
                       openAnalysisModal={openAnalysisModal}
                       toggleSelect={toggleSelect}
+                      compareSelected={compareSelected.includes(candidate.githubLogin || candidate.login)}
+                      toggleCompare={toggleCompare}
                     />
 
                   </div>
@@ -1408,6 +1489,15 @@ export default function CandidateList({ activeTab = 'all' }) {
         {/* 메일 보내기 버튼 */}
         {/* The mail button is now moved to CandidatesHeader */}
       </Container>
+
+      {showComparisonModal && (
+        <CandidateComparisonModal
+          candidates={candidates}
+          aiAnalysisResults={aiAnalysisResults}
+          selectedLogins={compareSelected}
+          onClose={() => setShowComparisonModal(false)}
+        />
+      )}
 
       {/* --- AI 분석 모달 --- */}
       {showAnalysisModal && selectedAnalysis && selectedCandidate && (
@@ -2015,7 +2105,7 @@ export default function CandidateList({ activeTab = 'all' }) {
 }
 
 // Toss-style Candidate Card (with hover state)
-const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openAnalysisModal, toggleSelect }) => {
+const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openAnalysisModal, toggleSelect, compareSelected, toggleCompare }) => {
   const analysisText = candidate.portfolioAnalysis || candidate.analysis || '';
   const score = extractScore(analysisText) || candidate.score || candidate.parsed_score || 0;
   const keywords = extractKeywords(analysisText);
@@ -2118,6 +2208,14 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 0%', minHeight: 0 }}>
         <div style={{ marginBottom: '0.5rem', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <span style={{ color: '#263249', fontSize: '1.1rem', fontWeight: 800, textAlign: 'center' }}>{login || <span>&nbsp;</span>}</span>
+          <button
+            type="button"
+            aria-pressed={compareSelected}
+            onClick={event => { event.stopPropagation(); toggleCompare(login); }}
+            style={{ marginTop: 8, border: `1px solid ${compareSelected ? '#0f766e' : '#cbd5e1'}`, borderRadius: 999, padding: '5px 10px', background: compareSelected ? '#ccfbf1' : '#fff', color: compareSelected ? '#0f766e' : '#64748b', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}
+          >
+            {compareSelected ? '비교 목록에 추가됨' : '비교에 추가'}
+          </button>
         </div>
         {/* TossMetaTag(이메일 있음/없음)는 완전히 제거 */}
         {/* 시각화 요소들로 대체 */}

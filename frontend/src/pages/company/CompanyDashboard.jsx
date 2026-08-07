@@ -325,10 +325,6 @@ export default function CompanyDashboard() {
       });
   }, []); // 의존성 배열을 비워서 컴포넌트 마운트 시 한 번만 실행
 
-  // 디버깅을 위한 로그 추가
-  useEffect(() => {
-  }, [loading, postings]);
-
   // 선택된 공고의 상세 정보
   useEffect(() => {
     if (selectedPostId) {

@@ -15,4 +15,5 @@ public class FilterRequestDto {
     private int salary;   // ❗ DB 저장용
     private int headcount; // ❗ DB 저장용
     private String idealCandidate; // 인재상 저장용
+    private String language = "en"; // AI 자연어 결과 언어
 }

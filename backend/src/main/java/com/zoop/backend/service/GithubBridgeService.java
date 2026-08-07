@@ -76,6 +76,7 @@ public class GithubBridgeService {
             pythonFilter.put("nationwide", false); // 필요시 post에서 추출
             pythonFilter.put("headcount", headcount);
             pythonFilter.put("idealCandidate", idealCandidate != null ? idealCandidate : "");
+            pythonFilter.put("language", filter.getLanguage() != null ? filter.getLanguage() : "en");
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
