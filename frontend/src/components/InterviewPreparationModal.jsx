@@ -104,7 +104,7 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
       
       {/* Modal container */}
       <div className="flex min-h-full items-center justify-center p-4" style={{ animation: 'fadeIn 0.3s', borderRadius: 28 }}>
-        <div className="relative w-full max-w-2xl transform overflow-hidden rounded-3xl bg-white shadow-2xl transition-all" style={{ border: '1.5px solid #fbbf24', boxShadow: '0 8px 32px #fbbf2422', borderRadius: 28, padding: 0 }}>
+        <div className="relative w-full max-w-2xl transform overflow-hidden rounded-3xl bg-white shadow-2xl transition-all" role="dialog" aria-modal="true" aria-labelledby="interview-preparation-title" style={{ border: '1.5px solid #fbbf24', boxShadow: '0 8px 32px #fbbf2422', borderRadius: 28, padding: 0 }}>
           
           {/* 헤더 */}
           <div className="bg-gradient-to-r from-yellow-400 to-amber-400 px-8 py-5" style={{ borderTopLeftRadius: 28, borderTopRightRadius: 28 }}>
@@ -115,13 +115,15 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
                   <LightbulbIcon />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">면접 예상질문</h3>
+                  <h3 id="interview-preparation-title" className="text-xl font-bold text-white">면접 예상질문</h3>
                   <p className="text-yellow-100 text-sm">면접 준비를 위한 맞춤형 질문들</p>
                 </div>
               </div>
               {/* 닫기 버튼 */}
               <button
                 onClick={onClose}
+                type="button"
+                aria-label="면접 예상질문 닫기"
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-white bg-opacity-30 text-white hover:bg-opacity-50 transition-colors"
                 style={{ fontWeight: 700, fontSize: 22 }}
               >
@@ -153,6 +155,14 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
                 </div>
                 <p className="text-sm text-gray-600">{error}</p>
                 <button onClick={fetchInterviewQuestions} className="rounded-full bg-gradient-to-r from-yellow-400 to-amber-400 px-5 py-2 text-sm font-bold text-white">다시 생성하기</button>
+              </div>
+            ) : !questions.length ? (
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <span><AlertIcon /></span>
+                  <p className="text-amber-700 text-sm">생성된 질문이 없습니다. 포지션 정보와 제출물 분석을 확인한 뒤 다시 시도해주세요.</p>
+                </div>
+                <button type="button" onClick={fetchInterviewQuestions} className="rounded-full bg-gradient-to-r from-yellow-400 to-amber-400 px-5 py-2 text-sm font-bold text-white">다시 생성하기</button>
               </div>
             ) : (
               // 정상 상태
