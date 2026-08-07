@@ -209,16 +209,31 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
         analysis_json = response.choices[0].message.content
         try:
             analysis_data = json.loads(analysis_json)
-            max_scores = {"전문성": 25, "의사소통": 20, "의사소통 능력": 20, "문제해결": 20, "문제해결 능력": 20, "자신감": 15, "자신감과 태도": 15, "경험의 구체성": 20}
+            canonical_scores = {
+                "전문성": 25,
+                "의사소통 능력": 20,
+                "문제해결 능력": 20,
+                "자신감과 태도": 15,
+                "경험의 구체성": 20,
+            }
+            aliases = {
+                "의사소통": "의사소통 능력",
+                "문제해결": "문제해결 능력",
+                "자신감": "자신감과 태도",
+            }
             categories = analysis_data.get("categories", [])
             if not isinstance(categories, list):
                 categories = []
             normalized_categories = []
+            category_by_name = {}
             for category in categories:
                 if not isinstance(category, dict):
                     continue
-                name = str(category.get("name", "평가 항목"))
-                maximum = int(category.get("max_score") or max_scores.get(name, 20))
+                raw_name = str(category.get("name", "평가 항목"))
+                name = aliases.get(raw_name, raw_name)
+                if name not in canonical_scores:
+                    continue
+                maximum = canonical_scores[name]
                 raw_score = category.get("score", 0)
                 try:
                     normalized_score = max(0, min(maximum, float(raw_score)))
@@ -263,7 +278,15 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                     category["confidence"] = max(0.0, min(1.0, float(category.get("confidence", 0) or 0)))
                 except (TypeError, ValueError):
                     category["confidence"] = 0.0
-                normalized_categories.append(category)
+                # Alias names such as '의사소통' and '의사소통 능력' are one
+                # rubric dimension. Keep the strongest model signal instead
+                # of allowing duplicate categories to inflate the total.
+                existing = category_by_name.get(name)
+                if existing is None or category["score"] > existing["score"]:
+                    category_by_name[name] = category
+                elif existing is not None:
+                    existing["evidence"] = (existing.get("evidence", []) + category.get("evidence", []))[:6]
+            normalized_categories = list(category_by_name.values())
             expected_categories = [
                 ("전문성", 25),
                 ("의사소통 능력", 20),
@@ -288,6 +311,12 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                     })
             analysis_data["categories"] = normalized_categories
             score = min(100.0, sum(category["score"] for category in normalized_categories))
+            analysis_data["score_calibration"] = {
+                "method": "fixed_interview_rubric_v1",
+                "description": "면접 평가 차원은 고정된 100점 루브릭으로 중복 항목을 제거해 계산합니다.",
+                "max_score": sum(maximum for _, maximum in expected_categories),
+                "calibrated_score": score,
+            }
             analysis_data.setdefault("total_feedback", {})
             analysis_data["total_feedback"].setdefault("limitations", ["영상의 표정·목소리만으로 성격이나 잠재력을 단정하지 않습니다.", "AI 분석만으로 최종 채용 결정을 내릴 수 없습니다."])
             labels = [category["name"] for category in normalized_categories]
