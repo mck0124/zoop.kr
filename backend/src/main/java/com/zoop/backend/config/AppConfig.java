@@ -40,7 +40,9 @@ public class AppConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
                     "/api/auth/**",
+                    "/api/email/**",
                     "/api/applications",
+                    "/api/candidates/process",
                     "/api/postings/public",
                     "/api/postings/info/**",
                     "/api/posts/active",
@@ -55,9 +57,11 @@ public class AppConfig {
                     "/api/resumes/public",
                     "/api/incident-reports/submit",
                     "/api/files/**",
+                    "/api/portfolios/health",
                     "/health",
                     "/error"
                 ).permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/companyadmins").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/companies/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/companies").permitAll()
                 .requestMatchers(
@@ -71,9 +75,9 @@ public class AppConfig {
                 ).authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/portfolio-job-matches/**").authenticated()
                 .requestMatchers("/api/interview-questions/**").authenticated()
-                // Legacy candidate and AI worker routes still perform their own ownership checks
-                // or are called server-to-server without a browser JWT.
-                .anyRequest().permitAll()
+                // Every route not explicitly public now requires a browser JWT
+                // or a valid X-Zoop-Internal-Key accepted by JwtAuthenticationFilter.
+                .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

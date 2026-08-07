@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final InternalApiKeyValidator internalApiKeyValidator;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -37,6 +38,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+        }
+        // Python AI workers call Spring without a browser JWT. Treat a valid
+        // internal key as a server identity so the default security policy can
+        // remain closed for every unlisted endpoint.
+        String internalKey = request.getHeader("X-Zoop-Internal-Key");
+        boolean localWorkerRequest = !internalApiKeyValidator.isConfigured()
+                && "local-development-worker".equals(internalKey);
+        if (SecurityContextHolder.getContext().getAuthentication() == null
+                && (internalApiKeyValidator.isValid(internalKey) || localWorkerRequest)) {
+            UsernamePasswordAuthenticationToken internalAuthentication =
+                    new UsernamePasswordAuthenticationToken("zoop-ai-worker", null, java.util.List.of());
+            internalAuthentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(internalAuthentication);
         }
         filterChain.doFilter(request, response);
     }

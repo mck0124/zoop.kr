@@ -24,8 +24,7 @@ ZOOP_INTERNAL_API_KEY = os.getenv("ZOOP_INTERNAL_API_KEY", "")
 
 def spring_headers(content_type: Optional[str] = None):
     headers = {"Content-Type": content_type} if content_type else {}
-    if ZOOP_INTERNAL_API_KEY:
-        headers["X-Zoop-Internal-Key"] = ZOOP_INTERNAL_API_KEY
+    headers["X-Zoop-Internal-Key"] = ZOOP_INTERNAL_API_KEY or "local-development-worker"
     return headers
 
 client = None
