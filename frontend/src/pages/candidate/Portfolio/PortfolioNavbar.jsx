@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import './PortfolioNavbar.css';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { apiUrl } from '../../../api/config';
 
 function PortfolioNavbar() {
   const [displayedUserName, setDisplayedUserName] = useState('');
@@ -48,7 +49,7 @@ function PortfolioNavbar() {
     
     setLoadingNotifications(true);
     try {
-      const response = await fetch(`http://localhost:8081/api/candidate-notifications/candidate/${authState.userId}?requestingCandidateId=${authState.userId}`, {
+      const response = await fetch(apiUrl(`/api/candidate-notifications/candidate/${authState.userId}?requestingCandidateId=${authState.userId}`), {
         headers: {
           'Authorization': `Bearer ${authState.token}`
         }
@@ -77,7 +78,7 @@ function PortfolioNavbar() {
     if (!authState.userId) return;
     
     try {
-      const response = await fetch(`http://localhost:8081/api/candidate-notifications/candidate/${authState.userId}/unread-count?requestingCandidateId=${authState.userId}`, {
+      const response = await fetch(apiUrl(`/api/candidate-notifications/candidate/${authState.userId}/unread-count?requestingCandidateId=${authState.userId}`), {
         headers: {
           'Authorization': `Bearer ${authState.token}`
         }
@@ -97,7 +98,7 @@ function PortfolioNavbar() {
     if (!authState.userId) return;
     
     try {
-      const response = await fetch(`http://localhost:8081/api/candidates/${authState.userId}/job-postings`);
+      const response = await fetch(apiUrl(`/api/candidates/${authState.userId}/job-postings`));
       if (response.ok) {
         const data = await response.json();
         
@@ -139,7 +140,7 @@ function PortfolioNavbar() {
       console.log('알림 클릭됨:', notification);
       
       // 알림을 읽음 처리
-      const response = await fetch(`http://localhost:8081/api/candidate-notifications/${notification.notificationId}/read`, {
+      const response = await fetch(apiUrl(`/api/candidate-notifications/${notification.notificationId}/read`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

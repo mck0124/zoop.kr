@@ -6,6 +6,7 @@ import { FaSearch } from 'react-icons/fa';
 import { Sidebar } from './Sidebar';
 import { PortfolioNavbar } from './Portfolio';
 import './BookmarksPage.css';
+import { apiUrl } from '../../api/config';
 
 // Constants for filters
 const LANGUAGES = ['Python', 'Java', 'JavaScript', 'TypeScript', 'C++', 'C#', 'Go', 'Ruby', 'Kotlin'];
@@ -30,7 +31,7 @@ export default function BookmarksPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`http://localhost:8081/api/bookmarks/candidate/${candidateId}`);
+      const res = await fetch(apiUrl(`/api/bookmarks/candidate/${candidateId}`));
       if (res.ok) {
         const data = await res.json();
         console.log('북마크 API 응답:', data);
@@ -77,7 +78,7 @@ export default function BookmarksPage() {
 
   const fetchUserName = async () => {
     try {
-      const userResponse = await fetch(`http://localhost:8081/api/candidates/${candidateId}`);
+      const userResponse = await fetch(apiUrl(`/api/candidates/${candidateId}`));
       if (userResponse.ok) {
         const userData = await userResponse.json();
         setUserName(userData.candidateName || '사용자');

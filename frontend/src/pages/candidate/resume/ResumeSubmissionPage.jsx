@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaTimes, FaSave, FaCheck } from 'react-icons/fa';
 import { Sidebar } from '../Sidebar';
 import PortfolioNavbar from '../Portfolio/PortfolioNavbar';
+import { apiUrl } from '../../../api/config';
 
 const RESUME_OFFER_OPTIONS = [
   { value: 'active', label: '적극 구직 중이에요\n제안 받을래요' },
@@ -54,7 +55,7 @@ const ResumeSubmissionPage = () => {
       let originalFileName = null;
       // 1. 사용자 정보는 무조건 세팅
       try {
-        const res = await fetch(`http://localhost:8081/api/candidates/${authState.userId}`);
+        const res = await fetch(apiUrl(`/api/candidates/${authState.userId}`));
         if (res.ok) {
           userData = await res.json();
           setUserName(userData.candidateName || '사용자');
