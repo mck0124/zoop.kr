@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '../../../components/Navbar';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../../context/AuthContext';
@@ -69,9 +69,6 @@ export default function CandidateSettings() {
     fetchProfile();
     // eslint-disable-next-line
   }, [authState.userId]);
-
-  // 입력 필드 참조를 위한 ref
-  const formRef = useRef(null);
 
   // 각 입력 필드별 onChange 핸들러를 useCallback으로 안정화
   const handleCandidateNameChange = useCallback((e) => {

@@ -11,8 +11,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.zoop.backend.service.InterviewQuestionService;
+import com.zoop.backend.repository.CandidateRepository;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,6 +34,9 @@ public class InterviewQuestionController {
     @Autowired
     private InterviewQuestionService interviewQuestionService;
 
+    @Autowired
+    private CandidateRepository candidateRepository;
+
     @Operation(summary = "면접 예상질문 생성", description = "특정 공고와 후보자에 대한 면접 예상질문을 생성합니다. 캐시가 있으면 캐시된 질문을, 없거나 내용이 변경되었으면 새로운 질문을 생성합니다.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "질문 생성 성공"),
@@ -47,15 +53,15 @@ public class InterviewQuestionController {
     ) {
         
         Map<String, Object> response = new HashMap<>();
-        
+
         try {
+            if (!ownsCandidate(candidateId)) {
+                response.put("success", false);
+                response.put("questions", List.of());
+                response.put("error", "접근 권한이 없습니다.");
+                return ResponseEntity.status(403).body(response);
+            }
             log.info("면접 예상질문 생성 API 호출: postId={}, candidateId={}", postId, candidateId);
-            
-            // TODO: JWT 토큰에서 사용자 ID 추출하여 권한 체크
-            // Long currentUserId = jwtUtil.getUserIdFromToken(token);
-            // if (!currentUserId.equals(candidateId)) {
-            //     return ResponseEntity.status(403).body(createErrorResponse("접근 권한이 없습니다."));
-            // }
             
             // 면접 예상질문 생성
             List<String> questions = interviewQuestionService.generateInterviewQuestions(postId, candidateId);
@@ -104,8 +110,14 @@ public class InterviewQuestionController {
     ) {
         
         Map<String, Object> response = new HashMap<>();
-        
+
         try {
+            if (!ownsCandidate(candidateId)) {
+                response.put("success", false);
+                response.put("exists", false);
+                response.put("error", "접근 권한이 없습니다.");
+                return ResponseEntity.status(403).body(response);
+            }
             boolean exists = interviewQuestionService.hasQuestions(postId, candidateId);
             
             response.put("success", true);
@@ -135,4 +147,15 @@ public class InterviewQuestionController {
         response.put("error", errorMessage);
         return response;
     }
-} 
+
+    private boolean ownsCandidate(Long candidateId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return false;
+        }
+        return candidateRepository.findById(candidateId)
+                .map(candidate -> candidate.getGithubLogin() != null
+                        && candidate.getGithubLogin().equals(authentication.getName()))
+                .orElse(false);
+    }
+}

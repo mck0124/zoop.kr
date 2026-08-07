@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import styled, { css, keyframes } from 'styled-components';
 import Navbar from '../../components/Navbar';
-import { FaGithub, FaExpandAlt, FaTimes, FaStar, FaCode, FaEnvelope, FaEdit } from 'react-icons/fa';
+import { FaGithub, FaExpandAlt, FaTimes, FaStar, FaCode, FaEnvelope } from 'react-icons/fa';
 import SEO from '../../components/SEO';
 import MatchingDetailModal from './MatchingDetailModal';
 
@@ -46,17 +46,6 @@ const PostInfoCard = styled.div`
   position: relative;
   min-width: 350px;
   animation: ${fadeIn} 0.7s cubic-bezier(.35,.97,.46,1.01);
-`;
-
-const EditIcon = styled(FaEdit)`
-  position: absolute;
-  top: 2.1rem;
-  right: 2.2rem;
-  font-size: 1.25rem;
-  color: #bac2cd;
-  cursor: pointer;
-  transition: color 0.2s;
-  &:hover { color: #30c59b; }
 `;
 
 const PostInfoHeader = styled.h1`
@@ -1536,7 +1525,6 @@ export default function CandidateList({ activeTab = 'all' }) {
         {/* 공고 정보 */}
         {postInfo && (
           <PostInfoCard>
-            <EditIcon title="공고 정보 수정" onClick={() => alert('공고 정보 수정 페이지로 이동(구현 필요)')} />
             <PostInfoHeader>{postInfo.postTitle}</PostInfoHeader>
             <PostInfoGrid>
               <div><InfoLabel>지역</InfoLabel><InfoText>{postInfo.postLocation || '미정'}</InfoText></div>

@@ -18,7 +18,6 @@ function GoogleAuthCallback() {
     // 로딩 상태 및 사용자에게 보여줄 메시지 상태
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('Google 로그인 처리 중입니다...');
-    const provider = 'google'; // 소셜 로그인 제공자 이름 (Google로 고정)
     // ✅ API 호출이 진행 중인지 추적하는 상태 추가
     const [isProcessing, setIsProcessing] = useState(false);
 

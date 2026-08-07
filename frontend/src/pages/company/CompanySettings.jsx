@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import { motion } from 'framer-motion';
 import SEO from '../../components/SEO';
+import { apiUrl } from '../../api/config';
 
 export default function CompanySettings() {
   const navigate = useNavigate();
@@ -11,7 +12,6 @@ export default function CompanySettings() {
   const [companyInfo, setCompanyInfo] = useState(null);
   const [adminInfo, setAdminInfo] = useState(null);
   const [activeTab, setActiveTab] = useState('company');
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   
   // 폼 상태
@@ -64,7 +64,7 @@ export default function CompanySettings() {
       }
 
       // 회사 정보 가져오기
-      const companyResponse = await fetch(`http://localhost:8081/api/companyadmins/info/${userId}`, {
+      const companyResponse = await fetch(apiUrl(`/api/companyadmins/info/${userId}`), {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -91,7 +91,7 @@ export default function CompanySettings() {
       }
 
       // 알림 설정 가져오기
-      const notificationResponse = await fetch(`http://localhost:8081/api/companyadmins/notification-settings`, {
+      const notificationResponse = await fetch(apiUrl('/api/companyadmins/notification-settings'), {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -116,9 +116,6 @@ export default function CompanySettings() {
       setLoading(false);
     }
   };
-
-  // 입력 필드 참조를 위한 ref
-  const formRef = useRef(null);
 
   // 각 입력 필드별 onChange 핸들러를 useCallback으로 안정화
   const handleCompanyNameChange = useCallback((e) => {
@@ -165,7 +162,7 @@ export default function CompanySettings() {
     setSaving(true);
     try {
       const token = localStorage.getItem('jwtToken');
-      const response = await fetch(`http://localhost:8081/api/companies/${companyInfo.companyId}`, {
+      const response = await fetch(apiUrl(`/api/companies/${companyInfo.companyId}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -193,7 +190,7 @@ export default function CompanySettings() {
     setSaving(true);
     try {
       const token = localStorage.getItem('jwtToken');
-      const response = await fetch(`http://localhost:8081/api/companyadmins/${adminInfo.companyAdminId}`, {
+      const response = await fetch(apiUrl(`/api/companyadmins/${adminInfo.companyAdminId}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -234,7 +231,7 @@ export default function CompanySettings() {
     setSaving(true);
     try {
       const token = localStorage.getItem('jwtToken');
-      const response = await fetch(`http://localhost:8081/api/companyadmins/change-password`, {
+      const response = await fetch(apiUrl('/api/companyadmins/change-password'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -276,7 +273,7 @@ export default function CompanySettings() {
     setSaving(true);
     try {
       const token = localStorage.getItem('jwtToken');
-      const response = await fetch(`http://localhost:8081/api/companyadmins/${adminInfo.companyAdminId}`, {
+      const response = await fetch(apiUrl(`/api/companyadmins/${adminInfo.companyAdminId}`), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -302,7 +299,7 @@ export default function CompanySettings() {
     setSaving(true);
     try {
       const token = localStorage.getItem('jwtToken');
-      const response = await fetch(`http://localhost:8081/api/companyadmins/notification-settings`, {
+      const response = await fetch(apiUrl('/api/companyadmins/notification-settings'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1369,4 +1366,4 @@ export default function CompanySettings() {
       </style>
     </div>
   );
-} 
+}
