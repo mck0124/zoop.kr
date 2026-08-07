@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import CompanySidebar from './CompanySidebar';
@@ -6,6 +6,7 @@ import CandidateModal from '../../components/CandidateModal';
 import MatchingDetailModal from './MatchingDetailModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '../../components/SEO';
+import AIAnalysisSummary from '../../components/AIAnalysisSummary';
 
 
 export default function CompanyDashboard() {
@@ -54,7 +55,7 @@ export default function CompanyDashboard() {
   // 일괄전송 모달 상태
   const [showBulkEmailModal, setShowBulkEmailModal] = useState(false);
   const [bulkEmailSubject, setBulkEmailSubject] = useState('');
-  const [bulkEmailContent, setBulkEmailContent] = useState('');
+  const [, setBulkEmailContent] = useState('');
   const [bulkEmailSending, setBulkEmailSending] = useState(false);
   // 일괄전송 템플릿 상태
   const [bulkSelectedTemplate, setBulkSelectedTemplate] = useState('professional');
@@ -366,27 +367,6 @@ export default function CompanyDashboard() {
     return `https://github.com/${githubLogin}.png?size=100`;
   };
 
-  // GitHub API를 사용해서 사용자 정보 가져오기 (선택사항)
-  const fetchGithubUserInfo = async (githubLogin) => {
-    try {
-      const response = await fetch(`https://api.github.com/users/${githubLogin}`);
-      if (response.ok) {
-        const userData = await response.json();
-        return {
-          name: userData.name,
-          bio: userData.bio,
-          location: userData.location,
-          company: userData.company,
-          followers: userData.followers,
-          publicRepos: userData.public_repos
-        };
-      }
-    } catch (error) {
-      console.error('GitHub API 호출 오류:', error);
-    }
-    return null;
-  };
-
   // 후보자 목록 불러오기 (상태값 포함 API 사용)
   const fetchCandidates = async (postId, filter = '전체') => {
     setLoadingCandidates(true);
@@ -654,7 +634,6 @@ export default function CompanyDashboard() {
       candidate = { githubLogin: '후보자', candidateEmail: '' };
     }
     
-    const template = emailTemplates[templateKey];
     const postTitle = selectedPostDetail?.postTitle || '채용 공고';
     const postDescription = selectedPostDetail?.postDescription || '';
     const githubLogin = candidate.githubLogin || '후보자';
@@ -876,7 +855,7 @@ export default function CompanyDashboard() {
           // 매칭된 후보자의 경우 다른 구조를 가질 수 있음
           const candidateIdFromData = c.candidate?.candidateId || c.candidateId || c.githubSearchResultId;
           const postIdFromData = c.candidate?.postId || c.postId || selectedPostId;
-          return candidateIdFromData == candidateId && postIdFromData == postId;
+          return String(candidateIdFromData) === candidateId && String(postIdFromData) === postId;
         });
         
         
@@ -959,7 +938,7 @@ export default function CompanyDashboard() {
           // 매칭된 후보자의 경우 다른 구조를 가질 수 있음
           const candidateIdFromData = c.candidate?.candidateId || c.candidateId || c.githubSearchResultId;
           const postIdFromData = c.candidate?.postId || c.postId || selectedPostId;
-          return candidateIdFromData == candidateId && postIdFromData == postId;
+          return String(candidateIdFromData) === candidateId && String(postIdFromData) === postId;
         });
         
         
@@ -3033,19 +3012,11 @@ export default function CompanyDashboard() {
                 </svg>
                 상세 분석 내용
               </h3>
-              <div style={{
-                whiteSpace: 'pre-wrap',
-                lineHeight: '1.8',
-                color: '#4a5568',
-                fontSize: '0.95rem',
-                background: 'linear-gradient(135deg, #ffffff 0%, #f0fff4 100%)',
-                padding: '1.5rem',
-                borderRadius: '12px',
-                border: '1px solid #c6f6d5',
-                boxShadow: '0 2px 8px rgba(154, 230, 180, 0.1), inset 0 1px 0 rgba(255,255,255,0.9)'
-              }}>
-                {currentAiAnalysis.analysisData || '분석 데이터가 없습니다.'}
-              </div>
+              <AIAnalysisSummary
+                analysis={currentAiAnalysis}
+                score={currentAiAnalysis.analysisScore}
+                title="포트폴리오 근거 기반 분석"
+              />
             </div>
             
             {/* 분석 정보 */}

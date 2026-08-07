@@ -2,21 +2,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { useNavigate } from 'react-router-dom';
 import { apiUrl as buildApiUrl } from '../api/config';
+import AIAnalysisSummary from './AIAnalysisSummary';
 pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL}/pdf.worker.min.mjs`;
 
 /** */
 export default function CandidateModal({ candidate, isOpen, onClose, postId, avatarUrl, fromMatchingTab }) {
   const [zoom, setZoom] = useState(1.1); // 초기값 110%
-  const [containerWidth, setContainerWidth] = useState(0);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [numPages, setNumPages] = useState(null);
-  const containerRef = useRef(null);
   const modalRef = useRef(null);
   const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
   const [jobCandidateId, setJobCandidateId] = useState(null);
 
   // 예시: 필요한 값이 없을 경우 대비하여 상태 저장
-  const [invitationTimes, setInvitationTimes] = useState([]);
   const [portfolioDate, setPortfolioDate] = useState(null);
   const [interviewSchedule, setInterviewSchedule] = useState(null);
 
@@ -26,10 +24,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
   const [interviewAnalysis, setInterviewAnalysis] = useState(null);
 
   // 아코디언 open을 위한 상태
-  const [portfolioPreviewOpen, setPortfolioPreviewOpen] = useState(false); // 포트폴리오 미리보기
   const [portfolioAnalysisOpen, setPortfolioAnalysisOpen] = useState(false); // 포트폴리오 분석
-  const [interviewVideoOpen, setInterviewVideoOpen] = useState(false); // 면접 영상
-  const [interviewAnalysisOpen, setInterviewAnalysisOpen] = useState(false); // 면접 분석
 
   const [videoBlobUrl, setVideoBlobUrl] = useState(null);
   const [localStage, setLocalStage] = useState(candidate?.jobCandCurrStage);
@@ -40,32 +35,6 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
       setLocalStage(candidate.jobCandCurrStage);
     }
   }, [candidate?.jobCandCurrStage]);
-
-  /** 아코디언 */
-  const Accordion = ({ title, open, setOpen, children }) => (
-    <div className="mb-6 overflow-hidden">
-      <button
-        onClick={() => setOpen(prev => !prev)}
-        className="w-full text-left px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold rounded-t-2xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-between"
-      >
-        <span className="text-lg">{title}</span>
-        <div className={`transform transition-transform duration-300 ${open ? 'rotate-180' : 'rotate-0'}`}>
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-      </button>
-
-      <div className={`bg-white shadow-lg transition-all duration-500 ease-in-out ${
-        open ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
-      } overflow-hidden rounded-b-2xl`}>
-        <div className="p-6 bg-gradient-to-br from-gray-50 to-white">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-
 
   // jobCandidateId 조회 (fromMatchingTab이 아닐 때만)
   useEffect(() => {
@@ -90,28 +59,6 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
     if (!isOpen || !candidate || !jobCandidateId || fromMatchingTab) return;
 
     const stage = candidate.jobCandCurrStage;
-    const githubLogin = candidate.githubLogin;
-
-    // invitationSentDate
-    if (["2n", "2y", "2p", "3n", "3y", "4n", "4y"].includes(stage)) {
-      fetch(buildApiUrl(`/api/invitations/${postId}/${githubLogin}/sent-times`))
-        .then(res => {
-          if (!res.ok) throw new Error('invitationSentDate 조회 실패');
-          return res.json();
-        })
-        .then(data => {
-          if (data && data.length > 0 && data[0].invitationSentDate) {
-            setInvitationTimes(data[0].invitationSentDate);
-          } else {
-            setInvitationTimes(null);
-          }
-        })
-        .catch(err => {
-          console.error('invitationSentDate 조회 오류:', err);
-          setInvitationTimes(null);
-        });
-    }
-
     // portfolioSubmissionDate 
     if (["2y", "2p", "3n", "3y", "4n", "4y"].includes(stage)) {
       fetch(buildApiUrl(`/api/portfolios/${jobCandidateId}/submission-date`))
@@ -289,6 +236,8 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
     return () => {
       if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
     };
+  // The cleanup intentionally uses the URL captured by this effect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobCandidateId]);
 
   
@@ -326,23 +275,11 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
     return () => {
       if (videoBlobUrl) URL.revokeObjectURL(videoBlobUrl);
     };
+  // The cleanup intentionally uses the URL captured by this effect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [interviewVideoUrl]);
 
 
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const updateWidth = () => {
-      if (containerRef.current) {
-        setContainerWidth(containerRef.current.offsetWidth);
-      }
-    };
-
-    window.addEventListener('resize', updateWidth);
-    updateWidth();
-
-    return () => window.removeEventListener('resize', updateWidth);
-  }, [isOpen]);
 
   const prev = () => setCurrentIdx(idx => (idx === 0 ? numPages - 1 : idx - 1));
   const next = () => setCurrentIdx(idx => (idx === numPages - 1 ? 0 : idx + 1));
@@ -384,19 +321,14 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
   // 닫기버튼 클릭시
   const handleClose = () => {
     // 아코디언 닫기
-    setPortfolioPreviewOpen(false);
     setPortfolioAnalysisOpen(false);
-    setInterviewVideoOpen(false);
-    setInterviewAnalysisOpen(false);
 
     // pdf관련 초기화
     setZoom(1.2);
     setCurrentIdx(0);
-    setContainerWidth(0);
     setNumPages(null);
 
     // 후보자 관련 데이터 초기화
-    setInvitationTimes([]);
     setPortfolioDate(null);
     setInterviewSchedule(null);
     setPortfolioAnalysis(null);
@@ -666,12 +598,11 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
             {portfolioAnalysisOpen && (
               <div className="mt-4 p-4 bg-white rounded-lg border border-blue-100">
                 {portfolioAnalysis ? (
-                  <div>
-                    <div className="mb-2 font-semibold text-gray-700">점수: <span className="text-blue-600 font-bold">{portfolioAnalysis.analysisScore}</span> / 100</div>
-                    <div className="text-gray-700 whitespace-pre-wrap">
-                      {portfolioAnalysis.analysisData}
-                    </div>
-                  </div>
+                  <AIAnalysisSummary
+                    analysis={portfolioAnalysis}
+                    score={portfolioAnalysis.analysisScore}
+                    title="포트폴리오 근거 기반 분석"
+                  />
                 ) : (
                   <div className="text-gray-400">분석 결과가 없습니다.</div>
                 )}
