@@ -862,7 +862,8 @@ async def analyze_portfolio(
 @app.post("/analyze-candidate-portfolio")
 async def analyze_candidate_portfolio(
     file_url: str = Form(...),
-    candidate_id: int = Form(...)
+    candidate_id: int = Form(...),
+    cand_portfolio_id: Optional[int] = Form(None)
 ):
     try:
         print(f"[DEBUG] analyze_portfolio_file 호출 직전: file_url={file_url}")
@@ -870,16 +871,17 @@ async def analyze_candidate_portfolio(
         print(f"[DEBUG] analyze_portfolio_file 호출 완료: 결과 길이={len(analysis_result) if analysis_result else 0}")
         if not analysis_result or len(analysis_result.strip()) < 10:
             raise Exception("분석 실패: 결과 없음")
-        complete_upload_res = requests.post(
-            f"{SPRING_API_URL}/api/portfolios/complete-upload",
-            data={"candidateId": candidate_id, "portfolioFilePath": file_url, "analysisData": analysis_result},
-            timeout=30
-        )
-        if complete_upload_res.status_code != 200:
-            raise Exception(f"complete-upload API 실패: {complete_upload_res.text}")
-        cand_portfolio_id = complete_upload_res.json().get("portfolioId")
-        if not cand_portfolio_id:
-            raise Exception("complete-upload 응답에 portfolioId가 없습니다.")
+        if cand_portfolio_id is None:
+            complete_upload_res = requests.post(
+                f"{SPRING_API_URL}/api/portfolios/complete-upload",
+                data={"candidateId": candidate_id, "portfolioFilePath": file_url, "analysisData": analysis_result},
+                timeout=30
+            )
+            if complete_upload_res.status_code != 200:
+                raise Exception(f"complete-upload API 실패: {complete_upload_res.text}")
+            cand_portfolio_id = complete_upload_res.json().get("portfolioId")
+            if not cand_portfolio_id:
+                raise Exception("complete-upload 응답에 portfolioId가 없습니다.")
         analysis_id = save_portfolio_analysis_to_spring(
             int(cand_portfolio_id),
             analysis_result,

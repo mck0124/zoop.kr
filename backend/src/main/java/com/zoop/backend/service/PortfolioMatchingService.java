@@ -56,20 +56,28 @@ public class PortfolioMatchingService {
                 log.info("포트폴리오 분석 시작: candPortfolioId={}", portfolio.getCandPortfolioId());
                 
                 // Python API 호출하여 AI 분석 실행
-                String analysisResult = callPortfolioAnalysisAPI(portfolio);
+                java.util.Map<String, Object> analysisResponse = callPortfolioAnalysisAPI(portfolio);
+                String analysisResult = analysisResponse == null ? null : (String) analysisResponse.get("analysis_data");
                 
                 if (analysisResult != null && !analysisResult.isBlank()) {
                     // AI 분석 결과를 ai_analysis_result 테이블에 저장 (type: "standalone_portfolio")
                     // 먼저 job_candidate_id 없이 저장
-                    AiAnalysisResultDto dto = AiAnalysisResultDto.builder()
-                        .analysisType("standalone_portfolio")
-                        .jobCandidateId(null) // 나중에 업데이트할 예정
-                        .candPortfolioId(portfolio.getCandPortfolioId())
-                        .analysisData(analysisResult)
-                        .analysisScore(extractScore(analysisResult))
-                        .build();
-                    
-                    AiAnalysisResult savedAnalysis = aiAnalysisResultService.saveAiAnalysisResult(dto);
+                    Number responseAnalysisId = analysisResponse == null ? null
+                            : (Number) analysisResponse.get("analysis_id");
+                    AiAnalysisResult savedAnalysis;
+                    if (responseAnalysisId != null) {
+                        savedAnalysis = aiAnalysisResultService.findById(responseAnalysisId.longValue())
+                                .orElseThrow(() -> new IllegalStateException("분석 결과를 찾을 수 없습니다."));
+                    } else {
+                        AiAnalysisResultDto dto = AiAnalysisResultDto.builder()
+                            .analysisType("standalone_portfolio")
+                            .jobCandidateId(null)
+                            .candPortfolioId(portfolio.getCandPortfolioId())
+                            .analysisData(analysisResult)
+                            .analysisScore(extractScore(analysisResult))
+                            .build();
+                        savedAnalysis = aiAnalysisResultService.saveAiAnalysisResult(dto);
+                    }
                     
                     // 포트폴리오 상태를 COMPLETED로 명시적으로 업데이트
                     candidatePortfolioRepository.updatePortfolioStatus(portfolio.getCandPortfolioId(), "COMPLETED");
@@ -77,6 +85,7 @@ public class PortfolioMatchingService {
                     
                     log.info("포트폴리오 분석 완료: candPortfolioId={}, analysisId={}", 
                             portfolio.getCandPortfolioId(), savedAnalysis.getAnalysisId());
+                    callPortfolioMatchingAPI(portfolio, savedAnalysis.getAnalysisId());
                 }
                 
             } catch (Exception e) {
@@ -92,7 +101,7 @@ public class PortfolioMatchingService {
     /**
      * Python API를 호출하여 포트폴리오 분석 실행
      */
-    private String callPortfolioAnalysisAPI(CandidatePortfolio portfolio) {
+    private java.util.Map<String, Object> callPortfolioAnalysisAPI(CandidatePortfolio portfolio) {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -109,7 +118,7 @@ public class PortfolioMatchingService {
                     pythonMatchingApiUrl + "/analyze-candidate-portfolio", entity, java.util.Map.class);
             
             if (response.getBody() != null) {
-                return (String) response.getBody().get("analysis_data");
+                return response.getBody();
             }
             
         } catch (Exception e) {
@@ -142,15 +151,27 @@ public class PortfolioMatchingService {
             CandidatePortfolio portfolio = candidatePortfolioRepository.findById(candPortfolioId)
                     .orElseThrow(() -> new RuntimeException("포트폴리오를 찾을 수 없습니다: " + candPortfolioId));
             
-            // 2. 활성 공고 목록 조회
-            List<Post> activePosts = postRepository.findByPostStatusOrderByPostCreatedAtDesc("ACTIVE");
-            
-            // 3. Python API 호출하여 AI 매칭 실행
-            callPortfolioMatchingAPI(portfolio, activePosts);
-            
-            // 4. 분석 상태 업데이트 (PENDING 유지)
-            // portfolio.setPortfolioAnalysisStatus("COMPLETED");
-            // candidatePortfolioRepository.save(portfolio);
+            // 분석 결과를 만든 뒤, 해당 결과 ID로 활성 공고 매칭을 실행한다.
+            java.util.Map<String, Object> analysisResponse = callPortfolioAnalysisAPI(portfolio);
+            String analysisResult = analysisResponse == null ? null : (String) analysisResponse.get("analysis_data");
+            if (analysisResult == null || analysisResult.isBlank()) {
+                throw new IllegalStateException("포트폴리오 분석 결과가 비어 있습니다.");
+            }
+            Number responseAnalysisId = (Number) analysisResponse.get("analysis_id");
+            AiAnalysisResult analysis;
+            if (responseAnalysisId != null) {
+                analysis = aiAnalysisResultService.findById(responseAnalysisId.longValue())
+                        .orElseThrow(() -> new IllegalStateException("분석 결과를 찾을 수 없습니다."));
+            } else {
+                analysis = aiAnalysisResultService.saveAiAnalysisResult(AiAnalysisResultDto.builder()
+                        .analysisType("standalone_portfolio")
+                        .candPortfolioId(portfolio.getCandPortfolioId())
+                        .analysisData(analysisResult)
+                        .analysisScore(extractScore(analysisResult))
+                        .build());
+            }
+            candidatePortfolioRepository.updatePortfolioStatus(candPortfolioId, "COMPLETED");
+            callPortfolioMatchingAPI(portfolio, analysis.getAnalysisId());
             
             log.info("포트폴리오 매칭 완료: candPortfolioId={}", candPortfolioId);
             
@@ -173,17 +194,28 @@ public class PortfolioMatchingService {
     /**
      * Python API를 호출하여 포트폴리오 매칭 실행
      */
-    private void callPortfolioMatchingAPI(CandidatePortfolio portfolio, List<Post> activePosts) {
+    private void callPortfolioMatchingAPI(CandidatePortfolio portfolio, Long analysisId) {
         try {
             // Python API 엔드포인트 호출 (포트 8003)
-            String pythonApiUrl = pythonMatchingApiUrl + "/analyze-portfolio";
+            String pythonApiUrl = pythonMatchingApiUrl + "/match-portfolio-jobs";
             
-            log.info("Python API 호출: portfolioId={}, activePostsCount={}", 
-                    portfolio.getCandPortfolioId(), activePosts.size());
+            log.info("Python API 호출: portfolioId={}, analysisId={}",
+                    portfolio.getCandPortfolioId(), analysisId);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             
-            // TODO: 실제 HTTP 클라이언트 구현
-            // RestTemplate 또는 WebClient를 사용하여 Python API 호출
-            // 현재는 로그만 출력하고 실제 호출은 Python 서버에서 처리
+            if (portfolio.getCandPortfolioId() == null || analysisId == null) {
+                throw new IllegalArgumentException("포트폴리오 또는 분석 ID가 없습니다.");
+            }
+            var formData = new org.springframework.util.LinkedMultiValueMap<String, String>();
+            formData.add("portfolio_id", String.valueOf(portfolio.getCandPortfolioId()));
+            formData.add("analysis_id", String.valueOf(analysisId));
+            HttpEntity<org.springframework.util.MultiValueMap<String, String>> entity = new HttpEntity<>(formData, headers);
+            ResponseEntity<java.util.Map> response = restTemplate.postForEntity(
+                    pythonApiUrl, entity, java.util.Map.class);
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new IllegalStateException("AI 매칭 API가 오류를 반환했습니다: " + response.getStatusCode());
+            }
             
         } catch (Exception e) {
             log.error("Python API 호출 중 오류", e);
