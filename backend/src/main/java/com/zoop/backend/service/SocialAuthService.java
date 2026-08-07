@@ -55,7 +55,7 @@ public class SocialAuthService {
     // AuthController로부터 provider 이름 ("google"), 인가 코드, 상태 값 등을 전달받아 처리합니다.
     @Transactional // 데이터베이스 변경 작업이 포함되므로 트랜잭션 관리 어노테이션 추가
     // provider 이름은 받지만, 이 서비스는 Google만 처리하도록 구현합니다.
-    public Map<String, Object> handleSocialLogin(String provider, String code, String state /*, String pkceVerifier */) {
+    public Map<String, Object> handleSocialLogin(String provider, String code, String state, String pkceVerifier) {
         // Google provider만 처리하도록 명시적으로 확인
         if (!"google".equalsIgnoreCase(provider)) {
             throw new IllegalArgumentException("이 서비스는 Google 소셜 로그인만 지원합니다. 요청된 Provider: " + provider);
@@ -68,19 +68,18 @@ public class SocialAuthService {
         String tokenUri = googleTokenUri;
         String userInfoUri = googleUserInfoUri;
 
-        // TODO: Google PKCE 검증 로직 추가 고려 (프론트엔드에서 verifier를 받아서 처리)
-         // AuthController의 SocialLoginCallbackRequest DTO에 pkce_code_verifier 필드를 추가하고 여기서 검증 로직 구현 필요
-         // if (pkceVerifier == null || !validatePkce(code, pkceVerifier)) { ... throw new IllegalArgumentException("PKCE 검증 실패"); }
-
-        // TODO: State 검증 (Google은 PKCE 사용 시 state 필수는 아님, CSRF 방지 목적)
-        // 필요시 프론트엔드에서 state를 생성하여 세션에 저장하고, 여기서 request로 받아와 세션 값과 비교 검증
-        // if (!validateState(state)) { throw new IllegalArgumentException("State mismatch"); }
+        if (state == null || state.isBlank()) {
+            throw new IllegalArgumentException("OAuth state가 누락되었습니다.");
+        }
+        if (pkceVerifier == null || pkceVerifier.isBlank()) {
+            throw new IllegalArgumentException("PKCE 검증 값이 누락되었습니다.");
+        }
 
 
         try {
             // 2. 인가 코드(Authorization Code)를 사용하여 Access Token 교환 요청
             // getAccessToken 메소드를 호출하여 Google의 토큰 발급 API와 통신합니다.
-            String accessToken = getAccessToken(provider, code, clientId, clientSecret, redirectUri, tokenUri);
+            String accessToken = getAccessToken(provider, code, clientId, clientSecret, redirectUri, tokenUri, pkceVerifier);
              // Access Token 발급 실패 시 예외는 getAccessToken 내부에서 처리됩니다.
              if (accessToken == null || accessToken.isEmpty()) {
                  // getAccessToken 내부에서 이미 오류 로깅 및 예외 발생 가능
@@ -135,7 +134,7 @@ public class SocialAuthService {
 
     // ✅ 인가 코드(Authorization Code)로 Access Token 교환 요청 메소드 (Google 전용)
     // Google의 토큰 발급 API (googleTokenUri)에 POST 요청을 보냅니다.
-    private String getAccessToken(String provider, String code, String clientId, String clientSecret, String redirectUri, String tokenUri) {
+    private String getAccessToken(String provider, String code, String clientId, String clientSecret, String redirectUri, String tokenUri, String pkceVerifier) {
         // Google 토큰 요청 API 명세에 맞춰 요청 본문 구성 (application/x-www-form-urlencoded)
         WebClient.RequestHeadersSpec<?> requestSpec = webClient.post()
                 .uri(tokenUri) // Google 토큰 발급 API 주소
@@ -145,8 +144,7 @@ public class SocialAuthService {
                         .with("client_secret", clientSecret) // Google Client Secret
                         .with("redirect_uri", redirectUri) // 리다이렉트 URI (인가 코드 요청 시 사용했던 것과 동일해야 함)
                         .with("code", code) // 받은 인가 코드
-                        // TODO: PKCE 사용 시 code_verifier 파라미터 추가 필요
-                        // .with("code_verifier", pkceVerifier)
+                        .with("code_verifier", pkceVerifier)
                 );
 
         // API 호출 및 응답 본문(String) 받기

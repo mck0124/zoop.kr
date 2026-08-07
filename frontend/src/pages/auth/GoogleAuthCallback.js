@@ -46,8 +46,10 @@ function GoogleAuthCallback() {
         }
 
         const storedState = sessionStorage.getItem('oauth_state');
+        const pkceVerifier = sessionStorage.getItem('oauth_pkce_verifier');
         sessionStorage.removeItem('oauth_state');
-        if (!state || !storedState || state !== storedState) {
+        sessionStorage.removeItem('oauth_pkce_verifier');
+        if (!state || !storedState || state !== storedState || !pkceVerifier) {
             setMessage('로그인 오류: 보안 검증에 실패했습니다. 다시 시도해주세요.');
             setLoading(false);
             navigate(`/auth/login?error=${encodeURIComponent('Google OAuth state validation failed.')}`, { replace: true });
@@ -63,7 +65,7 @@ function GoogleAuthCallback() {
             setIsProcessing(true); // ✅ 처리 시작
 
             // 3. 백엔드로 인가 코드 전송하여 최종 인증 처리 요청
-            handleAuthCallback(code, state /* 필요시 state 전송 */ /*, storedVerifier for PKCE */);
+            handleAuthCallback(code, state, pkceVerifier);
         } else {
             // code 파라미터가 없는 경우 (예상치 못한 리다이렉트)
             console.error(`Google 인가 코드를 받지 못했습니다.`, Object.fromEntries(searchParams.entries()));
@@ -75,7 +77,7 @@ function GoogleAuthCallback() {
     }, [searchParams]); // searchParams, navigate, setAuthState가 변경될 때마다 Effect 재실행
 
     // 인가 코드를 백엔드로 전송하고 응답을 처리하는 비동기 함수
-    const handleAuthCallback = async (code, state /*, pkceVerifier */) => {
+    const handleAuthCallback = async (code, state, pkceVerifier) => {
         try {
             setMessage('백엔드에서 Google 로그인 처리 중...');
             // ✅ 백엔드의 Google 소셜 로그인 콜백 API 엔드포인트 호출
@@ -85,7 +87,7 @@ function GoogleAuthCallback() {
             const response = await axios.post(apiUrl('/api/auth/social/google/callback'), {
                 code: code, // 인가 코드 전송
                 state: state, // 필요시 state 값 전송
-                // pkce_code_verifier: pkceVerifier, // PKCE 사용 시 verifier 전송
+                pkceCodeVerifier: pkceVerifier,
             });
 
             // 4. 백엔드 응답 처리

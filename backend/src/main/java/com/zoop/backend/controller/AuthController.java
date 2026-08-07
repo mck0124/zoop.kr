@@ -184,7 +184,8 @@ public class AuthController {
             // ✅ SocialAuthService를 호출하여 실제 소셜 로그인 처리 위임
             // SocialAuthService의 handleSocialLogin 메소드가 Google API 통신, 사용자 조회/저장, JWT 발급 등 모든 비즈니스 로직을 수행합니다.
             // 프론트엔드로부터 받은 provider 이름, code, state 등을 서비스 메소드로 전달합니다.
-            Map<String, Object> authResult = socialAuthService.handleSocialLogin(provider, request.getCode(), request.getState());
+            Map<String, Object> authResult = socialAuthService.handleSocialLogin(
+                    provider, request.getCode(), request.getState(), request.getPkceCodeVerifier());
 
             logger.info("{} 소셜 로그인 처리 성공. 자체 JWT 발급 완료.", provider);
 

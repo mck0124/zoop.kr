@@ -201,17 +201,23 @@ function LoginSelectionPage() {
 
   // CSRF 방지를 위한 랜덤 state 문자열 생성 함수 (Naver, GitHub 등에서 사용)
   // OAuth 2.0 명세에 따라 16자 이상의 충분히 무작위적인 문자열을 권장합니다.
-  const generateRandomString = () => {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    const charactersLength = characters.length;
-    for (let i = 0; i < 20; i++) { // 20자 길이의 랜덤 문자열 생성
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
+  const generateRandomString = (length = 64) => {
+    const bytes = new Uint8Array(length);
+    window.crypto.getRandomValues(bytes);
+    return Array.from(bytes, byte => (byte % 36).toString(36)).join('');
   };
 
-   // TODO: Google PKCE (Proof Key for Code Exchange) 구현을 위한 code_verifier 및 code_challenge 생성 함수
+  const base64UrlEncode = (buffer) => btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+  const generatePkcePair = async () => {
+    const verifier = generateRandomString(64);
+    const digest = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+    return { verifier, challenge: base64UrlEncode(digest) };
+  };
+
+  /* PKCE is generated per Google login attempt and the verifier stays in sessionStorage. */
+  /*
    // PKCE는 SPA나 모바일 앱과 같이 클라이언트 시크릿을 안전하게 저장하기 어려운 환경에서
    // 인가 코드 가로채기 공격(Authorization Code Injection)을 방지하기 위한 보안 확장입니다.
    // Google OAuth 2.0 사용 시 강력 권장됩니다. (RFC 7636 참고)
@@ -243,7 +249,7 @@ function LoginSelectionPage() {
 
   // ✅ == 소셜 로그인 시작 핸들러 ==
   // 사용자가 소셜 로그인 버튼을 클릭했을 때 해당 소셜 서비스의 인증 페이지로 브라우저를 리다이렉트시키는 함수
-  const handleSocialLogin = (provider) => {
+  const handleSocialLogin = async (provider) => {
     // 1. 클릭된 provider에 해당하는 설정 정보 가져오기
     const config = socialConfig[provider];
     // 필수 설정 정보 누락 확인
@@ -265,7 +271,9 @@ function LoginSelectionPage() {
        // Google OAuth 2.0 / OpenID Connect 인증 요청 URL 구성 예시
        const state = generateRandomString();
        sessionStorage.setItem('oauth_state', state);
-       authUrl = `${config.authUrl}?response_type=${config.responseType}&client_id=${config.clientId}&redirect_uri=${encodeURIComponent(config.redirectUri)}&scope=${encodeURIComponent(config.scope)}&state=${state}`;
+       const { verifier, challenge } = await generatePkcePair();
+       sessionStorage.setItem('oauth_pkce_verifier', verifier);
+       authUrl = `${config.authUrl}?response_type=${config.responseType}&client_id=${config.clientId}&redirect_uri=${encodeURIComponent(config.redirectUri)}&scope=${encodeURIComponent(config.scope)}&state=${state}&code_challenge=${challenge}&code_challenge_method=S256`;
        // 추가 파라미터 (예: access_type=offline, prompt=consent 등)
        if (config.accessType) authUrl += `&access_type=${config.accessType}`;
        if (config.prompt) authUrl += `&prompt=${config.prompt}`;
