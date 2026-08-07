@@ -384,12 +384,13 @@ async def process_portfolio_analysis_async(portfolio_id: int, candidate_id: int,
                 job_title = job.get("postTitle", "제목없음")
                 job_id = job.get("postId")
                 print(f"[MATCH] 공고 '{job_title}' (ID: {job_id}) 점수: {score}")
-                if score >= 50:
-                    print(f"[MATCH] 매칭 성공: {job_title} (점수: {score})")
+                decision = job_matching_result.get("matching_evidence", {}).get("decision", "review")
+                if job_id:
+                    # 낮은 점수도 버리지 않는다. 근거 부족/검토 결과 자체가
+                    # 기업에게 중요한 신호이며, Spring에서 자동 승격만 제한한다.
+                    print(f"[MATCH] 판단 저장: {job_title} (점수: {score}, decision: {decision})")
                     job_matching_result["jobPostingId"] = job_id
                     matches.append(job_matching_result)
-                else:
-                    print(f"[MATCH] 매칭 실패: {job_title} (점수: {score})")
             
             # 5. 매칭 결과를 Spring 백엔드에 저장
             if matches:
