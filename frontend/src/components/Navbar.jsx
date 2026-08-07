@@ -6,11 +6,18 @@ import { AccessibleButton, AccessibleLink, ScreenReaderOnly } from './Accessibil
 import { apiUrl } from '../api/config';
 import { SUPPORTED_LANGUAGES, useLanguage } from '../context/LanguageContext';
 
+const NAV_COPY = {
+  en: { about: 'About', notice: 'Notices', support: 'Support', faq: 'FAQ', careers: 'Careers', login: 'Log in', mypage: 'My page', settings: 'Settings', logout: 'Log out', notifications: 'Notifications' },
+  ko: { about: '회사 소개', notice: '공지사항', support: '고객센터', faq: '자주 묻는 질문', careers: '채용', login: '로그인', mypage: '마이페이지', settings: '설정', logout: '로그아웃', notifications: '알림' },
+  zh: { about: '关于我们', notice: '公告', support: '客户支持', faq: '常见问题', careers: '招聘', login: '登录', mypage: '我的页面', settings: '设置', logout: '退出登录', notifications: '通知' },
+};
+
 const Navbar = ({ onLangChange, hideAuth }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { authState, setAuthState } = useAuth();
   const { language, setLanguage } = useLanguage();
+  const navCopy = NAV_COPY[language] || NAV_COPY.en;
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -623,38 +630,38 @@ const Navbar = ({ onLangChange, hideAuth }) => {
       >
         <AccessibleLink
           onClick={() => handleMenuItemClick('/about')}
-          ariaLabel="회사 소개"
+          ariaLabel={navCopy.about}
           role="menuitem"
         >
-          회사 소개
+          {navCopy.about}
         </AccessibleLink>
         <AccessibleLink
           onClick={() => handleMenuItemClick('/notice')}
-          ariaLabel="공지사항"
+          ariaLabel={navCopy.notice}
           role="menuitem"
         >
-          공지사항
+          {navCopy.notice}
         </AccessibleLink>
         <AccessibleLink
           onClick={() => handleMenuItemClick('/support')}
-          ariaLabel="고객센터"
+          ariaLabel={navCopy.support}
           role="menuitem"
         >
-          고객센터
+          {navCopy.support}
         </AccessibleLink>
         <AccessibleLink
           onClick={() => handleMenuItemClick('/faq')}
-          ariaLabel="자주 묻는 질문"
+          ariaLabel={navCopy.faq}
           role="menuitem"
         >
-          자주 묻는 질문
+          {navCopy.faq}
         </AccessibleLink>
         <AccessibleLink
           onClick={() => handleMenuItemClick('/careers')}
-          ariaLabel="채용"
+          ariaLabel={navCopy.careers}
           role="menuitem"
         >
-          채용
+          {navCopy.careers}
         </AccessibleLink>
       </nav>
 
@@ -668,44 +675,44 @@ const Navbar = ({ onLangChange, hideAuth }) => {
         >
           <AccessibleLink
             onClick={() => handleMenuItemClick('/about')}
-            ariaLabel="회사 소개"
+            ariaLabel={navCopy.about}
             role="menuitem"
             tabIndex="0"
           >
-            회사 소개
+            {navCopy.about}
           </AccessibleLink>
           <AccessibleLink
             onClick={() => handleMenuItemClick('/notice')}
-            ariaLabel="공지사항"
+            ariaLabel={navCopy.notice}
             role="menuitem"
             tabIndex="0"
           >
-            공지사항
+            {navCopy.notice}
           </AccessibleLink>
           <AccessibleLink
             onClick={() => handleMenuItemClick('/support')}
-            ariaLabel="고객센터 (새 창에서 열림)"
+            ariaLabel={navCopy.support}
             external={true}
             role="menuitem"
             tabIndex="0"
           >
-            고객센터
+            {navCopy.support}
           </AccessibleLink>
           <AccessibleLink
             onClick={() => handleMenuItemClick('/faq')}
-            ariaLabel="자주 묻는 질문"
+            ariaLabel={navCopy.faq}
             role="menuitem"
             tabIndex="0"
           >
-            자주 묻는 질문
+            {navCopy.faq}
           </AccessibleLink>
           <AccessibleLink
             onClick={() => handleMenuItemClick('/careers')}
-            ariaLabel="채용"
+            ariaLabel={navCopy.careers}
             role="menuitem"
             tabIndex="0"
           >
-            채용
+            {navCopy.careers}
           </AccessibleLink>
 
           <div className="mobile-language-selector" role="group" aria-label="Language selection">
@@ -736,45 +743,45 @@ const Navbar = ({ onLangChange, hideAuth }) => {
                 {unreadCount > 0 && (
                   <span className="mobile-notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
                 )}
-                <span className="mobile-notification-text">알림</span>
+                <span className="mobile-notification-text">{navCopy.notifications}</span>
               </div>
               
               <AccessibleButton
                 onClick={() => handleMenuItemClick('/candidate/dashboard')}
-                ariaLabel="마이페이지"
+                ariaLabel={navCopy.mypage}
                 role="menuitem"
                 tabIndex="0"
                 className="mobile-menu-item"
               >
-                마이페이지
+                {navCopy.mypage}
               </AccessibleButton>
               <AccessibleButton
                 onClick={() => handleMenuItemClick('/settings')}
-                ariaLabel="설정"
+                ariaLabel={navCopy.settings}
                 role="menuitem"
                 tabIndex="0"
                 className="mobile-menu-item"
               >
-                설정
+                {navCopy.settings}
               </AccessibleButton>
               <AccessibleButton
                 onClick={handleLogout}
-                ariaLabel="로그아웃"
+                ariaLabel={navCopy.logout}
                 role="menuitem"
                 tabIndex="0"
                 className="mobile-menu-item logout"
               >
-                로그아웃
+                {navCopy.logout}
               </AccessibleButton>
             </>
           ) : (
             <AccessibleLink
               onClick={() => handleMenuItemClick('/auth/login')}
-              ariaLabel="로그인"
+              ariaLabel={navCopy.login}
               role="menuitem"
               tabIndex="0"
             >
-              로그인
+              {navCopy.login}
             </AccessibleLink>
           )}
         </nav>
@@ -1198,13 +1205,13 @@ const Navbar = ({ onLangChange, hideAuth }) => {
                 {isDropdownOpen && (
                   <div className="dropdown-menu">
                     <div className="dropdown-item" onClick={() => handleMenuItemClick('/mypage')}>
-                      마이페이지
+                      {navCopy.mypage}
                     </div>
                     <div className="dropdown-item" onClick={() => handleMenuItemClick('/settings')}>
-                      설정
+                      {navCopy.settings}
                     </div>
                     <div className="dropdown-item logout-dropdown-item" onClick={handleLogout}>
-                      로그아웃
+                      {navCopy.logout}
                     </div>
                   </div>
                 )}
@@ -1213,10 +1220,10 @@ const Navbar = ({ onLangChange, hideAuth }) => {
           ) : (
             <AccessibleLink
               onClick={() => handleMenuItemClick('/auth/login')}
-              ariaLabel="로그인"
+              ariaLabel={navCopy.login}
               className="auth-button login"
             >
-              로그인
+              {navCopy.login}
             </AccessibleLink>
           )}
         </div>
