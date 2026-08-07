@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import InterviewEnvironmentCheck from './InterviewEnvironmentCheck';
 import './InterviewPage.css';
+import { apiUrl } from '../../../api/config';
 
 function InterviewPage() {
   const { id } = useParams(); // scheduleId
@@ -19,13 +20,12 @@ function InterviewPage() {
     const fetchInterviewDetails = async () => {
       try {
         // 1. 면접 일정 정보 조회
-        const response = await fetch(`http://localhost:8081/api/interviews/${id}`);
+        const response = await fetch(apiUrl(`/api/interviews/${id}`));
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
         setInterviewData(data);
-        console.log('면접 데이터:', data);
 
         // 2. AuthContext에서 실제 사용자의 candidateId 가져오기
         const candidateId = authState.userId;
@@ -36,47 +36,20 @@ function InterviewPage() {
         }
 
         // 3. 후보자의 공고 목록 조회
-        const postingsResponse = await fetch(`http://localhost:8081/api/candidates/${candidateId}/job-postings`);
+        const postingsResponse = await fetch(apiUrl(`/api/candidates/${candidateId}/job-postings`));
         if (!postingsResponse.ok) {
           throw new Error('공고 정보 조회 실패');
         }
         const postings = await postingsResponse.json();
-        console.log('공고 목록:', postings);
-
-        // 4. jobCandidateId에 해당하는 공고 찾기
-        // 현재는 첫 번째 공고를 사용하지만, 실제로는 jobCandidateId와 매칭되는 공고를 찾아야 함
-        if (postings.length > 0) {
-          // 실제로는 jobCandidateId와 postId의 매핑이 필요하지만,
-          // 현재 API 구조상 첫 번째 공고를 사용 (임시)
-          setJobPosting(postings[0]);
-          console.log('선택된 공고:', postings[0]);
-        } else {
-          console.log('공고 목록이 비어있음');
-        }
+        // 일정의 jobCandidateId로 진행 상태를 조회해 정확한 공고를 선택한다.
+        const progressResponse = await fetch(apiUrl(`/api/progress/job-cand-progress/${data.jobCandidateId}`));
+        const progress = progressResponse.ok ? await progressResponse.json() : null;
+        const progressPostId = progress?.post?.postId || progress?.postId;
+        setJobPosting(postings.find(post => String(post.postId) === String(progressPostId)) || null);
 
       } catch (e) {
         console.error("면접 정보를 가져오는 중 오류 발생:", e);
         setError("면접 정보를 불러오는데 실패했습니다.");
-        
-        // 오류 발생 시 하드코딩된 데이터로 폴백
-        setInterviewData({
-          scheduleId: id,
-          jobCandidateId: 1,
-          scheduledTime: "2025-06-27T00:00:00.000Z",
-          deadlineTime: "2025-06-28T00:00:00.000Z",
-          interviewLink: "https://zoop.ai/interview/672de12e-2d2a-45ad-a961-c4cbe3686e7f",
-          status: "scheduled"
-        });
-        
-        setJobPosting({
-          postId: 1,
-          postTitle: "프론트엔드 개발자",
-          companyName: "테크 컴퍼니",
-          postLocation: "서울",
-          postProgrammingLanguage: "JavaScript, React",
-          postPostedDate: "2024-01-15",
-          postExpiryDate: "2024-02-15"
-        });
       } finally {
         setLoading(false);
       }

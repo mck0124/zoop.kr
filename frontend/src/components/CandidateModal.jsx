@@ -425,10 +425,12 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
       });
       return;
     }
-    // 예시: portfolioId, analysisId를 백엔드에서 받아와야 함 (여기선 임시로 jobCandidateId 사용)
-    // 실제로는 분석ID 등도 받아와야 함
-    const portfolioId = jobCandidateId; // 실제 portfolioId로 대체 필요
+    const portfolioId = candidate.candPortfolioId || portfolioAnalysis?.candPortfolioId;
     const analysisId = portfolioAnalysis?.analysisId || null; // 실제 분석ID로 대체 필요
+    if (!portfolioId) {
+      window.alert('이 후보자의 포트폴리오 매칭 결과가 아직 준비되지 않았습니다.');
+      return;
+    }
     navigate(`/job/${postId}`, {
       state: {
         fromMatchingTab: true,
