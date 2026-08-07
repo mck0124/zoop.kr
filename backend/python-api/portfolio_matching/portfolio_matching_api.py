@@ -18,6 +18,13 @@ from github_search_logic import analyze_portfolio_file
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 SPRING_API_URL = os.getenv("SPRING_API_URL", "http://localhost:8081")
+ZOOP_INTERNAL_API_KEY = os.getenv("ZOOP_INTERNAL_API_KEY", "")
+
+def spring_headers(content_type: Optional[str] = None) -> Dict[str, str]:
+    headers = {"Content-Type": content_type} if content_type else {}
+    if ZOOP_INTERNAL_API_KEY:
+        headers["X-Zoop-Internal-Key"] = ZOOP_INTERNAL_API_KEY
+    return headers
 
 client = None
 
@@ -80,74 +87,135 @@ class JobMatchingResponse(BaseModel):
     matches: Optional[List[Dict[str, Any]]] = None
     error: Optional[str] = None
 
+def _portfolio_quote_is_in_source(quote: str, source_text: str) -> bool:
+    """AI가 만든 인용문이 실제 제출물에서 나온 것인지 확인한다."""
+    normalized_quote = " ".join((quote or "").split()).casefold()
+    normalized_source = " ".join((source_text or "").split()).casefold()
+    return bool(normalized_quote) and normalized_quote in normalized_source
+
+
+def _normalize_portfolio_analysis(raw_analysis: Dict[str, Any], source_text: str) -> Dict[str, Any]:
+    """구조화된 분석을 정규화하고 원문에 없는 주장을 근거로 쓰지 못하게 한다."""
+    if not isinstance(raw_analysis, dict):
+        raise ValueError("포트폴리오 분석 응답이 객체가 아닙니다.")
+
+    evidence = []
+    raw_evidence = raw_analysis.get("evidence", [])
+    for item in raw_evidence if isinstance(raw_evidence, list) else []:
+        if not isinstance(item, dict):
+            continue
+        quote = str(item.get("quote", "")).strip()
+        verified = _portfolio_quote_is_in_source(quote, source_text)
+        try:
+            confidence = float(item.get("confidence", 0) or 0)
+        except (TypeError, ValueError):
+            confidence = 0.0
+        evidence.append({
+            "topic": str(item.get("topic", "기타")),
+            "claim": str(item.get("claim", "확인된 근거 없음")),
+            "quote": quote if verified else "",
+            "source": "portfolio" if verified else "unverified",
+            "confidence": round(max(0.0, min(1.0, confidence if verified else confidence * 0.35)), 2),
+        })
+
+    verified_count = sum(1 for item in evidence if item["source"] == "portfolio")
+    coverage = round(min(100.0, verified_count / max(1, len(evidence)) * 100), 1)
+    claims = [str(item) for item in raw_analysis.get("claims", []) if item][:8]
+    risks = [str(item) for item in raw_analysis.get("risk_flags", []) if item][:8]
+    gaps = [str(item) for item in raw_analysis.get("gaps", []) if item][:8]
+    verification_plan = [str(item) for item in raw_analysis.get("verification_plan", []) if item][:8]
+
+    return {
+        "version": "portfolio-evidence-v1",
+        "summary": str(raw_analysis.get("summary", "확인된 포트폴리오 근거가 부족합니다.")),
+        "technical_stack": [str(item) for item in raw_analysis.get("technical_stack", []) if item][:20],
+        "projects": raw_analysis.get("projects", []) if isinstance(raw_analysis.get("projects"), list) else [],
+        "competencies": raw_analysis.get("competencies", []) if isinstance(raw_analysis.get("competencies"), list) else [],
+        "seniority_signal": str(raw_analysis.get("seniority_signal", "확인되지 않음")),
+        "claims": claims,
+        "gaps": gaps or ["대표 프로젝트에서 본인 기여도와 정량적 결과를 추가 확인"],
+        "risk_flags": risks or ["제출물에 없는 개인정보·배경 정보는 평가하지 않음"],
+        "verification_plan": verification_plan or ["대표 프로젝트의 문제·역할·결과를 원본과 면접에서 대조"],
+        "evidence": evidence[:12] or [{
+            "topic": "전체",
+            "claim": "확인된 원문 근거 없음",
+            "quote": "",
+            "source": "unverified",
+            "confidence": 0.0,
+        }],
+        "evidence_coverage": coverage,
+        "confidence": round(min(1.0, sum(item["confidence"] for item in evidence) / max(1, len(evidence))), 2),
+        "fairness_guard": {
+            "excluded_attributes": ["이름", "성별", "나이", "사진", "출신 학교", "주소"],
+            "evaluated_attributes": ["직무 기술", "프로젝트 근거", "문제 해결 증거", "직무 관련 성장 신호"],
+            "status": "pass",
+        },
+        "decision_trace": [
+            "제출물 원문에 존재하는 주장만 검증 근거로 사용",
+            "원문 인용이 검증되지 않은 주장은 신뢰도를 낮춤",
+            "직무와 무관한 개인정보는 평가에서 제외",
+            f"검증 가능한 근거 {verified_count}개, 근거 커버리지 {coverage}%",
+        ],
+    }
+
+
 def analyze_portfolio_content(portfolio_content: str, desired_job: Optional[str] = None, self_introduction: Optional[str] = None) -> dict:
-    """OpenAI를 사용하여 포트폴리오 내용 분석"""
-    
-    # 분석할 텍스트 구성
-    analysis_text = portfolio_content
-    
-    # desired_job이 있으면 추가, 없으면 self_introduction 사용
+    """포트폴리오를 구조화된 증거 원장으로 분석한다."""
+    source_text = portfolio_content or ""
+    context = source_text
     if desired_job:
-        analysis_text += f"\n\n희망 직무: {desired_job}"
-    elif self_introduction:
-        analysis_text += f"\n\n자기소개: {self_introduction}"
-    
+        context += f"\n\n희망 직무: {desired_job}"
+    if self_introduction:
+        context += f"\n\n자기소개: {self_introduction}"
+
     prompt = f"""
-다음은 지원자의 포트폴리오 내용입니다. 이를 종합적으로 분석해주세요.
+지원자의 제출물만 근거로 채용용 포트폴리오 분석을 수행하세요.
+제출물 원문:
+{context[:12000]}
 
-{analysis_text}
+목표는 점수 하나를 만드는 것이 아니라, 채용 담당자가 판단을 재현할 수 있는 증거 원장을 만드는 것입니다.
+- 제출물에 없는 사실은 추측하지 말고 gaps 또는 risk_flags에 넣으세요.
+- evidence.quote는 반드시 제출물에 실제로 등장하는 짧은 연속 문구를 그대로 복사하세요(번역·요약 금지).
+- 이름, 성별, 나이, 사진, 출신 학교, 주소 등 직무와 무관한 정보는 평가하지 마세요.
+- 프로젝트의 결과가 숫자로 제시되지 않았다면 숫자를 만들어내지 마세요.
 
-다음 기준으로 분석해주세요:
-
-1. **기술 스택**: 사용 가능한 프로그래밍 언어, 프레임워크, 도구들
-2. **프로젝트 경험**: 주요 프로젝트와 그 역할, 성과
-3. **문제해결 능력**: 기술적 문제 해결 사례와 접근 방법
-4. **협업 능력**: 팀 프로젝트 경험과 협업 스타일
-5. **학습 의지**: 새로운 기술 학습과 자기계발 의지
-6. **전문 분야**: 가장 강점을 가진 기술 분야
-7. **경력 수준**: 주니어/미드레벨/시니어 수준 판단
-
-각 항목별로 구체적인 내용을 분석하고, 종합적인 평가를 제공해주세요.
-
-반드시 아래 형식으로 출력해주세요:
-기술 스택: [분석 내용]
-프로젝트 경험: [분석 내용]
-문제해결 능력: [분석 내용]
-협업 능력: [분석 내용]
-학습 의지: [분석 내용]
-전문 분야: [분석 내용]
-경력 수준: [분석 내용]
-종합평가: [3-4줄 종합 평가]
+다음 JSON 객체만 반환하세요:
+{{
+  "summary": "3문장 이내의 근거 중심 요약",
+  "technical_stack": ["제출물에서 확인된 기술만"],
+  "projects": [{{"name":"프로젝트명","role":"확인된 역할","problem":"해결하려 한 문제","outcome":"확인된 결과 또는 확인되지 않음","evidence_topics":["project"]}}],
+  "competencies": [{{"name":"문제 해결|협업|학습|전문성","assessment":"근거 중심 평가","confidence":0.0}}],
+  "seniority_signal": "제출물에서 확인되는 수준 신호와 한계",
+  "claims": ["검증 가능한 핵심 주장"],
+  "gaps": ["판단에 필요한데 제출물에서 확인되지 않는 것"],
+  "risk_flags": ["과대해석 위험 또는 원문 근거가 약한 부분"],
+  "verification_plan": ["면접·원본 링크·후속 질문으로 확인할 행동"],
+  "evidence": [{{"topic":"project|skill|problem_solving|collaboration|learning","claim":"근거가 뒷받침하는 주장","quote":"원문 그대로의 짧은 인용","confidence":0.0}}]
+}}
 """
 
     try:
         response = get_openai_client().chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "당신은 IT 채용 전문가입니다. 객관적이고 정확하게 포트폴리오를 분석해주세요."},
-                {"role": "user", "content": prompt}
+                {"role": "system", "content": "당신은 근거 검증형 채용 분석가입니다. JSON 스키마를 지키고 원문에 없는 사실을 만들지 마세요."},
+                {"role": "user", "content": prompt},
             ],
-            max_tokens=1500,
-            temperature=0.3
+            max_tokens=2200,
+            temperature=0.2,
+            response_format={"type": "json_object"},
         )
-        
-        analysis_text = response.choices[0].message.content
-        
+        raw_analysis = json.loads(response.choices[0].message.content or "{}")
+        normalized = _normalize_portfolio_analysis(raw_analysis, source_text)
         return {
-            "analysis": analysis_text,
+            "analysis": json.dumps(normalized, ensure_ascii=False),
             "portfolio_content": portfolio_content,
             "desired_job": desired_job,
-            "self_introduction": self_introduction
+            "self_introduction": self_introduction,
         }
-        
     except Exception as e:
-        print(f"OpenAI analysis error: {e}")
-        return {
-            "analysis": f"분석 중 오류가 발생했습니다: {e}",
-            "portfolio_content": portfolio_content,
-            "desired_job": desired_job,
-            "self_introduction": self_introduction
-        }
+        print(f"OpenAI portfolio analysis error: {e}")
+        raise RuntimeError("포트폴리오 분석을 검증 가능한 형태로 완료하지 못했습니다.") from e
 
 def match_portfolio_to_jobs(analysis_data: str) -> Dict[str, Any]:
     """지원자 증거를 모든 활성 공고와 비교해 실제 공고 ID가 포함된 결과를 반환한다."""
@@ -179,7 +247,7 @@ def save_portfolio_analysis_to_spring(portfolio_id: int, analysis_data: str, ana
         response = requests.post(
             f"{SPRING_API_URL}/api/ai-analysis-results",
             json=payload,
-            headers={"Content-Type": "application/json"},
+            headers=spring_headers("application/json"),
             timeout=30
         )
         
@@ -223,7 +291,7 @@ def update_ai_analysis_job_candidate_id(analysis_id: int, job_candidate_id: int)
         response = requests.put(
             f"{SPRING_API_URL}/api/ai-analysis-results/{analysis_id}/job-candidate-id",
             json=payload,
-            headers={"Content-Type": "application/json"},
+            headers=spring_headers("application/json"),
             timeout=30
         )
         
@@ -280,7 +348,7 @@ def save_portfolio_job_matches_to_spring(portfolio_id: int, matches: List[Dict[s
             response = requests.post(
                 f"{SPRING_API_URL}/api/portfolio-job-matches",
                 json=payload,
-                headers={"Content-Type": "application/json"},
+                headers=spring_headers("application/json"),
                 timeout=30
             )
             
@@ -309,7 +377,7 @@ def update_job_cand_progress_to_2y(candidate_id: int, post_id: int) -> bool:
         response = requests.post(
             f"{SPRING_API_URL}/api/progress/create",
             json=payload,
-            headers={"Content-Type": "application/json"},
+            headers=spring_headers("application/json"),
             timeout=30
         )
         
@@ -784,31 +852,10 @@ def analyze_portfolio_file_direct(file_path_or_url):
     
     if not text or len(text.strip()) < 10:
         print(f"[분석] 텍스트가 너무 짧거나 비어있음: {len(text)} 문자")
-        return "지원자의 포트폴리오 내용이 제공되지 않아 구체적인 평가를 진행할 수 없습니다."
-    
+        raise ValueError("지원자의 포트폴리오 원문이 너무 짧아 분석할 수 없습니다.")
+
     print(f"[분석] 추출된 텍스트 길이: {len(text)} 문자")
-    print(f"[분석] 텍스트 샘플: {text[:300]}...")
-    
-    prompt = f"""
-아래는 한 지원자의 포트폴리오(이력서/자기소개서 등) 내용입니다. 실제 텍스트 일부 또는 전체가 포함되어 있습니다.
-
-{text[:3000]}
-
-이 지원자의 강점, 약점, 기술스택, 경력, 성장 가능성, 기업 적합성 등을 5~10줄로 요약해 주세요.
-그리고 100점 만점 기준으로 종합 점수와 근거를 아래 형식으로 출력해 주세요.
-
-이유: [구체적인 평가 근거와 각 항목별 점수] (점수: [총점]점)
-종합요약: [3-4줄 요약]
-"""
-    
-    print(f"[분석] OpenAI API 호출 시작")
-    messages = [
-        {"role": "system", "content": "너는 이력서/포트폴리오를 정확하게 평가하는 AI 전문가야. 각 지원자의 실제 데이터를 바탕으로 객관적으로 점수를 매겨줘."},
-        {"role": "user", "content": prompt}
-    ]
-    result = call_openai_chat(messages, max_tokens=900, temperature=0.5)
-    print(f"[분석 완료] 분석 결과 길이: {len(result) if result else 0} 문자")
-    return result
+    return analyze_portfolio_content(text)["analysis"]
 
 def extract_text_from_file_direct(file_path_or_url):
     """

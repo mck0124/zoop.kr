@@ -4,6 +4,8 @@ server:
 zoop:
   frontend:
     url: ${FRONTEND_URL}
+  internal:
+    api-key: ${ZOOP_INTERNAL_API_KEY}
 
 file:
   upload-dir: ./uploads

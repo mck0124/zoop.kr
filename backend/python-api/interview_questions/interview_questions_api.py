@@ -57,7 +57,7 @@ def call_openai_chat(messages, max_tokens=800, temperature=0.3):
         )
     except Exception as e:
         print(f"[OpenAI API Error] {e}")
-        return "AI 서버 연결에 문제가 발생했습니다."
+        raise RuntimeError("AI 서버 연결에 문제가 발생했습니다.") from e
 
 def generate_interview_questions(post_title: str, post_description: str, 
                                programming_language: str, ideal_candidate: str, 
@@ -123,26 +123,15 @@ def generate_interview_questions(post_title: str, post_description: str,
         # 질문을 줄바꿈으로 분리하고 빈 줄 제거
         questions = [q.strip() for q in questions_text.split('\n') if q.strip()]
         
-        # 질문이 3개가 아니면 기본 질문으로 보완
         if len(questions) < 3:
-            default_questions = [
-                "자기소개를 해주세요.",
-                "이 직무에 지원한 이유는 무엇인가요?",
-                "가장 기억에 남는 프로젝트에 대해 설명해주세요."
-            ]
-            questions.extend(default_questions[len(questions):])
+            raise RuntimeError("AI가 충분한 맞춤 질문을 생성하지 못했습니다.")
         
         # 최대 3개까지만 반환
         return questions[:3]
         
     except Exception as e:
         print(f"OpenAI 질문 생성 오류: {e}")
-        # 오류 발생 시 기본 질문 반환
-        return [
-            "자기소개를 해주세요.",
-            "이 직무에 지원한 이유는 무엇인가요?",
-            "가장 기억에 남는 프로젝트에 대해 설명해주세요."
-        ]
+        raise RuntimeError("맞춤 면접 질문 생성에 실패했습니다.") from e
 
 
 # ==========================================
@@ -223,40 +212,15 @@ def generate_preparation_questions(post_title: str, post_description: str,
         # 질문을 줄바꿈으로 분리하고 빈 줄 제거
         questions = [q.strip() for q in questions_text.split('\n') if q.strip()]
         
-        # 질문이 10개가 아니면 기본 예상질문으로 보완
         if len(questions) < 10:
-            default_preparation_questions = [
-                "자기소개와 함께 이 직무에 지원한 동기를 말씀해주세요.",
-                "본인의 기술적 강점과 경험에 대해 설명해주세요.",
-                "우리 회사와 이 직무에 대해 어떻게 이해하고 계신가요?",
-                "해당 기술 스택을 선택한 이유와 경험에 대해 말씀해주세요.",
-                "가장 어려웠던 기술적 문제와 해결 과정을 설명해주세요.",
-                "팀워크나 협업 경험 중 기억에 남는 사례가 있나요?",
-                "개발자로서 본인의 성장 목표는 무엇인가요?",
-                "최근에 관심 있게 학습하고 있는 기술이나 분야가 있나요?",
-                "프로젝트에서 겪은 실패 경험과 배운 점이 있다면 말씀해주세요.",
-                "우리 회사에서 어떤 기여를 하고 싶으신가요?"
-            ]
-            questions.extend(default_preparation_questions[len(questions):])
+            raise RuntimeError("AI가 충분한 맞춤 예상질문을 생성하지 못했습니다.")
         
         # 최대 10개까지만 반환
         return questions[:10]
         
     except Exception as e:
         print(f"예상질문 생성 오류: {e}")
-        # 오류 발생 시 기본 예상질문 반환
-        return [
-            "자기소개와 함께 이 직무에 지원한 동기를 말씀해주세요.",
-            "본인의 기술적 강점과 경험에 대해 설명해주세요.",
-            "우리 회사와 이 직무에 대해 어떻게 이해하고 계신가요?",
-            "해당 기술 스택을 선택한 이유와 경험에 대해 말씀해주세요.",
-            "가장 어려웠던 기술적 문제와 해결 과정을 설명해주세요.",
-            "팀워크나 협업 경험 중 기억에 남는 사례가 있나요?",
-            "개발자로서 본인의 성장 목표는 무엇인가요?",
-            "최근에 관심 있게 학습하고 있는 기술이나 분야가 있나요?",
-            "프로젝트에서 겪은 실패 경험과 배운 점이 있다면 말씀해주세요.",
-            "우리 회사에서 어떤 기여를 하고 싶으신가요?"
-        ]
+        raise RuntimeError("맞춤 예상질문 생성에 실패했습니다.") from e
 
 @app.post("/generate-questions", response_model=InterviewQuestionsResponse)
 async def generate_questions_endpoint(

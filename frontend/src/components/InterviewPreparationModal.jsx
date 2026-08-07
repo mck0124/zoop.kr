@@ -26,19 +26,7 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
     } catch (err) {
       console.error('면접 예상질문 API 오류:', err);
       setError(err.message);
-      // 기본 질문 제공
-      setQuestions([
-        '자기소개를 부탁드립니다.',
-        '이 회사에 지원한 이유는 무엇인가요?',
-        '본인의 강점과 약점을 말씀해주세요.',
-        '5년 후 본인의 모습은 어떨 것 같나요?',
-        '이전 프로젝트에서 가장 어려웠던 점은 무엇인가요?',
-        '팀워크 경험에 대해 말씀해주세요.',
-        '새로운 기술을 학습하는 방법은 무엇인가요?',
-        '업무에서 우선순위를 정하는 기준은 무엇인가요?',
-        '스트레스를 받을 때 어떻게 해결하나요?',
-        '마지막으로 궁금한 점이 있다면 질문해주세요.'
-      ]);
+      setQuestions([]);
     } finally {
       setLoading(false);
     }
@@ -136,29 +124,17 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
                 </p>
               </div>
             ) : error ? (
-              // 에러 상태 (기본 질문 표시)
+              // 에러 상태: 생성되지 않은 질문을 AI 결과처럼 표시하지 않는다.
               <div className="space-y-4">
                 <div className="flex items-center space-x-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   {/* 에러 상태 아이콘 */}
                   <span><AlertIcon /></span>
                   <p className="text-amber-700 text-sm">
-                    맞춤 질문 생성에 실패했습니다. 일반적인 면접 질문을 제공합니다.
+                    맞춤 질문을 생성하지 못했습니다. 현재 결과를 임의의 질문으로 대체하지 않았습니다.
                   </p>
                 </div>
-                <div className="space-y-3">
-                  {questions.map((question, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start space-x-3 p-4 bg-yellow-50 rounded-2xl border border-yellow-100 hover:bg-yellow-100 transition-all duration-200"
-                      style={{ boxShadow: '0 2px 8px #fbbf2411', cursor: 'pointer' }}
-                    >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-400 text-white font-bold text-sm flex-shrink-0">
-                        {index + 1}
-                      </div>
-                      <p className="text-gray-800 leading-relaxed flex-1">{question}</p>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-sm text-gray-600">{error}</p>
+                <button onClick={fetchInterviewQuestions} className="rounded-full bg-gradient-to-r from-yellow-400 to-amber-400 px-5 py-2 text-sm font-bold text-white">다시 생성하기</button>
               </div>
             ) : (
               // 정상 상태

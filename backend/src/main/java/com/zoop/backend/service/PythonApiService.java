@@ -1,6 +1,5 @@
 package com.zoop.backend.service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -81,40 +80,25 @@ public class PythonApiService {
                 if (Boolean.TRUE.equals(success)) {
                     List<String> questions = (List<String>) responseBody.get("questions");
                     log.info("Python API 호출 성공: {}개 질문 생성", questions != null ? questions.size() : 0);
-                    return questions != null ? questions : getDefaultQuestions();
+                    if (questions == null || questions.isEmpty()) {
+                        throw new IllegalStateException("AI가 질문을 생성하지 못했습니다.");
+                    }
+                    return questions;
                 } else {
                     String error = (String) responseBody.get("error");
                     log.error("Python API 응답 에러: {}", error);
-                    return getDefaultQuestions();
+                    throw new IllegalStateException(error != null ? error : "AI 질문 생성에 실패했습니다.");
                 }
             } else {
                 log.error("Python API 호출 실패: HTTP {}", response.getStatusCode());
-                return getDefaultQuestions();
+                throw new IllegalStateException("AI 질문 서비스가 응답하지 않습니다.");
             }
 
         } catch (Exception e) {
             log.error("Python API 호출 중 예외 발생: {}", e.getMessage(), e);
-            return getDefaultQuestions();
+            if (e instanceof IllegalStateException) throw (IllegalStateException) e;
+            throw new IllegalStateException("AI 질문 서비스 호출에 실패했습니다.", e);
         }
-    }
-
-    /**
-     * Python API 호출 실패 시 기본 질문 반환
-     */
-    public List<String> getDefaultQuestions() {
-        log.info("기본 예상질문 반환");
-        return Arrays.asList(
-            "자기소개와 함께 이 직무에 지원한 동기를 말씀해주세요.",
-            "본인의 기술적 강점과 경험에 대해 설명해주세요.",
-            "우리 회사와 이 직무에 대해 어떻게 이해하고 계신가요?",
-            "해당 기술 스택을 선택한 이유와 경험에 대해 말씀해주세요.",
-            "가장 어려웠던 기술적 문제와 해결 과정을 설명해주세요.",
-            "팀워크나 협업 경험 중 기억에 남는 사례가 있나요?",
-            "개발자로서 본인의 성장 목표는 무엇인가요?",
-            "최근에 관심 있게 학습하고 있는 기술이나 분야가 있나요?",
-            "프로젝트에서 겪은 실패 경험과 배운 점이 있다면 말씀해주세요.",
-            "우리 회사에서 어떤 기여를 하고 싶으신가요?"
-        );
     }
 
     /**

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,6 +31,7 @@ import com.zoop.backend.repository.PortfolioJobMatchRepository;
 import com.zoop.backend.repository.PostRepository;
 import com.zoop.backend.service.CandidateNotificationService;
 import com.zoop.backend.service.CompanyNotificationService;
+import com.zoop.backend.config.InternalApiKeyValidator;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,9 +61,16 @@ public class PortfolioJobMatchController {
     private PostRepository postRepository;
     @Autowired
     private CandidateRepository candidateRepository;
+
+    @Autowired
+    private InternalApiKeyValidator internalApiKeyValidator;
     
     @PostMapping
-    public ResponseEntity<?> savePortfolioJobMatch(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> savePortfolioJobMatch(@RequestBody Map<String, Object> request,
+                                                    @RequestHeader(value = "X-Zoop-Internal-Key", required = false) String internalKey) {
+        if (!internalApiKeyValidator.isAllowed(internalKey)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("내부 AI worker 인증이 필요합니다.");
+        }
         try {
             log.info("포트폴리오-채용공고 매칭 결과 저장 시작");
             

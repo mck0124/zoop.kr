@@ -96,8 +96,7 @@ public class InterviewQuestionService {
 
         } catch (Exception e) {
             log.error("면접 예상질문 생성 중 오류 발생: {}", e.getMessage(), e);
-            // 오류 발생 시 기본 질문 반환
-            return pythonApiService.getDefaultQuestions();
+            throw new RuntimeException("맞춤형 면접 질문을 생성하지 못했습니다. 잠시 후 다시 시도해주세요.", e);
         }
     }
 
@@ -216,7 +215,7 @@ public class InterviewQuestionService {
             return objectMapper.readValue(questionsJson, List.class);
         } catch (JsonProcessingException e) {
             log.error("질문 JSON 파싱 오류: {}", e.getMessage(), e);
-            return pythonApiService.getDefaultQuestions();
+            throw new RuntimeException("저장된 면접 질문을 읽지 못했습니다. 다시 생성해주세요.", e);
         }
     }
 
@@ -280,4 +279,4 @@ public class InterviewQuestionService {
             return LocalDateTime.now().plusDays(3);
         }
     }
-} 
+}

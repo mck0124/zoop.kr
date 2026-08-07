@@ -13,11 +13,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zoop.backend.domain.dto.AiAnalysisResultDto;
 import com.zoop.backend.domain.entity.AiAnalysisResult;
 import com.zoop.backend.service.AiAnalysisResultService;
+import com.zoop.backend.config.InternalApiKeyValidator;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 public class AiAnalysisResultController {
 
     private final AiAnalysisResultService aiAnalysisResultService;
+    private final InternalApiKeyValidator internalApiKeyValidator;
 
     @GetMapping
     public ResponseEntity<List<AiAnalysisResult>> getAllAiAnalysisResults() {
@@ -57,7 +60,11 @@ public class AiAnalysisResultController {
             required = true,
             content = @Content(schema = @Schema(implementation = AiAnalysisResultDto.class))
         )
-        @RequestBody AiAnalysisResultDto dto) {
+        @RequestBody AiAnalysisResultDto dto,
+        @RequestHeader(value = "X-Zoop-Internal-Key", required = false) String internalKey) {
+        if (!internalApiKeyValidator.isAllowed(internalKey)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         
         AiAnalysisResult saved = aiAnalysisResultService.saveAiAnalysisResult(dto);
         return ResponseEntity.status(201).body(saved);
@@ -97,7 +104,11 @@ public class AiAnalysisResultController {
     @PutMapping("/{analysisId}/job-candidate-id")
     public ResponseEntity<?> updateJobCandidateId(
         @PathVariable Long analysisId,
-        @RequestBody Map<String, Object> request) {
+        @RequestBody Map<String, Object> request,
+        @RequestHeader(value = "X-Zoop-Internal-Key", required = false) String internalKey) {
+        if (!internalApiKeyValidator.isAllowed(internalKey)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         
         try {
             Long jobCandidateId = Long.valueOf(request.get("jobCandidateId").toString());
@@ -125,7 +136,11 @@ public class AiAnalysisResultController {
     }
 
     @PostMapping("/update-job-candidate-id")
-    public ResponseEntity<?> updateJobCandidateId(@RequestBody Map<String, Long> request) {
+    public ResponseEntity<?> updateJobCandidateId(@RequestBody Map<String, Long> request,
+                                                   @RequestHeader(value = "X-Zoop-Internal-Key", required = false) String internalKey) {
+        if (!internalApiKeyValidator.isAllowed(internalKey)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         Long candPortfolioId = request.get("candPortfolioId");
         Long jobCandidateId = request.get("jobCandidateId");
         int updated = aiAnalysisResultService.updateJobCandidateIdForPortfolio(candPortfolioId, jobCandidateId);
@@ -183,4 +198,4 @@ public class AiAnalysisResultController {
             return ResponseEntity.notFound().build();
         }
     }
-} 
+}

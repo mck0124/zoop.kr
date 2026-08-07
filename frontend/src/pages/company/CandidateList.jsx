@@ -903,8 +903,20 @@ const NameText = styled.span`
 `;
 
 // Move these utility functions above TossCandidateCard so they are in scope
+const parsePortfolioEvidence = (analysisText) => {
+  if (!analysisText || typeof analysisText !== 'string') return null;
+  try {
+    const parsed = JSON.parse(analysisText);
+    return parsed && parsed.version === 'portfolio-evidence-v1' ? parsed : null;
+  } catch (_) {
+    return null;
+  }
+};
+
 const extractSummary = (analysisText) => {
   if (!analysisText) return '';
+  const structured = parsePortfolioEvidence(analysisText);
+  if (structured) return structured.summary || '제출물 근거가 부족합니다.';
   const summaryMatch = analysisText.match(/종합요약:\s*([^\n]+(?:\n[^\n]+)*)/);
   if (summaryMatch) return summaryMatch[1].trim();
   return analysisText.length > 85 ? analysisText.substring(0, 85) + '...' : analysisText;
@@ -912,6 +924,8 @@ const extractSummary = (analysisText) => {
 
 const extractKeywords = (analysisText) => {
   if (!analysisText) return [];
+  const structured = parsePortfolioEvidence(analysisText);
+  if (structured) return Array.isArray(structured.technical_stack) ? structured.technical_stack.slice(0, 8) : [];
   const keywordMatch = analysisText.match(/핵심키워드:\s*([^\n]+)/);
   if (keywordMatch) {
     const keywords = keywordMatch[1].trim().split(',').map(k => k.trim());
@@ -922,6 +936,11 @@ const extractKeywords = (analysisText) => {
 
 const extractStrengths = (analysisText) => {
   if (!analysisText) return [];
+  const structured = parsePortfolioEvidence(analysisText);
+  if (structured) return (structured.competencies || [])
+    .filter(item => item && item.assessment && !/확인되지 않음|부족/.test(item.assessment))
+    .map(item => `${item.name}: ${item.assessment}`)
+    .slice(0, 4);
   const strengthMatch = analysisText.match(/강점:\s*([^\n]+)/);
   if (strengthMatch) {
     const strengths = strengthMatch[1].trim().split(',').map(s => s.trim());
@@ -932,6 +951,8 @@ const extractStrengths = (analysisText) => {
 
 const extractWeaknesses = (analysisText) => {
   if (!analysisText) return [];
+  const structured = parsePortfolioEvidence(analysisText);
+  if (structured) return [...(structured.gaps || []), ...(structured.risk_flags || [])].slice(0, 5);
   const weaknessMatch = analysisText.match(/약점:\s*([^\n]+)/);
   if (weaknessMatch) {
     const weaknesses = weaknessMatch[1].trim().split(',').map(w => w.trim());
@@ -942,6 +963,8 @@ const extractWeaknesses = (analysisText) => {
 
 const extractSuitableJobs = (analysisText) => {
   if (!analysisText) return [];
+  const structured = parsePortfolioEvidence(analysisText);
+  if (structured) return (structured.technical_stack || []).slice(0, 4);
   const jobMatch = analysisText.match(/적합직무:\s*([^\n]+)/);
   if (jobMatch) {
     const jobs = jobMatch[1].trim().split(',').map(j => j.trim());
@@ -952,6 +975,8 @@ const extractSuitableJobs = (analysisText) => {
 
 const extractGrowthPotential = (analysisText) => {
   if (!analysisText) return '';
+  const structured = parsePortfolioEvidence(analysisText);
+  if (structured) return structured.seniority_signal || '';
   const growthMatch = analysisText.match(/성장가능성:\s*([^\n]+(?:\n[^\n]+)*)/);
   if (growthMatch) {
     return growthMatch[1].trim();
@@ -2226,6 +2251,7 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
   const login = candidate.githubLogin || candidate.login;
   const avatarUrl = login ? `https://github.com/${login}.png?size=160` : undefined;
   const componentScores = parseComponentScores(analysisText, candidate);
+  const portfolioEvidence = parsePortfolioEvidence(analysisText);
 
   // 3D hover + animated graph + dynamic lighting
   const [hoverTransform, setHoverTransform] = React.useState('');
@@ -2395,6 +2421,17 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
               padding: '7px 12px'
             }}>
               분석 대기 · 확인 가능한 GitHub 근거가 아직 없습니다
+            </div>
+          )}
+
+          {portfolioEvidence && (
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              <span style={{ color: '#0f766e', background: '#ccfbf1', borderRadius: '999px', padding: '4px 9px', fontSize: '0.72rem', fontWeight: 800 }}>
+                근거 커버리지 {portfolioEvidence.evidence_coverage ?? 0}%
+              </span>
+              <span style={{ color: '#475569', background: '#f1f5f9', borderRadius: '999px', padding: '4px 9px', fontSize: '0.72rem', fontWeight: 700 }}>
+                신뢰도 {Math.round((portfolioEvidence.confidence ?? 0) * 100)}%
+              </span>
             </div>
           )}
           
@@ -3228,19 +3265,21 @@ const EvidenceTrustPanel = ({ candidate, analysisText }) => {
   let structured = null;
   try {
     const parsed = JSON.parse(analysisText || '{}');
-    if (parsed && Array.isArray(parsed.dimensions)) structured = parsed;
+    if (parsed && (Array.isArray(parsed.dimensions) || parsed.version === 'portfolio-evidence-v1')) structured = parsed;
   } catch (_) {
     // 기존 자연어 분석 결과도 계속 지원한다.
   }
 
   const evidenceCount = structured
-    ? structured.dimensions.reduce((count, dimension) => count + (dimension.evidence || []).length, 0)
+    ? structured.version === 'portfolio-evidence-v1'
+      ? (structured.evidence || []).filter(item => item.source === 'portfolio').length
+      : structured.dimensions.reduce((count, dimension) => count + (dimension.evidence || []).length, 0)
     : null;
   const signals = [
     candidate?.githubProfileUrl || candidate?.profileUrl ? 'GitHub 원본 프로필' : null,
     getCandidateLanguages(candidate || {}).length ? '사용 언어 데이터' : null,
     candidate?.analysisScore !== undefined || candidate?.aiAnalysis?.analysisScore !== undefined ? 'AI 분석 점수' : null,
-    structured ? '항목별 근거와 확신도' : '자연어 분석 결과'
+    structured?.version === 'portfolio-evidence-v1' ? '제출물 원문 근거 검증' : structured ? '항목별 근거와 확신도' : '자연어 분석 결과'
   ].filter(Boolean);
 
   return (
@@ -3260,7 +3299,7 @@ const EvidenceTrustPanel = ({ candidate, analysisText }) => {
           </p>
         </div>
         <span style={{ background: '#34d399', color: '#063b2b', borderRadius: '999px', padding: '7px 12px', fontWeight: 800, fontSize: '0.78rem' }}>
-          {structured ? `${evidenceCount}개 근거 추출됨` : '근거 확인 필요'}
+          {structured ? `${evidenceCount}개 검증 근거` : '근거 확인 필요'}
         </span>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '16px' }}>
@@ -3273,6 +3312,15 @@ const EvidenceTrustPanel = ({ candidate, analysisText }) => {
       {structured?.gaps?.length > 0 && (
         <div style={{ marginTop: '16px', padding: '12px 14px', background: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(253, 230, 138, 0.35)', borderRadius: '12px', color: '#fef3c7', fontSize: '0.84rem' }}>
           <strong>추가 검증이 필요한 정보:</strong> {structured.gaps.join(', ')}
+        </div>
+      )}
+      {structured?.version === 'portfolio-evidence-v1' && (
+        <div style={{ marginTop: '12px', display: 'flex', gap: '10px', flexWrap: 'wrap', fontSize: '0.8rem' }}>
+          <span style={{ color: '#d1fae5' }}>원문 커버리지 {structured.evidence_coverage ?? 0}%</span>
+          <span style={{ color: '#d1fae5' }}>신뢰도 {Math.round((structured.confidence ?? 0) * 100)}%</span>
+          {(structured.evidence || []).filter(item => item.source === 'portfolio').slice(0, 2).map((item, index) => (
+            <span key={index} style={{ width: '100%', color: '#bbf7d0', fontStyle: 'italic' }}>“{item.quote}”</span>
+          ))}
         </div>
       )}
       <div style={{ marginTop: '14px', color: '#a7f3d0', fontSize: '0.78rem' }}>

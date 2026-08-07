@@ -19,6 +19,13 @@ import yt_dlp
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 SPRING_API_URL = os.getenv("SPRING_API_URL", "http://localhost:8081")
+ZOOP_INTERNAL_API_KEY = os.getenv("ZOOP_INTERNAL_API_KEY", "")
+
+def spring_headers(content_type: Optional[str] = None):
+    headers = {"Content-Type": content_type} if content_type else {}
+    if ZOOP_INTERNAL_API_KEY:
+        headers["X-Zoop-Internal-Key"] = ZOOP_INTERNAL_API_KEY
+    return headers
 
 client = None
 
@@ -325,8 +332,7 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                 })
             analysis_data["consistency_audit"] = {"status": status, "checks": checks[:5]}
         except Exception as e:
-            analysis_data = {"error": f"JSON 파싱 오류: {e}", "raw": analysis_json}
-            score = 0.0
+            raise RuntimeError("면접 분석 결과를 구조화된 형식으로 검증하지 못했습니다.") from e
         return {
             "analysis": analysis_data,
             "score": score,
@@ -334,11 +340,7 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
         }
     except Exception as e:
         print(f"OpenAI analysis error: {e}")
-        return {
-            "analysis": {"error": f"분석 중 오류가 발생했습니다: {e}"},
-            "score": 0.0,
-            "transcripts": transcripts
-        }
+        raise RuntimeError("면접 분석을 완료하지 못했습니다.") from e
 
 def save_analysis_to_spring(job_candidate_id: int, analysis_data: str, score: float, analysis_type: str = "interview", video_id: Optional[int] = None) -> Optional[int]:
     """Spring 백엔드에 분석 결과 저장"""
@@ -356,7 +358,7 @@ def save_analysis_to_spring(job_candidate_id: int, analysis_data: str, score: fl
         response = requests.post(
             f"{SPRING_API_URL}/api/ai-analysis-results",
             json=payload,
-            headers={"Content-Type": "application/json"},
+            headers=spring_headers("application/json"),
             timeout=30
         )
         
@@ -465,7 +467,7 @@ async def analyze_interview(
             update_response = requests.put(
                 f"{SPRING_API_URL}/api/job-cand-progress/{job_candidate_id}/interview-analysis",
                 json={"aiInterviewAnalysisId": analysis_id},
-                headers={"Content-Type": "application/json"},
+                headers=spring_headers("application/json"),
                 timeout=30
             )
             
