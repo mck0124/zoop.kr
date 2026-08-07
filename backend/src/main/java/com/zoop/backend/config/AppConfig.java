@@ -67,6 +67,7 @@ public class AppConfig {
                     "/api/candidates/*/**",
                     "/api/postings/**"
                 ).authenticated()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/portfolio-job-matches/**").authenticated()
                 // Legacy candidate and AI worker routes still perform their own ownership checks
                 // or are called server-to-server without a browser JWT.
                 .anyRequest().permitAll()

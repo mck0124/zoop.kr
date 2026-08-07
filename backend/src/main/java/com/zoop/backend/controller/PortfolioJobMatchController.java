@@ -72,24 +72,36 @@ public class PortfolioJobMatchController {
             
             log.info("매칭 저장 요청: candPortfolioId={}, jobPostingId={}, score={}", candPortfolioId, jobPostingId, matchingScore);
             
-            // 80점 미만은 저장하지 않음
-            if (matchingScore < 80.0) {
-                log.info("매칭 점수 {}점: 80점 미만이므로 저장하지 않음", matchingScore);
-                return ResponseEntity.noContent().build();
+            if (matchingScore < 0.0 || matchingScore > 100.0) {
+                return ResponseEntity.badRequest().body("매칭 점수는 0점에서 100점 사이여야 합니다.");
             }
-            
-            // PortfolioJobMatch 엔티티 생성 및 저장
-            PortfolioJobMatch match = PortfolioJobMatch.builder()
-                    .candPortfolioId(candPortfolioId)
-                    .postId(jobPostingId)
-                    .matchingScore(matchingScore)
-                    .matchingReason(matchingReason)
-                    .build();
+
+            // review/not_enough_evidence 판단도 숨기지 않고 저장한다.
+            // 단, strong match(80점 이상)만 자동 알림과 단계 전환을 일으킨다.
+            Optional<PortfolioJobMatch> existingMatch = portfolioJobMatchRepository
+                    .findByCandPortfolioIdAndPostId(candPortfolioId, jobPostingId);
+            boolean shouldPromote = existingMatch.map(existing -> existing.getMatchingScore() < 80.0).orElse(true)
+                    && matchingScore >= 80.0;
+            PortfolioJobMatch match = existingMatch.orElseGet(() -> PortfolioJobMatch.builder()
+                            .candPortfolioId(candPortfolioId)
+                            .postId(jobPostingId)
+                            .build());
+            match.setMatchingScore(matchingScore);
+            match.setMatchingReason(matchingReason);
             
             PortfolioJobMatch savedMatch = portfolioJobMatchRepository.save(match);
             System.out.println("매칭 저장 완료: " + savedMatch.getMatchId());
 
-            // --- 매칭 알림 생성 ---
+            if (matchingScore < 80.0) {
+                log.info("매칭 점수 {}점: 결과는 저장하지만 자동 알림·단계 전환은 보류", matchingScore);
+                return ResponseEntity.status(HttpStatus.CREATED).body(savedMatch);
+            }
+            if (!shouldPromote) {
+                log.info("기존 strong match 갱신: 중복 알림·단계 전환은 생략");
+                return ResponseEntity.status(HttpStatus.CREATED).body(savedMatch);
+            }
+
+            // --- strong match에만 매칭 알림 생성 ---
             Optional<JobCandProgress> progressOpt = jobCandProgressRepository.findByCandPortfolioIdAndPost_PostId(candPortfolioId, jobPostingId);
             if (progressOpt.isPresent()) {
                 JobCandProgress progress = progressOpt.get();

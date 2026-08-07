@@ -73,6 +73,16 @@ def _quote_is_in_transcripts(quote: str, transcripts: List[str]) -> bool:
         return False
     return any(normalized_quote in re.sub(r"\s+", " ", transcript or "").strip().casefold() for transcript in transcripts)
 
+def _quote_is_in_answer(quote: str, answer_index: Optional[int], transcripts: List[str]) -> bool:
+    """When the model cites an answer number, verify against that answer—not just any answer."""
+    if answer_index is None:
+        return _quote_is_in_transcripts(quote, transcripts)
+    if answer_index < 1 or answer_index > len(transcripts):
+        return False
+    normalized_quote = re.sub(r"\s+", " ", quote).strip().casefold()
+    normalized_answer = re.sub(r"\s+", " ", transcripts[answer_index - 1] or "").strip().casefold()
+    return bool(normalized_quote) and normalized_quote in normalized_answer
+
 def extract_audio_from_video(video_path: str) -> str:
     """비디오에서 오디오 추출"""
     try:
@@ -222,7 +232,10 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                         confidence = float(item.get("confidence", 0) or 0)
                     except (TypeError, ValueError):
                         confidence = 0.0
-                    if quote and not _quote_is_in_transcripts(quote, transcripts):
+                    if quote and not _quote_is_in_answer(quote, answer_index, transcripts):
+                        source = "unverified"
+                        confidence *= 0.5
+                    if source == "answer" and answer_index is None:
                         source = "unverified"
                         confidence *= 0.5
                     normalized_evidence.append({
@@ -238,6 +251,28 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                 except (TypeError, ValueError):
                     category["confidence"] = 0.0
                 normalized_categories.append(category)
+            expected_categories = [
+                ("전문성", 25),
+                ("의사소통 능력", 20),
+                ("문제해결 능력", 20),
+                ("자신감과 태도", 15),
+                ("경험의 구체성", 20),
+            ]
+            existing_names = {category["name"] for category in normalized_categories}
+            for name, maximum in expected_categories:
+                if name not in existing_names and name.replace(" 능력", "") not in existing_names:
+                    normalized_categories.append({
+                        "name": name,
+                        "max_score": maximum,
+                        "score": 0,
+                        "reason": "AI 응답에서 이 평가 항목의 근거를 받지 못했습니다.",
+                        "good_example": "확인되지 않음",
+                        "bad_example": "확인되지 않음",
+                        "improvement": "해당 역량을 확인할 수 있는 답변을 추가로 요청하세요.",
+                        "evidence": [{"source": "missing", "answer_index": None, "quote": "", "claim": "확인된 근거 없음", "confidence": 0.0}],
+                        "confidence": 0.0,
+                        "tags": ["근거 부족"],
+                    })
             analysis_data["categories"] = normalized_categories
             score = sum(category["score"] for category in normalized_categories)
             analysis_data.setdefault("total_feedback", {})

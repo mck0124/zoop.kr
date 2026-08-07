@@ -45,6 +45,7 @@ const InterviewPage = lazy(() => import('./pages/candidate/Interview/InterviewPa
 const InterviewSession = lazy(() => import('./pages/candidate/Interview/InterviewSession'));
 const ResumeSubmissionPage = lazy(() => import('./pages/candidate/resume/ResumeSubmissionPage'));
 const BookmarksPage = lazy(() => import('./pages/candidate/BookmarksPage'));
+const MatchingDetailPage = lazy(() => import('./pages/candidate/MatchingDetailPage'));
 
 // info - lazy loading으로 변경
 const About = lazy(() => import('./pages/info/About'));
@@ -123,7 +124,7 @@ function AppContent() {
             </PrivateRoute>
           }
         />
-        <Route path="/company/state/:postId" element={<StatePage />} />
+        <Route path="/company/state/:postId" element={<PrivateRoute allowedUserType="company"><StatePage /></PrivateRoute>} />
 
         {/*개인회원 대시보드*/}
         <Route
@@ -187,6 +188,15 @@ function AppContent() {
           element={
             <PrivateRoute allowedUserType='candidate'>
               <BookmarksPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/matching-detail"
+          element={
+            <PrivateRoute allowedUserType="candidate">
+              <MatchingDetailPage />
             </PrivateRoute>
           }
         />
