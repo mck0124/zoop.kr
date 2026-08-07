@@ -280,9 +280,7 @@ export default function CompanyDashboard() {
         return res.json();
       })
       .then((data) => {
-        console.log('✅ 회사 정보 로드 성공:', data);
-        console.log('🔍 관리자명:', data.adminName);
-        console.log('🔍 이메일:', data.email);
+        console.log('✅ 회사 정보 로드 성공');
         setCompanyInfo(data);
         setCompanyAdminId(data.companyAdminId || 0);
       })
@@ -317,7 +315,6 @@ export default function CompanyDashboard() {
         return res.json();
       })
       .then((data) => {
-        console.log('받은 공고 데이터:', data);
         // API 응답이 배열인지 확인
         if (Array.isArray(data)) {
           setPostings(data);
@@ -425,10 +422,8 @@ export default function CompanyDashboard() {
       }
 
       const response = await fetch(endpoint);
-      console.log('매칭 API 응답 상태:', response.status);
       if (!response.ok) throw new Error('후보자 데이터 조회 실패');
       const data = await response.json();
-      console.log('매칭 API 응답 데이터:', data);
       console.log('매칭된 후보자 수:', data.length);
       
       // API 응답 구조에 맞게 매핑 (모든 필터 동일한 구조)
@@ -875,7 +870,6 @@ export default function CompanyDashboard() {
         
         // uniqueKey에서 candidateId와 postId 추출
         const [candidateId, postId] = uniqueKey.split('_');
-        console.log('uniqueKey 분해:', { uniqueKey, candidateId, postId });
         
         const candidate = currentApplicants.find(c => {
           // 추가지원자의 경우 candidate 객체 안에 candidateId가 있음
@@ -885,7 +879,6 @@ export default function CompanyDashboard() {
           return candidateIdFromData == candidateId && postIdFromData == postId;
         });
         
-        console.log('찾은 candidate:', candidate);
         
         if (candidate) {
           // 추가지원자의 경우 candidate 객체 안에서 candidateId를 가져옴
@@ -901,7 +894,6 @@ export default function CompanyDashboard() {
         return null;
       }).filter(Boolean);
       
-      console.log('전송할 candidateData:', candidateData);
       
       const response = await fetch('http://localhost:8081/api/progress/update-stage-multiple', {
         method: 'PUT',
@@ -961,7 +953,6 @@ export default function CompanyDashboard() {
         
         // uniqueKey에서 candidateId와 postId 추출
         const [candidateId, postId] = uniqueKey.split('_');
-        console.log('거절 처리 - uniqueKey 분해:', { uniqueKey, candidateId, postId });
         
         const candidate = currentApplicants.find(c => {
           // 추가지원자의 경우 candidate 객체 안에 candidateId가 있음
@@ -971,7 +962,6 @@ export default function CompanyDashboard() {
           return candidateIdFromData == candidateId && postIdFromData == postId;
         });
         
-        console.log('거절 처리 - 찾은 candidate:', candidate);
         
         if (candidate) {
           // 추가지원자의 경우 candidate 객체 안에서 candidateId를 가져옴
@@ -987,7 +977,6 @@ export default function CompanyDashboard() {
         return null;
       }).filter(Boolean);
       
-      console.log('거절 처리 - 전송할 candidateData:', candidateData);
       
       const response = await fetch('http://localhost:8081/api/progress/update-stage-multiple', {
         method: 'PUT',

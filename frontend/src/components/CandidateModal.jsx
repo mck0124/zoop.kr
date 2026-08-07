@@ -77,9 +77,6 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
         return res.json();
       })
       .then(data => {
-        console.log('jobCandidateId 조회 성공:', data.jobCandidateId);
-        console.log("candidate: ", candidate);
-        console.log("postId: ", postId);
         setJobCandidateId(data.jobCandidateId);
       })
       .catch(err => {
@@ -103,15 +100,9 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
           return res.json();
         })
         .then(data => {
-          console.log("invitationSentDate 조회 성공:", data);
           if (data && data.length > 0 && data[0].invitationSentDate) {
             setInvitationTimes(data[0].invitationSentDate);
-            console.log("data: ", data);
-            console.log("data[0]: ", data[0]);
-            console.log("data[0].invitationSentDate: ", data[0].invitationSentDate);
-            console.log("invitationTimes: ", invitationTimes);
           } else {
-            console.log("invitationSentDate 데이터가 없습니다.");
             setInvitationTimes(null);
           }
         })
@@ -129,11 +120,9 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
           return res.json();
         })
         .then(data => {
-          console.log("portfolioSubmissionDate 조회 성공:", data);
           if (data && data.portfolioSubmissionDate) {
             setPortfolioDate(data.portfolioSubmissionDate);
           } else {
-            console.log("portfolioSubmissionDate 데이터가 없습니다.");
             setPortfolioDate(null);
           }
         })
@@ -151,11 +140,9 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
           return res.json();
         })
         .then(data => {
-          console.log("interviewSchedule 조회 성공:", data);
           if (data) {
             setInterviewSchedule(data);
           } else {
-            console.log("interviewSchedule 데이터가 없습니다.");
             setInterviewSchedule(null);
           }
         })
@@ -173,11 +160,9 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
           return res.json();
         })
         .then(data => {
-          console.log("portfolioAnalysis 조회 성공:", data);
           if (data) {
             setPortfolioAnalysis(data);
           } else {
-            console.log("portfolioAnalysis 데이터가 없습니다.");
             setPortfolioAnalysis(null);
           }
         })
@@ -196,11 +181,9 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
           return res.json();
         })
         .then(data => {
-          console.log("interviewVideo 조회 성공:", data);
           if (data && data.videoUrl) {
             setInterviewVideoUrl(data.videoUrl);
           } else {
-            console.log("interviewVideo 데이터가 없습니다.");
             setInterviewVideoUrl(null);
           }
         })
@@ -216,11 +199,9 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
           return res.json();
         })
         .then(data => {
-          console.log("interviewAnalysis 조회 성공:", data);
           if (data) {
             setInterviewAnalysis(data);
           } else {
-            console.log("interviewAnalysis 데이터가 없습니다.");
             setInterviewAnalysis(null);
           }
         })
@@ -245,7 +226,6 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
   // }, [interviewSchedule]);
 
   useEffect(() => {
-    console.log("📅 interviewVideoUrl 상태 업데이트:", interviewVideoUrl);
   }, [interviewVideoUrl]);
 
   /**포트폴리오를 불러오기 위한 useState */
@@ -257,7 +237,6 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
       .then(res => {
         if (!res.ok) {
           if (res.status === 404) {
-            console.log("포트폴리오가 존재하지 않습니다.");
             return null;
           }
           throw new Error('포트폴리오 조회 실패');
@@ -272,7 +251,6 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
 
         const filePath = portfolio.portfolioFilePath;
         if (!filePath) {
-          console.log("포트폴리오 파일 경로가 없습니다.");
           setPdfBlobUrl(null);
           return;
         }
@@ -356,7 +334,6 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
     if (!isOpen) return;
     const updateWidth = () => {
       if (containerRef.current) {
-        console.log("📐 containerRef offsetWidth:", containerRef.current.offsetWidth);
         setContainerWidth(containerRef.current.offsetWidth);
       }
     };
@@ -379,8 +356,6 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
     }
 
     const invitationUrl = buildApiUrl(`/api/progress/${jobCandidateId}/update-stage-2p`);
-    console.log('면접초대 API 호출 URL:', invitationUrl);
-    console.log('jobCandidateId:', jobCandidateId);
 
     try {
       const response = await fetch(invitationUrl, {
@@ -390,8 +365,6 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
         },
       });
 
-      console.log('API 응답 상태:', response.status);
-      console.log('API 응답 헤더:', response.headers);
 
       if (response.ok) {
         alert('면접 초대가 성공적으로 처리되었습니다!');
