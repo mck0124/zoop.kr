@@ -26,7 +26,7 @@ const CATEGORY_SVGS = {
 };
 
 export default function InterviewEvaluation() {
-  const { postId, candidateId } = useParams();
+  const { candidateId } = useParams();
   const navigate = useNavigate();
   const [candidate, setCandidate] = useState(null);
   const [videos, setVideos] = useState([]);
@@ -45,6 +45,8 @@ export default function InterviewEvaluation() {
     fetchInterviewVideos();
     fetchAnalysisResult();
     fetchExistingEvaluation();
+    // These loaders are intentionally scoped to the candidate route.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candidateId]);
 
   const fetchCandidateData = async () => {
@@ -236,18 +238,6 @@ export default function InterviewEvaluation() {
       </div>
     );
   }
-
-  // 카테고리별 이모지 매핑
-  const CATEGORY_ICONS = {
-    '전문성': '💡',
-    '의사소통': '🗣️',
-    '의사소통 능력': '🗣️',
-    '문제해결': '🛠️',
-    '문제해결 능력': '🛠️',
-    '자신감': '😎',
-    '자신감과 태도': '😎',
-    '경험의 구체성': '📚',
-  };
 
   return (
     <div style={{ fontFamily: 'SUIT, Apple SD Gothic Neo, sans-serif', backgroundColor: '#ffffff', minHeight: '100vh' }}>

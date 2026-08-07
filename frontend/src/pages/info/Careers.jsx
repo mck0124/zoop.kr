@@ -112,6 +112,11 @@ function Careers() {
     navigate(`/job/${post.postId}`);
   };
 
+  const handleApply = post => {
+    setSelectedPost(post);
+    setShowApplyModal(true);
+  };
+
   // 북마크 토글 함수 (전역 상태 사용)
   const handleBookmarkToggle = async (post) => {
     await toggleBookmark(post.postId);
@@ -270,6 +275,7 @@ function Careers() {
                 key={post.postId}
                 post={post}
                 onClick={() => handleJobClick(post)}
+                onApply={handleApply}
                 isBookmarked={bookmarkedPostIds.includes(post.postId)}
                 onBookmarkToggle={handleBookmarkToggle}
               />

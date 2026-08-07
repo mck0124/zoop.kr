@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { apiUrl } from '../../api/config';
 
 export default function MatchingDetailModal({ open, onClose, candPortfolioId, postId }) {
-  const [portfolio, setPortfolio] = useState(null);
-  const [analysis, setAnalysis] = useState(null);
   const [match, setMatch] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

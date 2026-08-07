@@ -37,6 +37,8 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
     if (isOpen && postId && candidateId) {
       fetchInterviewQuestions();
     }
+    // The fetch action intentionally remains stable for the modal lifecycle.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, postId, candidateId]);
 
   // 모달이 닫혀있으면 렌더링하지 않음

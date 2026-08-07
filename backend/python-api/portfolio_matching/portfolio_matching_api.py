@@ -12,7 +12,6 @@ import threading
 import time
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../github_search')))
-from github_search_logic import analyze_portfolio_file
 
 # .env에서 API 키 로드
 load_dotenv()
@@ -957,11 +956,10 @@ async def analyze_candidate_portfolio(
     cand_portfolio_id: Optional[int] = Form(None)
 ):
     try:
-        print(f"[DEBUG] analyze_portfolio_file 호출 직전: file_url={file_url}")
-        analysis_result = analyze_portfolio_file(file_url)
-        print(f"[DEBUG] analyze_portfolio_file 호출 완료: 결과 길이={len(analysis_result) if analysis_result else 0}")
-        if not analysis_result or len(analysis_result.strip()) < 10:
+        portfolio_text = extract_text_from_file_direct(file_url)
+        if not portfolio_text or len(portfolio_text.strip()) < 50:
             raise Exception("분석 실패: 결과 없음")
+        analysis_result = analyze_portfolio_content(portfolio_text)["analysis"]
         if cand_portfolio_id is None:
             complete_upload_res = requests.post(
                 f"{SPRING_API_URL}/api/portfolios/complete-upload",

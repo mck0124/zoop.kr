@@ -95,6 +95,24 @@
   gap: 0.4rem;
 }
 
+.job-apply-btn {
+  margin-top: 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.42rem 0.85rem;
+  background: #30c59b;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.18s;
+}
+
+.job-apply-btn:hover {
+  background: #1a936f;
+  transform: translateY(-1px);
+}
+
 .job-tag {
   background: #f3f6fa;
   color: #1a936f;
@@ -153,4 +171,4 @@
   .job-title {
     font-size: 1rem;
   }
-} 
+}

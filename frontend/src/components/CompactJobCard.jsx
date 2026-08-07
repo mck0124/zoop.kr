@@ -9,7 +9,7 @@ function getInitials(name) {
   return words[0][0] + words[1][0];
 }
 
-export default function CompactJobCard({ post, onClick, isBookmarked, onBookmarkToggle }) {
+export default function CompactJobCard({ post, onClick, isBookmarked, onBookmarkToggle, onApply }) {
   const {
     companyName,
     postTitle,
@@ -64,7 +64,19 @@ export default function CompactJobCard({ post, onClick, isBookmarked, onBookmark
             <span className="job-tag headcount">{postHeadcount}명</span>
           )}
         </div>
+        {onApply && (
+          <button
+            type="button"
+            className="job-apply-btn"
+            onClick={e => {
+              e.stopPropagation();
+              onApply(post);
+            }}
+          >
+            지원하기
+          </button>
+        )}
       </div>
     </div>
   );
-} 
+}
