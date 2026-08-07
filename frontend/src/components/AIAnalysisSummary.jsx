@@ -38,9 +38,15 @@ function EvidenceBlock({ evidence }) {
       <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-700">근거 일부</div>
       <div className="space-y-2">
         {items.slice(0, 4).map((item, index) => (
-          <div key={`${index}-${item.source || item.claim}`} className="text-sm text-gray-700">
-            <span className="font-medium">{item.claim || item.source || '검증 근거'}</span>
-            {item.quote && <span className="ml-1 text-gray-500">— “{item.quote}”</span>}
+          <div key={`${index}-${item.evidence_id || item.source || item.claim}`} className="rounded-lg border border-emerald-100 bg-white/70 p-2 text-sm text-gray-700">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-medium">{item.claim || item.source || '검증 근거'}</span>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${item.verification_state === 'verified' || item.verification_state === 'grounded' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                {item.verification_state === 'verified' || item.verification_state === 'grounded' ? '원문 확인' : '확인 필요'}
+              </span>
+            </div>
+            {item.quote && <div className="mt-1 text-gray-500">“{item.quote}”</div>}
+            {item.evidence_id && <div className="mt-1 font-mono text-[10px] text-gray-400">근거 ID {item.evidence_id}</div>}
           </div>
         ))}
       </div>
@@ -64,6 +70,7 @@ export default function AIAnalysisSummary({ analysis, score, title = 'AI 분석 
   const evidence = payload?.verified_evidence || payload?.evidence || payload?.claims || categories.flatMap(category => asArray(category.evidence).map(item => ({ ...item, claim: item.claim || category.name })));
   const fairness = payload?.fairness_guard || payload?.fairnessGuard;
   const trace = payload?.decision_trace || payload?.decisionTrace;
+  const audit = payload?.audit || payload?.evidence_audit || null;
   const hasStructuredData = Boolean(payload);
 
   return (
@@ -75,8 +82,23 @@ export default function AIAnalysisSummary({ analysis, score, title = 'AI 분석 
           {coverage !== undefined && <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">근거 커버리지 {coverage}%</span>}
           {confidence !== undefined && <span className="rounded-full bg-violet-50 px-2.5 py-1 text-violet-700">신뢰도 {Math.round(Number(confidence) * (Number(confidence) <= 1 ? 100 : 1))}%</span>}
           {hasStructuredData && <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600">구조화된 분석</span>}
+          {audit?.ledger_version && <span className="rounded-full bg-slate-900 px-2.5 py-1 font-semibold text-white">Evidence Ledger</span>}
         </div>
       </div>
+
+      {audit && (
+        <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="font-semibold text-slate-800">이 판단은 ‘점수’가 아니라 추적 가능한 검증 기록입니다</span>
+            <span className="font-mono text-[10px] text-slate-400">{audit.policy_version || 'grounded-hiring-v1'}</span>
+          </div>
+          <div className="mt-2 grid gap-1 sm:grid-cols-3">
+            <span>입력 계열: <b>{audit.source_type || '원문'}</b></span>
+            <span>검증 근거: <b>{audit.evidence_count ?? 0}개</b></span>
+            <span>원문 지문: <b className="font-mono">{audit.source_fingerprint ? `${audit.source_fingerprint.slice(0, 10)}…` : '없음'}</b></span>
+          </div>
+        </div>
+      )}
 
       {summary ? <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-700">{summary}</p> : null}
       {legacyText ? <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-700">{legacyText}</p> : null}

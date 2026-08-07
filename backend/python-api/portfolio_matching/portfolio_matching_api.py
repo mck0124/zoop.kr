@@ -1,6 +1,7 @@
 import os
 import requests
 import json
+import hashlib
 import asyncio
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,6 +9,7 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import openai
 from typing import List, Optional, Dict, Any
+from datetime import datetime, timezone
 import threading
 import time
 import sys
@@ -97,6 +99,25 @@ def _portfolio_quote_is_in_source(quote: str, source_text: str) -> bool:
     return bool(normalized_quote) and normalized_quote in normalized_source
 
 
+def _evidence_id(*parts: Any) -> str:
+    """원문을 저장하지 않고도 판단 근거를 재현할 수 있는 안정적인 ID를 만든다."""
+    material = "|".join(" ".join(str(part or "").split()) for part in parts)
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()[:16]
+
+
+def _audit_metadata(source_text: str, source_type: str, evidence_count: int) -> Dict[str, Any]:
+    """AI 결과가 언제/어떤 입력 계열/정책으로 만들어졌는지 추적 가능한 메타데이터."""
+    return {
+        "ledger_version": "zoop-evidence-ledger-v1",
+        "policy_version": "grounded-hiring-v1",
+        "model": OPENAI_MODEL,
+        "source_type": source_type,
+        "source_fingerprint": hashlib.sha256((source_text or "").encode("utf-8")).hexdigest()[:20],
+        "evidence_count": evidence_count,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
 def _normalize_portfolio_analysis(raw_analysis: Dict[str, Any], source_text: str) -> Dict[str, Any]:
     """구조화된 분석을 정규화하고 원문에 없는 주장을 근거로 쓰지 못하게 한다."""
     if not isinstance(raw_analysis, dict):
@@ -114,10 +135,12 @@ def _normalize_portfolio_analysis(raw_analysis: Dict[str, Any], source_text: str
         except (TypeError, ValueError):
             confidence = 0.0
         evidence.append({
+            "evidence_id": _evidence_id("portfolio", item.get("topic", "기타"), item.get("claim", ""), quote),
             "topic": str(item.get("topic", "기타")),
             "claim": str(item.get("claim", "확인된 근거 없음")),
             "quote": quote if verified else "",
             "source": "portfolio" if verified else "unverified",
+            "verification_state": "verified" if verified else "unverified",
             "confidence": round(max(0.0, min(1.0, confidence if verified else confidence * 0.35)), 2),
         })
 
@@ -140,10 +163,12 @@ def _normalize_portfolio_analysis(raw_analysis: Dict[str, Any], source_text: str
         "risk_flags": risks or ["제출물에 없는 개인정보·배경 정보는 평가하지 않음"],
         "verification_plan": verification_plan or ["대표 프로젝트의 문제·역할·결과를 원본과 면접에서 대조"],
         "evidence": evidence[:12] or [{
+            "evidence_id": _evidence_id("portfolio", "전체", "확인된 원문 근거 없음", ""),
             "topic": "전체",
             "claim": "확인된 원문 근거 없음",
             "quote": "",
             "source": "unverified",
+            "verification_state": "unverified",
             "confidence": 0.0,
         }],
         "evidence_coverage": coverage,
@@ -159,6 +184,7 @@ def _normalize_portfolio_analysis(raw_analysis: Dict[str, Any], source_text: str
             "직무와 무관한 개인정보는 평가에서 제외",
             f"검증 가능한 근거 {verified_count}개, 근거 커버리지 {coverage}%",
         ],
+        "audit": _audit_metadata(source_text, "portfolio_submission", len(evidence)),
     }
 
 
@@ -624,8 +650,10 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
                 except (TypeError, ValueError):
                     confidence = 0.0
                 clean_evidence.append({
+                    "evidence_id": _evidence_id("match", name, item.get("source", "missing"), item.get("claim", "")),
                     "source": str(item.get("source", "missing")),
                     "claim": str(item.get("claim", "확인된 근거 없음")),
+                    "verification_state": "grounded" if str(item.get("source", "missing")) not in {"missing", "unknown"} else "needs_verification",
                     "confidence": max(0.0, min(1.0, confidence)),
                 })
             dimensions.append({
@@ -683,6 +711,11 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
             f"{len(grounded_items)}개 확인 가능한 근거와 미확인 영역을 분리",
             "점수보다 검증 행동과 불확실성을 함께 제시",
         ]
+        structured["audit"] = _audit_metadata(
+            json.dumps({"analysis": analysis_data, "job": job_data}, ensure_ascii=False, default=str),
+            "portfolio_to_job_match",
+            len(grounded_items),
+        )
         evidence_lines = []
         for dimension in dimensions:
             name = dimension.get("name", "평가 항목")

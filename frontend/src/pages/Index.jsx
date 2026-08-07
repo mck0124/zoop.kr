@@ -18,34 +18,6 @@ export default function Index() {
   const navigate = useNavigate();
   const [mountTime] = useState(() => performance.now());
 
-  // 메인페이지 로드 시 Navbar 스타일 강제 재적용
-  useEffect(() => {
-    const navbar = document.querySelector('.zoop-navbar');
-    if (navbar) {
-      // Navbar 스타일 강제 재적용
-      navbar.style.display = 'grid';
-      navbar.style.gridTemplateColumns = '1fr auto 1fr';
-      navbar.style.alignItems = 'center';
-      navbar.style.padding = '0.8rem 2.5rem';
-      navbar.style.position = 'absolute';
-      navbar.style.top = '0';
-      navbar.style.left = '0';
-      navbar.style.width = '100%';
-      navbar.style.backgroundColor = 'transparent';
-      navbar.style.boxShadow = 'none';
-      navbar.style.zIndex = '10';
-      navbar.style.transition = 'background-color 0.3s ease, backdrop-filter 0.3s ease';
-    }
-
-    const navLinks = document.querySelector('.nav-links');
-    if (navLinks) {
-      navLinks.style.display = 'flex';
-      navLinks.style.justifyContent = 'center';
-      navLinks.style.gap = '1.5rem';
-      navLinks.style.justifySelf = 'center';
-    }
-  }, []);
-
   // subtitle fade-in - 확실한 스크롤 효과
   useEffect(() => {
     const checkVisibility = () => {
@@ -150,6 +122,43 @@ export default function Index() {
           <p>내 커리어를 한 번에 업데이트하고 한 곳에서 관리하세요.</p>
           <p>이제껏 경험 못 했던 쉽고 편리한 스카우트 서비스,</p>
           <p>줍과 함께라면 당신의 미래가 새로워질 거예요.</p>
+        </div>
+      </section>
+
+      {/* ZOOP의 핵심 AI 차별점: 점수보다 근거를 먼저 보여주는 채용 원장 */}
+      <section className="evidence-intro-section" aria-labelledby="evidence-intro-title">
+        <div className="evidence-intro-heading">
+          <span className="evidence-kicker">ZOOP EVIDENCE LEDGER</span>
+          <h2 id="evidence-intro-title">AI가 고르는 채용이 아니라,<br /><em>검증할 수 있는 채용</em>을 만듭니다.</h2>
+          <p>포트폴리오와 공개 기술 활동에서 확인된 근거만 분리해 보여주고,<br />판단을 바꿀 수 있는 다음 질문까지 제안합니다.</p>
+        </div>
+        <div className="evidence-flow" role="list" aria-label="ZOOP AI 판단 흐름">
+          <article className="evidence-flow-card" role="listitem">
+            <span className="evidence-flow-number">01</span>
+            <div className="evidence-flow-icon" aria-hidden="true">⌁</div>
+            <h3>원문에서 근거 채굴</h3>
+            <p>제출물·공개 저장소의 실제 문장을 찾아 근거 ID와 원문 지문을 남깁니다.</p>
+            <span className="evidence-chip verified">원문 확인</span>
+          </article>
+          <div className="evidence-flow-arrow" aria-hidden="true">→</div>
+          <article className="evidence-flow-card" role="listitem">
+            <span className="evidence-flow-number">02</span>
+            <div className="evidence-flow-icon" aria-hidden="true">◌</div>
+            <h3>판단을 차원별로 분해</h3>
+            <p>기술·문제 해결·프로젝트 관련성을 나누고, 점수와 불확실성을 함께 계산합니다.</p>
+            <span className="evidence-chip neutral">근거 커버리지</span>
+          </article>
+          <div className="evidence-flow-arrow" aria-hidden="true">→</div>
+          <article className="evidence-flow-card" role="listitem">
+            <span className="evidence-flow-number">03</span>
+            <div className="evidence-flow-icon" aria-hidden="true">↗</div>
+            <h3>다음 검증까지 연결</h3>
+            <p>판단을 바꿀 수 있는 미확인 신호와 면접 질문을 자동으로 제안합니다.</p>
+            <span className="evidence-chip action">검증 행동 제안</span>
+          </article>
+        </div>
+        <div className="evidence-intro-footnote">
+          <span aria-hidden="true">✦</span> 직무와 무관한 개인정보는 평가에서 제외합니다 · 모든 AI 판단은 저장 가능한 결정 영수증으로 남습니다
         </div>
       </section>
 

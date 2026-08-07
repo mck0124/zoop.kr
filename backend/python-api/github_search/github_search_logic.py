@@ -5,6 +5,8 @@ import difflib
 from bs4.element import Tag
 import openai
 import mimetypes
+import hashlib
+from datetime import datetime, timezone
 from PyPDF2 import PdfReader
 
 load_dotenv()
@@ -29,6 +31,11 @@ def is_valid_email(email):
         email == "git@github.com",
         email.startswith("noreply")
     ])
+
+
+def _evidence_id(*parts):
+    material = "|".join(" ".join(str(part or "").split()) for part in parts)
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()[:16]
 
 def extract_email_from_profile_html(username):
     url = f"https://github.com/{username}"
@@ -537,11 +544,13 @@ def analyze_candidate_with_prompt(candidate, details):
                 except (TypeError, ValueError):
                     confidence = 0.0
                 evidence.append({
+                    "evidence_id": _evidence_id("github", name, evidence_item.get("source", "unknown"), evidence_item.get("claim", "")),
                     "source": str(evidence_item.get("source", "unknown")),
                     "claim": str(evidence_item.get("claim", "확인된 근거 없음")),
+                    "verification_state": "grounded" if str(evidence_item.get("source", "unknown")) != "missing" else "needs_verification",
                     "confidence": round(max(0.0, min(1.0, confidence)), 2),
                 })
-            dimensions.append({"name": name, "score": score, "max": maximum, "evidence": evidence or [{"source": "missing", "claim": "확인된 근거 없음", "confidence": 0.0}]})
+            dimensions.append({"name": name, "score": score, "max": maximum, "evidence": evidence or [{"evidence_id": _evidence_id("github", name, "missing"), "source": "missing", "claim": "확인된 근거 없음", "verification_state": "needs_verification", "confidence": 0.0}]})
         if not dimensions:
             raise ValueError("GitHub 분석 차원이 비어 있습니다.")
         grounded = [item for dimension in dimensions for item in dimension["evidence"] if item["source"] != "missing"]
@@ -556,6 +565,15 @@ def analyze_candidate_with_prompt(candidate, details):
             "verification_plan": [str(item) for item in result.get("verification_plan", []) if item][:6] or ["대표 저장소의 실제 기여와 설계 선택을 면접에서 확인"],
             "fairness_guard": result.get("fairness_guard") if isinstance(result.get("fairness_guard"), dict) else {"status": "pass", "excluded_attributes": ["이름", "이메일", "위치", "회사"], "evaluated_attributes": ["공개 기술·프로젝트 근거"]},
             "decision_trace": ["직무와 무관한 개인정보를 평가에서 제외", "공개 GitHub 신호를 5개 직무 관련 차원으로 분리", f"{len(grounded)}개 근거와 확인 불가 영역을 분리"],
+            "audit": {
+                "ledger_version": "zoop-evidence-ledger-v1",
+                "policy_version": "grounded-hiring-v1",
+                "model": OPENAI_MODEL,
+                "source_type": "public_github_snapshot",
+                "source_fingerprint": hashlib.sha256(json.dumps(safe_details, ensure_ascii=False, default=str, sort_keys=True).encode("utf-8")).hexdigest()[:20],
+                "evidence_count": len(grounded),
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+            },
         })
         return json.dumps(result, ensure_ascii=False)
     except Exception as e:

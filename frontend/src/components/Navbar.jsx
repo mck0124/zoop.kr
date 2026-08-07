@@ -654,7 +654,7 @@ const Navbar = ({ onLangChange, hideAuth }) => {
       {/* 모바일 메뉴 */}
       {menuOpen && (
         <nav 
-          className="mobile-menu"
+          className={`mobile-menu ${menuOpen ? 'active' : ''}`}
           role="navigation"
           aria-label="모바일 메뉴"
           aria-hidden="false"

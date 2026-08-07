@@ -117,6 +117,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                 const decisionTrace = reasonPayload?.evidence?.decision_trace || [];
                 const evidenceCoverage = reasonPayload?.evidence?.evidence_coverage;
                 const confidence = reasonPayload?.evidence?.confidence;
+                const audit = reasonPayload?.evidence?.audit;
                 const selectedDelta = counterfactuals
                   .filter((_, index) => selectedCounterfactuals.includes(index))
                   .reduce((sum, item) => sum + Number(item.expected_score_delta || 0), 0);
@@ -142,6 +143,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                             riskFlags,
                             fairnessGuard,
                             decisionTrace,
+                            audit,
                           };
                           const url = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' }));
                           const anchor = document.createElement('a');
@@ -191,7 +193,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                         <b>주의 신호:</b> {riskFlags.slice(0, 4).join(' · ')}
                       </div>
                     )}
-                    {(counterfactuals.length > 0 || fairnessGuard || decisionTrace.length > 0) && (
+                    {(counterfactuals.length > 0 || fairnessGuard || decisionTrace.length > 0 || audit) && (
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10, marginTop: 16 }}>
                         <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 10, padding: 12 }}>
                           <strong style={{ color: '#6d28d9' }}>판단을 바꿀 수 있는 증거</strong>
@@ -218,6 +220,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                             <div>근거 커버리지: <b>{evidenceCoverage ?? '-'}%</b></div>
                             <div>근거 확신도: <b>{confidence !== undefined ? `${Math.round(confidence * 100)}%` : '-'}</b></div>
                             {fairnessGuard && <div style={{ marginTop: 7 }}>편향 방지: <b>{fairnessGuard.status === 'pass' ? '직무 관련 신호만 평가' : '확인 필요'}</b></div>}
+                            {audit?.source_fingerprint && <div style={{ marginTop: 7, color: '#64748b', fontSize: 11 }}>원문 지문: <code>{audit.source_fingerprint.slice(0, 10)}…</code></div>}
                           </div>
                         </div>
                       </div>
