@@ -131,7 +131,7 @@ public class AiAnalysisResultController {
             
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "업데이트 중 오류가 발생했습니다: " + e.getMessage()));
+                    .body(Map.of("error", "AI 분석 결과 연결 업데이트 중 오류가 발생했습니다."));
         }
     }
 

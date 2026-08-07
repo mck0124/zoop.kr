@@ -58,10 +58,10 @@ public class AiInterviewScheduleController {
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(InterviewScheduleResponseDto.builder().success(false).message(e.getMessage()).build());
+                    .body(InterviewScheduleResponseDto.builder().success(false).message("면접 일정 요청을 확인해주세요.").build());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(InterviewScheduleResponseDto.builder().success(false).message("면접 일정 등록 중 오류가 발생했습니다: " + e.getMessage()).build());
+                    .body(InterviewScheduleResponseDto.builder().success(false).message("면접 일정 등록 중 오류가 발생했습니다.").build());
         }
     }
 
@@ -124,10 +124,10 @@ public class AiInterviewScheduleController {
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(InterviewScheduleResponseDto.builder().success(false).message(e.getMessage()).build());
+                    .body(InterviewScheduleResponseDto.builder().success(false).message("해당 면접 일정을 찾을 수 없습니다.").build());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(InterviewScheduleResponseDto.builder().success(false).message("면접 상태 업데이트 중 오류가 발생했습니다: " + e.getMessage()).build());
+                    .body(InterviewScheduleResponseDto.builder().success(false).message("면접 상태 업데이트 중 오류가 발생했습니다.").build());
         }
     }
 
@@ -157,10 +157,10 @@ public class AiInterviewScheduleController {
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(InterviewScheduleResponseDto.builder().success(false).message(e.getMessage()).build());
+                    .body(InterviewScheduleResponseDto.builder().success(false).message("해당 면접 일정을 찾을 수 없습니다.").build());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(InterviewScheduleResponseDto.builder().success(false).message("면접 완료 처리 중 오류가 발생했습니다: " + e.getMessage()).build());
+                    .body(InterviewScheduleResponseDto.builder().success(false).message("면접 완료 처리 중 오류가 발생했습니다.").build());
         }
     }
 
@@ -208,7 +208,7 @@ public class AiInterviewScheduleController {
             return ResponseEntity.ok("분석 상태가 업데이트되었습니다.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("분석 상태 업데이트 중 오류가 발생했습니다: " + e.getMessage());
+                    .body("분석 상태 업데이트 중 오류가 발생했습니다.");
         }
     }
 
@@ -233,7 +233,7 @@ public class AiInterviewScheduleController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("PENDING 면접 스케줄 조회 중 오류가 발생했습니다: " + e.getMessage());
+                    .body("PENDING 면접 스케줄 조회 중 오류가 발생했습니다.");
         }
     }
 }
