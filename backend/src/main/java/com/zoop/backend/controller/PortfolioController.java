@@ -484,7 +484,7 @@ public class PortfolioController {
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("status", "ERROR", "message", e.getMessage()));
+                .body(Map.of("status", "ERROR", "message", "포트폴리오 분석 상태를 조회할 수 없습니다."));
         }
     }
 
@@ -499,8 +499,6 @@ public class PortfolioController {
             if (analysisData == null || analysisData.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body("분석 결과(analysisData)가 없습니다. 분석이 완료된 후에만 저장할 수 있습니다.");
             }
-            // (선택) 분석 결과를 로그로 남기거나, 별도 테이블/필드에 저장 가능
-            System.out.println("[complete-upload] 분석 결과 요약: " + analysisData.substring(0, Math.min(200, analysisData.length())));
             CandidatePortfolio portfolio = CandidatePortfolio.builder()
                     .candidateId(candidateId)
                     .portfolioFilePath(portfolioFilePath)
@@ -516,7 +514,7 @@ public class PortfolioController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("분석 완료 후 포트폴리오 등록 중 오류가 발생했습니다: " + e.getMessage());
+                    .body("분석 완료 후 포트폴리오 등록 중 오류가 발생했습니다.");
         }
     }
 

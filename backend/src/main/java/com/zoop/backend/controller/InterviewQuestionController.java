@@ -78,7 +78,7 @@ public class InterviewQuestionController {
             // 에러 응답
             response.put("success", false);
             response.put("questions", List.of());
-            response.put("error", e.getMessage());
+            response.put("error", "면접 예상질문을 생성할 수 없습니다.");
             
             return ResponseEntity.badRequest().body(response);
             
