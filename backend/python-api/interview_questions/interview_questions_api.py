@@ -163,10 +163,10 @@ def generate_preparation_questions(post_title: str, post_description: str,
 """
 
     prompt = f"""
-당신은 면접 준비를 도와주는 AI 코치입니다. 지원자가 면접을 준비할 수 있도록 예상 가능한 질문 10개를 생성해주세요.
+당신은 '근거 추적형 면접 코치'입니다. 지원자가 면접을 준비할 수 있도록 예상 질문 10개를 생성해주세요.
 
 ⭐ 목적: 면접 준비 도움 (실제 면접에서 나올 법한 유형의 일반적인 질문들)
-⭐ 특징: 어느 정도 유용하면서도 준비 가능한 기본 질문들
+⭐ 특징: 포트폴리오 분석의 확인된 근거와 아직 확인되지 않은 가설을 구분하는 질문
 ⭐ 다양성: 각 질문이 서로 다른 관점에서 지원자를 평가할 수 있도록 구성
 
 === 채용 공고 정보 ===
@@ -179,8 +179,8 @@ def generate_preparation_questions(post_title: str, post_description: str,
 모집 인원: {headcount}명{portfolio_section}
 
 === 예상질문 생성 기준 ===
-1. **기술 기초 질문**: 해당 기술 분야에서 자주 나오는 기본적인 기술 질문
-2. **경험 관련 질문**: 포트폴리오나 경력을 바탕으로 한 경험 질문  
+1. **근거 검증 질문**: 분석 결과의 evidence, gaps, verification_plan, counterfactuals가 있다면 그 항목을 직접 확인하는 질문
+2. **기술 깊이 질문**: 해당 기술 분야에서 실제 설계·트레이드오프를 확인하는 질문
 3. **직무 적합성 질문**: 해당 직무에 대한 기본적인 이해와 동기를 확인하는 질문
 4. **문제해결 능력**: 어려움을 극복한 경험이나 도전 사례 관련 질문
 5. **협업 및 소통**: 팀워크나 의사소통 능력을 확인하는 질문
@@ -192,6 +192,9 @@ def generate_preparation_questions(post_title: str, post_description: str,
 - 너무 구체적이거나 특별하지 않은 범용적인 질문
 - 포트폴리오 분석이 있다면 그를 바탕으로 한 일반적인 예상질문
 - 실제 면접의 변별력을 훼손하지 않는 준비용 질문
+- 분석 결과에 없는 사실을 후보자에게 이미 사실인 것처럼 전제하지 말 것
+- 개인정보·출신·나이·성별·지역 등 직무와 무관한 속성을 묻지 말 것
+- 질문 앞에 다음 목적 태그 중 하나를 붙일 것: [근거검증], [기술깊이], [문제해결], [협업], [성장]
 
 ⚠️ 주의사항: 실제 면접에서 나올 수 있는 깊이 있는 질문보다는 준비 단계에서 도움이 되는 기본적인 질문들로 구성
 
@@ -243,18 +246,14 @@ async def generate_questions_endpoint(
 ):
     """면접 질문 생성 API"""
     try:
-        print(f"면접 질문 생성 요청:")
-        print(f"- 공고 제목: {post_title}")
-        print(f"- 요구 기술: {programming_language}")
-        print(f"- 인재상: {ideal_candidate}")
-        print(f"- 포트폴리오 분석 결과: {'있음' if portfolio_analysis else '없음'}")
+        print(f"면접 질문 생성 요청: 기술={'있음' if programming_language else '없음'}, 분석={'있음' if portfolio_analysis else '없음'}")
         
         questions = generate_interview_questions(
             post_title, post_description, programming_language,
             ideal_candidate, location, salary_range, headcount, portfolio_analysis
         )
         
-        print(f"생성된 질문: {questions}")
+        print(f"생성된 질문: {len(questions)}개")
         
         return InterviewQuestionsResponse(
             success=True,
@@ -262,7 +261,7 @@ async def generate_questions_endpoint(
         )
         
     except Exception as e:
-        print(f"면접 질문 생성 오류: {e}")
+        print("면접 질문 생성 실패")
         return InterviewQuestionsResponse(
             success=False,
             error="맞춤 질문 생성에 실패했습니다. 입력 정보와 AI 서비스 상태를 확인한 뒤 다시 시도해주세요."
@@ -281,53 +280,28 @@ async def generate_preparation_questions_endpoint(
 ):
     """면접 예상질문 생성 API (면접 준비용)"""
     try:
-        print("🔍 Python API: 면접 예상질문 생성 요청 받음")
-        print("=== 받은 요청 데이터 상세 ===")
-        print(f"post_title: '{post_title}' (type: {type(post_title)}, length: {len(post_title) if post_title else 'None'})")
-        print(f"post_description: '{post_description}' (type: {type(post_description)}, length: {len(post_description) if post_description else 'None'})")
-        print(f"programming_language: '{programming_language}' (type: {type(programming_language)}, length: {len(programming_language) if programming_language else 'None'})")
-        print(f"ideal_candidate: '{ideal_candidate}' (type: {type(ideal_candidate)}, length: {len(ideal_candidate) if ideal_candidate else 'None'})")
-        print(f"location: '{location}' (type: {type(location)}, length: {len(location) if location else 'None'})")
-        print(f"salary_range: '{salary_range}' (type: {type(salary_range)}, length: {len(salary_range) if salary_range else 'None'})")
-        print(f"headcount: {headcount} (type: {type(headcount)})")
-        print(f"portfolio_analysis: '{portfolio_analysis}' (type: {type(portfolio_analysis)}, length: {len(portfolio_analysis) if portfolio_analysis else 'None'})")
-        print("================================")
+        print("면접 예상질문 생성 요청 수신")
+        print(f"입력 상태: 공고={'있음' if post_title else '없음'}, 기술={'있음' if programming_language else '없음'}, 분석={'있음' if portfolio_analysis else '없음'}")
         
         # 필수 필드 검증
         if not post_title or not post_title.strip():
-            print("❌ post_title이 비어있음")
             return InterviewQuestionsResponse(
                 success=False,
                 error="post_title이 필요합니다"
             )
         
         if not programming_language or not programming_language.strip():
-            print("❌ programming_language가 비어있음")
             return InterviewQuestionsResponse(
                 success=False,
                 error="programming_language가 필요합니다"
             )
-        
-        if not ideal_candidate or not ideal_candidate.strip():
-            print("⚠️  ideal_candidate가 비어있음 - 기본값으로 처리")
-        
-        if not location or not location.strip():
-            print("⚠️  location이 비어있음 - 기본값으로 처리")
-        
-        print(f"면접 예상질문 생성 요청:")
-        print(f"- 공고 제목: {post_title}")
-        print(f"- 요구 기술: {programming_language}")
-        print(f"- 인재상: {'있음' if ideal_candidate and ideal_candidate.strip() else '없음 (빈 값)'}")
-        print(f"- 위치: {'있음' if location and location.strip() else '없음 (빈 값)'}")
-        print(f"- 포트폴리오 분석 결과: {'있음' if portfolio_analysis and portfolio_analysis.strip() else '없음'}")
         
         questions = generate_preparation_questions(
             post_title, post_description, programming_language,
             ideal_candidate, location, salary_range, headcount, portfolio_analysis
         )
         
-        print(f"✅ 생성된 예상질문 개수: {len(questions)}")
-        print(f"✅ 생성된 예상질문: {questions}")
+        print(f"예상질문 생성 완료: {len(questions)}개")
         
         return InterviewQuestionsResponse(
             success=True,
@@ -335,10 +309,7 @@ async def generate_preparation_questions_endpoint(
         )
         
     except Exception as e:
-        print(f"❌ 면접 예상질문 생성 오류: {e}")
-        print(f"❌ 오류 타입: {type(e)}")
-        import traceback
-        print(f"❌ 스택 트레이스: {traceback.format_exc()}")
+        print("면접 예상질문 생성 실패")
         return InterviewQuestionsResponse(
             success=False,
             error="예상 질문 생성에 실패했습니다. 입력 정보와 AI 서비스 상태를 확인한 뒤 다시 시도해주세요."
