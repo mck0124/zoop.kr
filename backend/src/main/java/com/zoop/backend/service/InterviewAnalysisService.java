@@ -23,7 +23,7 @@ public class InterviewAnalysisService {
     private final JobCandProgressRepository jobCandProgressRepository;
     private final RestTemplate restTemplate;
     
-    @Value("${python.api.url:http://localhost:8002}")
+    @Value("${python.interview.api.url:${python.api.url:http://localhost:8002}}")
     private String pythonApiUrl;
     
     @Autowired
@@ -106,4 +106,4 @@ public class InterviewAnalysisService {
             }
         });
     }
-} 
+}

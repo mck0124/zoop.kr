@@ -3,6 +3,7 @@ package com.zoop.backend.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -34,7 +35,9 @@ public class PortfolioMatchingService {
     private AiAnalysisResultService aiAnalysisResultService;
     
     private final RestTemplate restTemplate = new RestTemplate();
-    private final String PYTHON_API_URL = "http://localhost:8003/analyze-candidate-portfolio";
+
+    @Value("${python.matching.api.url:http://localhost:8003}")
+    private String pythonMatchingApiUrl;
     
     /**
      * PENDING 상태의 candidate_portfolios를 찾아서 AI 분석 실행
@@ -97,7 +100,8 @@ public class PortfolioMatchingService {
             
             HttpEntity<org.springframework.util.MultiValueMap<String, String>> entity = new HttpEntity<>(formData, headers);
             
-            ResponseEntity<java.util.Map> response = restTemplate.postForEntity(PYTHON_API_URL, entity, java.util.Map.class);
+            ResponseEntity<java.util.Map> response = restTemplate.postForEntity(
+                    pythonMatchingApiUrl + "/analyze-candidate-portfolio", entity, java.util.Map.class);
             
             if (response.getBody() != null) {
                 return (String) response.getBody().get("analysis_data");
@@ -167,7 +171,7 @@ public class PortfolioMatchingService {
     private void callPortfolioMatchingAPI(CandidatePortfolio portfolio, List<Post> activePosts) {
         try {
             // Python API 엔드포인트 호출 (포트 8003)
-            String pythonApiUrl = "http://localhost:8003/analyze-portfolio";
+            String pythonApiUrl = pythonMatchingApiUrl + "/analyze-portfolio";
             
             log.info("Python API 호출: portfolioId={}, activePostsCount={}", 
                     portfolio.getCandPortfolioId(), activePosts.size());
@@ -190,4 +194,4 @@ public class PortfolioMatchingService {
         // 실제 구현에서는 매칭 점수 순으로 정렬하여 반환
         return null;
     }
-} 
+}
