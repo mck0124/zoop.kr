@@ -168,7 +168,15 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                               <b>{dimension.name}</b><span>{dimension.score}/{dimension.max}</span>
                             </div>
                             {(dimension.evidence || []).slice(0, 2).map((item, evidenceIndex) => (
-                              <div key={evidenceIndex} style={{ marginTop: 6, color: '#4b5563', fontSize: 14 }}>· {item.claim || '확인된 근거 없음'} <small style={{ color: '#9ca3af' }}>({item.source || 'missing'})</small></div>
+                              <div key={evidenceIndex} style={{ marginTop: 8, color: '#4b5563', fontSize: 14 }}>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                                  <span>· {item.claim || '확인된 근거 없음'}</span>
+                                  <small style={{ color: item.verification_state === 'grounded' ? '#047857' : item.verification_state === 'context_only' ? '#1d4ed8' : '#b45309', fontWeight: 700 }}>
+                                    {item.verification_state === 'grounded' ? '후보자 원문 확인' : item.verification_state === 'context_only' ? '공고 맥락' : '확인 필요'}
+                                  </small>
+                                </div>
+                                {item.evidence_id && <small style={{ display: 'block', marginLeft: 12, marginTop: 2, color: '#9ca3af', fontFamily: 'monospace', fontSize: 10 }}>근거 ID {item.evidence_id}</small>}
+                              </div>
                             ))}
                           </div>
                         ))}
