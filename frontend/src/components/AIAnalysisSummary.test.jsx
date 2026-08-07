@@ -1,5 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import AIAnalysisSummary from './AIAnalysisSummary';
+import { LanguageProvider } from '../context/LanguageContext';
+
+const renderAnalysis = (analysis, score) => (
+  <LanguageProvider>
+    <AIAnalysisSummary analysis={analysis} score={score} />
+  </LanguageProvider>
+);
 
 test('renders the evidence ledger with verification metadata', () => {
   const analysis = JSON.stringify({
@@ -23,7 +30,8 @@ test('renders the evidence ledger with verification metadata', () => {
     },
   });
 
-  render(<AIAnalysisSummary analysis={analysis} score={86} />);
+  window.localStorage.setItem('zoopLanguage', 'ko');
+  render(renderAnalysis(analysis, 86));
 
   expect(screen.getByText('Evidence Ledger')).toBeInTheDocument();
   expect(screen.getByText('근거 충분')).toBeInTheDocument();
@@ -31,10 +39,11 @@ test('renders the evidence ledger with verification metadata', () => {
   expect(screen.getByText('후보자 원문 확인')).toBeInTheDocument();
   expect(screen.getByText(/근거 ID evidence-1234/)).toBeInTheDocument();
   expect(screen.getByText('근거 커버리지 100%')).toBeInTheDocument();
+  window.localStorage.removeItem('zoopLanguage');
 });
 
 test('does not render invalid numeric AI metadata as NaN', () => {
-  render(<AIAnalysisSummary analysis={{ summary: 'legacy result', confidence: 'unknown', evidence_coverage: 'unknown' }} score="unknown" />);
+  render(renderAnalysis({ summary: 'legacy result', confidence: 'unknown', evidence_coverage: 'unknown' }, 'unknown'));
 
   expect(screen.queryByText(/NaN/)).not.toBeInTheDocument();
   expect(screen.getByText('legacy result')).toBeInTheDocument();
