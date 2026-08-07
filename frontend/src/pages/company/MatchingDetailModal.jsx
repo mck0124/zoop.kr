@@ -9,6 +9,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
   const [error, setError] = useState('');
   const [jobCandidateId, setJobCandidateId] = useState(null);
   const [inviting, setInviting] = useState(false);
+  const [selectedCounterfactuals, setSelectedCounterfactuals] = useState([]);
 
   useEffect(() => {
     if (!open) return;
@@ -19,6 +20,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
     }
     setLoading(true);
     setError('');
+    setSelectedCounterfactuals([]);
     
     // 매칭 정보와 함께 jobCandidateId도 가져오기
     Promise.all([
@@ -103,14 +105,21 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                 const interviewFocus = reasonPayload?.evidence?.interview_focus || [];
                 const riskFlags = reasonPayload?.evidence?.risk_flags || [];
                 const verificationPlan = reasonPayload?.evidence?.verification_plan || [];
-                const counterfactuals = reasonPayload?.evidence?.counterfactuals || [];
+                const counterfactuals = Array.isArray(reasonPayload?.evidence?.counterfactuals) ? reasonPayload.evidence.counterfactuals : [];
                 const fairnessGuard = reasonPayload?.evidence?.fairness_guard || null;
                 const decisionTrace = reasonPayload?.evidence?.decision_trace || [];
                 const evidenceCoverage = reasonPayload?.evidence?.evidence_coverage;
                 const confidence = reasonPayload?.evidence?.confidence;
+                const selectedDelta = counterfactuals
+                  .filter((_, index) => selectedCounterfactuals.includes(index))
+                  .reduce((sum, item) => sum + Number(item.expected_score_delta || 0), 0);
+                const projectedScore = Math.max(0, Math.min(100, Number(score || 0) + selectedDelta));
                 return score !== undefined ? (
                   <div style={{ background: '#f8fafd', borderRadius: 10, padding: 18, fontSize: 16 }}>
-                    <div><b>매칭 점수:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{score}</span></div>
+                    <div style={{ display: 'flex', gap: 16, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                      <span><b>현재 매칭 점수:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{score}</span></span>
+                      {selectedCounterfactuals.length > 0 && <span style={{ color: '#6d28d9', fontWeight: 800 }}>검증 후 예상: {projectedScore.toFixed(0)}점</span>}
+                    </div>
                     <div style={{ marginTop: 10 }}><b>매칭 이유:</b></div>
                     <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, whiteSpace: 'pre-wrap', maxHeight: 240, overflow: 'auto' }}>{summary}</pre>
                     {dimensions.length > 0 && (
@@ -151,9 +160,20 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10, marginTop: 16 }}>
                         <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 10, padding: 12 }}>
                           <strong style={{ color: '#6d28d9' }}>판단을 바꿀 수 있는 증거</strong>
+                          <p style={{ margin: '7px 0', color: '#5b21b6', fontSize: 12 }}>확인할 항목을 선택하면 예상 변화를 시뮬레이션합니다.</p>
                           <ul style={{ margin: '8px 0 0 18px', padding: 0, color: '#4c1d95', fontSize: 13 }}>
                             {(counterfactuals.length ? counterfactuals : [{ missing_signal: '추가 검증 신호 없음', validation_action: '원본 자료 확인' }]).slice(0, 3).map((item, index) => (
-                              <li key={index} style={{ marginBottom: 7 }}><b>{item.missing_signal}</b><br /><span>{item.validation_action}</span>{item.expected_score_delta ? ` (${item.expected_score_delta > 0 ? '+' : ''}${item.expected_score_delta}점 가능)` : ''}</li>
+                              <li key={index} style={{ marginBottom: 7, listStyle: 'none' }}>
+                                <label style={{ display: 'flex', gap: 7, alignItems: 'flex-start', cursor: counterfactuals.length ? 'pointer' : 'default' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedCounterfactuals.includes(index)}
+                                    disabled={!counterfactuals.length}
+                                    onChange={() => setSelectedCounterfactuals(current => current.includes(index) ? current.filter(value => value !== index) : [...current, index])}
+                                  />
+                                  <span><b>{item.missing_signal}</b><br /><span>{item.validation_action}</span>{item.expected_score_delta ? ` (${item.expected_score_delta > 0 ? '+' : ''}${item.expected_score_delta}점 가능)` : ''}</span>
+                                </label>
+                              </li>
                             ))}
                           </ul>
                         </div>
