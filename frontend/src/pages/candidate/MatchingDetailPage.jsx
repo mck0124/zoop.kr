@@ -9,8 +9,6 @@ export default function MatchingDetailPage() {
     candPortfolioId,
     jobCandidateId,
     analysisId,
-    candidateId,
-    postId,
   } = location.state || {};
 
   const [portfolio, setPortfolio] = useState(null);

@@ -16,7 +16,6 @@ function JobDetailPage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
-  const [portfolioList, setPortfolioList] = useState([]);
   const [hasApplied, setHasApplied] = useState(false);
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [otherPosts, setOtherPosts] = useState([]);
@@ -26,7 +25,6 @@ function JobDetailPage() {
   // 기존 포트폴리오 관련 상태
   const [existingPortfolio, setExistingPortfolio] = useState(null);
   const [useExistingPortfolio, setUseExistingPortfolio] = useState(false);
-  const [loadingExistingPortfolio, setLoadingExistingPortfolio] = useState(false);
   // 로그인 폼 상태
   const [loginForm, setLoginForm] = useState({
     loginId: '',
@@ -73,7 +71,6 @@ function JobDetailPage() {
           const pfRes = await fetch(apiUrl(`/api/portfolios/candidate/${candidateId}?postId=${postId}`));
           if (pfRes.ok) {
             const portfolios = await pfRes.json();
-            setPortfolioList(portfolios);
             // 해당 공고에 대한 지원 여부 확인 (포트폴리오가 있으면 지원한 것으로 간주)
             setHasApplied(portfolios.length > 0);
           }
@@ -121,20 +118,6 @@ function JobDetailPage() {
       } catch {}
     })();
   }, [post]);
-
-  // File upload handlers...
-  const handleFileChange = e => {
-    setSelectedFile(e.target.files[0]);
-    setUploadError(null);
-  };
-  const handleDrop = e => {
-    e.preventDefault();
-    if (e.dataTransfer.files[0]) {
-      setSelectedFile(e.dataTransfer.files[0]);
-      setUploadError(null);
-    }
-  };
-  const handleDragOver = e => e.preventDefault();
 
   // 로그인 폼 입력 핸들러
   const handleLoginInput = e => {
@@ -264,7 +247,6 @@ function JobDetailPage() {
       const pfListRes = await fetch(apiUrl(`/api/portfolios/candidate/${candidateId}?postId=${postId}`));
       if (pfListRes.ok) {
         const portfolios = await pfListRes.json();
-        setPortfolioList(portfolios);
         setHasApplied(portfolios.length > 0);
       }
       setSelectedFile(null);
@@ -326,25 +308,6 @@ function JobDetailPage() {
       setUploadError(errorMessage);
     } finally {
       setUploading(false);
-    }
-  };
-
-  const handleDeletePortfolio = async (portfolioId) => {
-    if (!window.confirm('정말 삭제하시겠습니까?')) return;
-    try {
-      const res = await fetch(apiUrl(`/api/portfolios/${portfolioId}`), {
-        method: 'DELETE',
-      });
-      if (!res.ok) throw new Error('삭제 실패');
-      const candidateId = localStorage.getItem('userId');
-      const pfRes = await fetch(apiUrl(`/api/portfolios/candidate/${candidateId}?postId=${postId}`));
-      if (pfRes.ok) {
-        const portfolios = await pfRes.json();
-        setPortfolioList(portfolios);
-        setHasApplied(portfolios.length > 0);
-      }
-    } catch (e) {
-      alert('삭제 중 오류: ' + e.message);
     }
   };
 

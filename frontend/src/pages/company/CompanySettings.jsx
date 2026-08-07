@@ -46,11 +46,7 @@ export default function CompanySettings() {
   });
 
   // 데이터 로드
-  useEffect(() => {
-    fetchCompanyData();
-  }, []);
-
-  const fetchCompanyData = async () => {
+  const fetchCompanyData = useCallback(async () => {
     try {
       const userId = localStorage.getItem('userId');
       const token = localStorage.getItem('jwtToken');
@@ -112,7 +108,11 @@ export default function CompanySettings() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    fetchCompanyData();
+  }, [fetchCompanyData]);
 
   // 각 입력 필드별 onChange 핸들러를 useCallback으로 안정화
   const handleCompanyNameChange = useCallback((e) => {

@@ -2,6 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // 언어별 SVG 아이콘 컴포넌트
+// Kept for the legacy sidebar variant that imports this module dynamically.
+// eslint-disable-next-line no-unused-vars
 const LanguageIcon = ({ name }) => {
   switch (name && name.toLowerCase()) {
     case 'python':

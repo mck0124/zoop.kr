@@ -126,9 +126,7 @@ function CandidateDashboard() {
   const [selectedCommuteTime, setSelectedCommuteTime] = useState('입력해주세요');
 
   // 나머지 입력값 상태 (현재 모달이 없으므로 '입력해주세요'로 고정)
-  const [selectedIndustry, setSelectedIndustry] = useState('입력해주세요');
   const [selectedBenefits, setSelectedBenefits] = useState([]);
-  const [selectedWorkType, setSelectedWorkType] = useState('입력해주세요');
 
   // 면접 일정 모달 관련 상태
   const [isInterviewSchedulerModalOpen, setIsInterviewSchedulerModalOpen] = useState(false);
@@ -143,11 +141,6 @@ function CandidateDashboard() {
 
   // 복리후생 모달 관련 상태
   const [isBenefitModalOpen, setIsBenefitModalOpen] = useState(false);
-
-  // 대시보드 마운트 시 항상 최신 데이터 fetch
-  useEffect(() => {
-    fetchJobPostings();
-  }, []);
 
   // 컴포넌트가 처음 마운트되거나 candidateId가 변경될 때 데이터를 가져오는 useEffect 훅
   useEffect(() => {
@@ -183,6 +176,8 @@ function CandidateDashboard() {
     // candidateId 값이 변경될 때마다 effect 재실행
     // authState.userId (또는 해당 필드)가 변경될 때마다 이 effect가 다시 실행되어 새로운 사용자의 데이터를 가져옵니다.
     fetchUserDataAndJobPostings();
+  // 이 effect는 API helper가 컴포넌트 내부에 있어 의도적으로 사용자 변경 시에만 실행합니다.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candidateId, authState.userId]); // 의존성 배열에 candidateId와 authState.userId 추가
 
   const handleTabClick = (tabId) => {
@@ -281,11 +276,6 @@ function CandidateDashboard() {
     // URL 경로에 공고 ID를 포함시켜 제출 페이지에서 어떤 공고인지 알 수 있도록 합니다.
     navigate(`/submit-portfolio/${postId}`); // 실제 라우팅 경로에 맞게 수정
   };
-  // 면접 일정 정하기 페이지로 이동하는 함수
-  const handleGoToScheduleInterview = (postId) => {
-      navigate(`/interview-scheduling/${postId}`);
-  };
-
   // 면접 페이지로 이동하는 함수
   const navigateToInterview = async (postId) => {
     try {
@@ -538,20 +528,6 @@ function CandidateDashboard() {
       }
     } catch (error) {
       console.error('기존 면접 일정 로드 중 오류:', error);
-    }
-  };
-
-  // 대시보드 마운트 시 항상 최신 데이터 fetch
-  const fetchJobPostings = async () => {
-    try {
-      const response = await fetch(apiUrl(`/api/candidates/${candidateId}/job-postings`));
-      if (response.ok) {
-        const data = await response.json();
-        setJobPostings(data);
-      }
-    } catch (error) {
-      console.error('데이터 가져오기 중 오류:', error);
-      setJobPostings([]);
     }
   };
 

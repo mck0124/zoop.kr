@@ -113,7 +113,7 @@ function Careers() {
   };
 
   const handleApply = post => {
-    setSelectedPost(post);
+    setSelectedPost(() => post);
     setShowApplyModal(true);
   };
 

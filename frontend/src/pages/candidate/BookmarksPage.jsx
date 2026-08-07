@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import CompactJobCard from '../../components/CompactJobCard';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,7 @@ const LANGUAGES = ['Python', 'Java', 'JavaScript', 'TypeScript', 'C++', 'C#', 'G
 const LOCATIONS = ['서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종', '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'];
 
 export default function BookmarksPage() {
-  const { authState, bookmarkedPostIds, toggleBookmark, fetchBookmarks: fetchGlobalBookmarks } = useAuth();
+  const { authState, toggleBookmark } = useAuth();
   const candidateId = authState.userId;
   const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +26,7 @@ export default function BookmarksPage() {
   const [locationFilter, setLocationFilter] = useState('');
   const [search, setSearch] = useState('');
 
-  const fetchBookmarks = async () => {
+  const fetchBookmarks = useCallback(async () => {
     if (!candidateId) return;
     setLoading(true);
     setError(null);
@@ -62,7 +62,7 @@ export default function BookmarksPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [candidateId]);
 
   const handleBookmarkToggle = async (post) => {
     await toggleBookmark(post.postId);
@@ -70,13 +70,7 @@ export default function BookmarksPage() {
     fetchBookmarks();
   };
 
-  useEffect(() => {
-    if (!candidateId) return;
-    fetchBookmarks();
-    fetchUserName();
-  }, [candidateId]);
-
-  const fetchUserName = async () => {
+  const fetchUserName = useCallback(async () => {
     try {
       const userResponse = await fetch(apiUrl(`/api/candidates/${candidateId}`));
       if (userResponse.ok) {
@@ -87,7 +81,13 @@ export default function BookmarksPage() {
       console.error('사용자 정보 가져오기 오류:', error);
       setUserName('사용자');
     }
-  };
+  }, [candidateId]);
+
+  useEffect(() => {
+    if (!candidateId) return;
+    fetchBookmarks();
+    fetchUserName();
+  }, [candidateId, fetchBookmarks, fetchUserName]);
 
   const handleJobTitleClick = (postId) => {
     navigate(`/job/${postId}`);

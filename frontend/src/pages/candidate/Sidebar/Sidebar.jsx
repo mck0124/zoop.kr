@@ -1,7 +1,7 @@
 // src/pages/candidate/Sidebar.jsx
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 // SVG Icon Components
 const HomeIcon = () => (

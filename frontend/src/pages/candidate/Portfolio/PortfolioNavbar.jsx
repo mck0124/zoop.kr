@@ -173,12 +173,6 @@ function PortfolioNavbar() {
     }
   };
 
-  // 마감 임박 공고 클릭 처리
-  const handleExpiringPostClick = (post) => {
-    setIsNotificationOpen(false);
-    navigate(`/candidate/dashboard?postId=${post.postId}&tab=all`);
-  };
-
   // 날짜 포맷팅 함수
   const formatNotificationDate = (dateString) => {
     if (!dateString) return '';
@@ -231,6 +225,8 @@ function PortfolioNavbar() {
     }, 30000);
     
     return () => clearInterval(interval);
+  // Polling callback intentionally reads the current auth context for this session.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authState.userId]);
 
   const handleLogout = () => {

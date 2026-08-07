@@ -1,11 +1,10 @@
 // src/routes/PublicOnlyRoute.jsx
 import React, { useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function PublicOnlyRoute({ children }) {
   const { authState, isInitialized } = useAuth();
-  const location = useLocation();
   const [chatbotOpen, setChatbotOpen] = useState(false);
 
   // 로고 클릭으로 인한 홈페이지 접근인지 확인

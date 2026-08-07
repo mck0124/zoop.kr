@@ -237,7 +237,7 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
             .map((t) =>
             t
                 .trim()
-                .replace(/^(\d+)[\.\)]\s*/, "") // ← 앞에 "1. " 또는 "2) " 등 숫자+점/괄호+공백 제거
+                .replace(/^(\d+[.)])\s*/, "") // ← 앞에 "1. " 또는 "2) " 등 숫자+점/괄호+공백 제거
                 .replace(/^[-*•]\s*/, "")      // ← 혹시 불릿(-, *, •)도 제거
             )
             .filter(Boolean);

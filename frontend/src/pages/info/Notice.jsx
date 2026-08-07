@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import './Notice.css';
 import Navbar from '../../components/Navbar';
 import SEO from '../../components/SEO';
-import { Navigate } from 'react-router-dom';
 
 const noticeList = [
   {
@@ -70,16 +69,6 @@ function isNew(dateStr) {
   const date = new Date(dateStr);
   const diff = (now - date) / (1000 * 60 * 60 * 24);
   return diff <= 7;
-}
-
-// 공지 아이콘 SVG
-function NoticeIcon({ size = 48 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style={{marginBottom: 8}}>
-      <path d="M24 14v10" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
-      <circle cx="24" cy="32" r="2" fill="#fff" />
-    </svg>
-  );
 }
 
 // 카테고리별 아이콘
@@ -252,4 +241,4 @@ function Notice() {
   );
 }
 
-export default Notice; 
+export default Notice;

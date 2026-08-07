@@ -20,7 +20,6 @@ export default function ResponderList() {
 
   const containerRef = useRef(null);  // PDF 렌더러 참조
   const modalRef = useRef(null);      // 모달 컨테이너 참조
-  const originalPdfWidth = 800;
 
   // 모달 열릴 때와 리사이즈 시 컨테이너 너비 갱신
   useEffect(() => {

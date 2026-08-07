@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './InterviewSchedulerModal.css';
 import { apiUrl } from '../../../api/config';
 
@@ -26,7 +26,7 @@ function InterviewSchedulerModal({ isOpen, onClose, onSchedule, postId, candidat
   const todayString = today.toISOString().split('T')[0];
 
   // 현재 시간 + 1시간 이후의 시간대 옵션들 생성
-  const generateTimeSlots = () => {
+  const generateTimeSlots = useCallback(() => {
     const now = currentDate; // currentDate 사용
     const currentHour = now.getHours();
     
@@ -56,7 +56,7 @@ function InterviewSchedulerModal({ isOpen, onClose, onSchedule, postId, candidat
     });
     
     return slots;
-  };
+  }, [currentDate, selectedDate, todayString]);
 
   const [timeSlots, setTimeSlots] = useState([]);
 
@@ -91,7 +91,7 @@ function InterviewSchedulerModal({ isOpen, onClose, onSchedule, postId, candidat
   // 선택된 날짜가 변경될 때마다 시간 옵션 업데이트
   useEffect(() => {
     setTimeSlots(generateTimeSlots());
-  }, [selectedDate, currentDate]);
+  }, [selectedDate, currentDate, generateTimeSlots]);
 
   // 달력 관련 함수들
   const getDaysInMonth = (date) => {

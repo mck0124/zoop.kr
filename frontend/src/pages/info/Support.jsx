@@ -152,15 +152,6 @@ function Support() {
     return null;
   };
 
-  const goToFaq = (e) => {
-    e.preventDefault();
-    const matchedCategory = getCategoryBySearch(searchValue);
-    if (matchedCategory) {
-      navigate('/faq?category=' + encodeURIComponent(matchedCategory));
-    } else {
-      navigate('/faq');
-    }
-  };
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();

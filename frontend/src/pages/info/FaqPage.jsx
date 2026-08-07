@@ -5,12 +5,6 @@ import './FaqPage.css';
 import '../info/Notice.css';
 import { useLocation } from 'react-router-dom';
 
-const navLinks = [
-  { label: '자주 묻는 질문', href: '/faq', active: true },
-  { label: '피해사건 신고', href: '/report' },
-  { label: 'HOME', href: '/' },
-];
-
 const faqData = [
   { category: '회원가입/로그인', question: '회원가입은 어떻게 하나요?(개인/기업별 안내)', answer: "홈페이지 우측 상단의 '회원가입' 버튼을 클릭 후, 이메일 또는 소셜 계정으로 가입할 수 있습니다." },
   { category: '회원가입/로그인', question: '비밀번호를 잊어버렸어요.', answer: "로그인 페이지에서 '비밀번호 찾기'를 클릭하면, 이메일을 통해 재설정할 수 있습니다." },
@@ -46,12 +40,6 @@ const QIcon = ({size=22, color='#30C59B'}) => (
   </svg>
 );
 // A: CheckCircleIcon (Feather style)
-const AIcon = ({size=22, color='#22c55e'}) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="9 12 12 15 16 10" />
-  </svg>
-);
 const ArrowIcon = ({open, size=22, color='#888', activeColor='#22c55e'}) => (
   <svg width={size} height={size} viewBox="0 0 24 24" style={{transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.35s'}}>
     <path d="M7 10l5 5 5-5" stroke={open ? activeColor : color} strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
@@ -277,4 +265,4 @@ function FaqPage() {
   );
 }
 
-export default FaqPage; 
+export default FaqPage;

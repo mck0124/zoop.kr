@@ -49,6 +49,8 @@ function InterviewGuideSlides({ onStart }) {
     }, 1000);
 
     return () => clearInterval(timer);
+    // Countdown intentionally starts once; handleStartInterview is the stable screen action.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // slide가 undefined일 때 예외 방지 (모든 hook 호출 이후에 위치)
@@ -127,14 +129,13 @@ function InterviewEnvironmentCheck({ onComplete }) {
   const [faceSuccess, setFaceSuccess] = useState(false); // 카메라 성공 여부
   const [stream, setStream] = useState(null);
   const [cameraError, setCameraError] = useState(null);
-  const [cameraLoading, setCameraLoading] = useState(true);
+  const [, setCameraLoading] = useState(true);
   const videoRef = useRef(null);
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
   const animationFrameRef = useRef(null);
-  const [testTimer, setTestTimer] = useState(0);
-  const [testActive, setTestActive] = useState(false);
-  const [voiceDetected, setVoiceDetected] = useState(false);
+  const [, setTestTimer] = useState(0);
+  const [, setVoiceDetected] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
 
@@ -203,6 +204,8 @@ function InterviewEnvironmentCheck({ onComplete }) {
       if (stream) stream.getTracks().forEach(track => track.stop());
     };
     // eslint-disable-next-line
+  // handleStartInterview is stable for this screen; the timer should be created once.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

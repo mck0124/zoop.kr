@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import './IncidentReportPage.css';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from '../../api/axios';
@@ -487,4 +487,4 @@ export default function IncidentReportPage() {
       </main>
     </div>
   );
-} 
+}

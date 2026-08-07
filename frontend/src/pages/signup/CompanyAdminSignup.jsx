@@ -18,7 +18,6 @@ export default function CompanyAdminSignup() {
   const [codeSent, setCodeSent] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [resendTimer, setResendTimer] = useState(300);
-  const [resendVisible, setResendVisible] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState('');
   const [strengthColor, setStrengthColor] = useState('#aaa');
   const [passwordMatch, setPasswordMatch] = useState(true);

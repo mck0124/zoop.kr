@@ -698,6 +698,8 @@ export default function CompanyDashboard() {
         '</div>' +
       '</div>';
     } else { // modern
+      // The template contains escaped SVG attribute quotes inside a string literal.
+      /* eslint-disable no-useless-escape */
       return '<div style="font-family:\'Segoe UI\', Tahoma, Geneva, Verdana, sans-serif; background:#0f0f0f; padding:20px;">' +
         '<div style="max-width:600px; margin:0 auto; background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius:20px; overflow:hidden; border:1px solid #7c3aed;">' +
           '<div style="background:linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); padding:30px; text-align:center; position:relative;">' +
@@ -737,6 +739,7 @@ export default function CompanyDashboard() {
           '</div>' +
         '</div>' +
       '</div>';
+      /* eslint-enable no-useless-escape */
     }
   };
 

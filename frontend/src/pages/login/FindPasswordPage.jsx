@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { apiUrl } from '../../api/config';
-import { Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 
 export default function FindPasswordPage() {
