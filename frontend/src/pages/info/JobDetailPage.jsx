@@ -55,13 +55,13 @@ function JobDetailPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`http://localhost:8081/api/postings/info/${postId}`);
+        const res = await fetch(apiUrl(`/api/postings/info/${postId}`));
         if (!res.ok) throw new Error('공고 정보를 불러올 수 없습니다.');
         const postData = await res.json();
         setPost(postData);
 
         if (postData.companyId) {
-          const companyRes = await fetch(`http://localhost:8081/api/companies/${postData.companyId}`);
+          const companyRes = await fetch(apiUrl(`/api/companies/${postData.companyId}`));
           if (companyRes.ok) {
             const companyData = await companyRes.json();
             console.log("기업 정보 fetch 결과:", companyData);
@@ -71,7 +71,7 @@ function JobDetailPage() {
 
         const candidateId = localStorage.getItem('userId');
         if (candidateId) {
-          const pfRes = await fetch(`http://localhost:8081/api/portfolios/candidate/${candidateId}?postId=${postId}`);
+          const pfRes = await fetch(apiUrl(`/api/portfolios/candidate/${candidateId}?postId=${postId}`));
           if (pfRes.ok) {
             const portfolios = await pfRes.json();
             setPortfolioList(portfolios);
@@ -80,7 +80,7 @@ function JobDetailPage() {
           }
           
           // 기존 포트폴리오 조회 (최근 업로드된 것)
-          const recentPfRes = await fetch(`http://localhost:8081/api/portfolios/recent/${candidateId}`);
+          const recentPfRes = await fetch(apiUrl(`/api/portfolios/recent/${candidateId}`));
           if (recentPfRes.ok) {
             const recentPortfolio = await recentPfRes.json();
             if (recentPortfolio.hasPortfolio) {
@@ -89,13 +89,6 @@ function JobDetailPage() {
             }
           }
 
-          // 북마크 상태 확인
-          // const bookmarkRes = await fetch(`http://localhost:8081/api/bookmarks/candidate/${candidateId}`); // 제거
-          // if (bookmarkRes.ok) { // 제거
-          //   const bookmarks = await bookmarkRes.json(); // 제거
-          //   const isBookmarked = bookmarks.some(bookmark => bookmark.postId === parseInt(postId)); // 제거
-          //   setIsBookmarked(isBookmarked); // 제거
-          // } // 제거
         }
       } catch (e) {
         console.error("기업 정보 fetch 에러:", e);
@@ -119,7 +112,7 @@ function JobDetailPage() {
     if (!post?.companyId) return;
     (async () => {
       try {
-        const res = await fetch(`http://localhost:8081/api/postings?companyId=${post.companyId}`);
+        const res = await fetch(apiUrl(`/api/postings?companyId=${post.companyId}`));
         if (res.ok) {
           const data = await res.json();
           setOtherPosts(
@@ -160,7 +153,7 @@ function JobDetailPage() {
     setLoggingIn(true);
     setLoginError('');
     try {
-      const response = await axios.post('http://localhost:8081/api/auth/login', {
+      const response = await axios.post(apiUrl('/api/auth/login'), {
         loginId: loginForm.loginId,
         password: loginForm.password,
         userType: loginForm.userType
@@ -238,7 +231,7 @@ function JobDetailPage() {
       // source 파라미터 추가
       formData.append('source', 'apply');
 
-      const pfRes = await fetch('http://localhost:8081/api/portfolios', {
+      const pfRes = await fetch(apiUrl('/api/portfolios'), {
         method: 'POST',
         body: formData
       });
@@ -269,7 +262,7 @@ function JobDetailPage() {
       }
 
       // Refresh list
-      const pfListRes = await fetch(`http://localhost:8081/api/portfolios/candidate/${candidateId}?postId=${postId}`);
+      const pfListRes = await fetch(apiUrl(`/api/portfolios/candidate/${candidateId}?postId=${postId}`));
       if (pfListRes.ok) {
         const portfolios = await pfListRes.json();
         setPortfolioList(portfolios);
@@ -340,12 +333,12 @@ function JobDetailPage() {
   const handleDeletePortfolio = async (portfolioId) => {
     if (!window.confirm('정말 삭제하시겠습니까?')) return;
     try {
-      const res = await fetch(`http://localhost:8081/api/portfolios/${portfolioId}`, {
+      const res = await fetch(apiUrl(`/api/portfolios/${portfolioId}`), {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error('삭제 실패');
       const candidateId = localStorage.getItem('userId');
-      const pfRes = await fetch(`http://localhost:8081/api/portfolios/candidate/${candidateId}?postId=${postId}`);
+      const pfRes = await fetch(apiUrl(`/api/portfolios/candidate/${candidateId}?postId=${postId}`));
       if (pfRes.ok) {
         const portfolios = await pfRes.json();
         setPortfolioList(portfolios);
@@ -360,7 +353,7 @@ function JobDetailPage() {
     if (!window.confirm('기존 포트폴리오를 삭제하시겠습니까?')) return;
     try {
       if (existingPortfolio && existingPortfolio.portfolioId) {
-        const res = await fetch(`http://localhost:8081/api/portfolios/${existingPortfolio.portfolioId}`, {
+        const res = await fetch(apiUrl(`/api/portfolios/${existingPortfolio.portfolioId}`), {
           method: 'DELETE',
         });
         if (!res.ok) throw new Error('삭제 실패');
@@ -384,7 +377,7 @@ function JobDetailPage() {
       setMatchingLoading(true);
       setMatchingError('');
       // 1. 분석 결과 가져오기 (Spring)
-      fetch(`http://localhost:8081/api/ai-analysis-results/${matchingAnalysisId}`)
+      fetch(apiUrl(`/api/ai-analysis-results/${matchingAnalysisId}`))
         .then(res => res.ok ? res.json() : Promise.reject('분석 결과 조회 실패'))
         .then(data => {
           setMatchingAnalysis(data);

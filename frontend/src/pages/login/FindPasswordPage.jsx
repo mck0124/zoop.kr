@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { apiUrl } from '../../api/config';
 import { Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 
@@ -16,7 +17,7 @@ export default function FindPasswordPage() {
     e.preventDefault();
     setLoading(true); // 시작 시 로딩 ON
     try {
-      await axios.post('http://localhost:8081/api/candidate/request-password-reset', {
+      await axios.post(apiUrl('/api/candidate/request-password-reset'), {
         githubLogin,
         email,
         candidateName: name,

@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
+import { apiUrl } from '../../api/config';
 
 
 export default function ApplicantSignupProcess() {
@@ -73,7 +74,7 @@ const [individualAgree, setIndividualAgree] = useState({
       // 초대 토큰을 통해 GitHub 로그인 정보 가져오기
       const fetchInvitationInfo = async () => {
         try {
-          const response = await fetch(`http://localhost:8081/api/invitations/clicked/${invitationToken}`, {
+        const response = await fetch(apiUrl(`/api/invitations/clicked/${invitationToken}`), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -147,7 +148,7 @@ const [individualAgree, setIndividualAgree] = useState({
 const handleSendCode = async () => {
   setIsSendingCode(true); // 전송 중 상태로 설정
   const fullEmail = `${emailLocal}@${emailDomain}`; // 전체 이메일 주소 조합
-  const res = await fetch(`http://localhost:8081/api/email/send?email=${encodeURIComponent(fullEmail)}`, {
+  const res = await fetch(apiUrl(`/api/email/send?email=${encodeURIComponent(fullEmail)}`), {
     method: 'POST',
   });
 
@@ -224,7 +225,7 @@ useEffect(() => {
   // 이메일 인증 확인
   const handleVerifyCode = async () => {
     const fullEmail = `${emailLocal}@${emailDomain}`;
-    const res = await fetch(`http://localhost:8081/api/email/verify?email=${encodeURIComponent(fullEmail)}&code=${verificationCode}`, { method: 'POST' });
+    const res = await fetch(apiUrl(`/api/email/verify?email=${encodeURIComponent(fullEmail)}&code=${verificationCode}`), { method: 'POST' });
     if (res.ok) {
       alert('이메일 인증 완료');
       setIsEmailVerified(true);
@@ -248,7 +249,7 @@ useEffect(() => {
       return;
     }
     try {
-      const res = await fetch(`http://localhost:8081/api/candidates/check-id?githubLogin=${idCheck}`);
+      const res = await fetch(apiUrl(`/api/candidates/check-id?githubLogin=${idCheck}`));
       if (res.ok) {
         setIdMessage('사용 가능한 아이디입니다.');
         setIsIdAvailable(true);
@@ -346,7 +347,7 @@ useEffect(() => {
     };
     try {
 
-      const response = await fetch('http://localhost:8081/api/candidates/process', {
+      const response = await fetch(apiUrl('/api/candidates/process'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -357,7 +358,7 @@ useEffect(() => {
         // 초대 링크를 통해 들어온 경우 job_cand_progress 업데이트
         if (invitationToken) {
           try {
-            const updateResponse = await fetch('http://localhost:8081/api/progress/update-candidate-id', {
+            const updateResponse = await fetch(apiUrl('/api/progress/update-candidate-id'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

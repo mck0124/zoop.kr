@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
+import { apiUrl } from '../../api/config';
 import './CompanySignup.css';
 
 export default function CompanyAdminSignup() {
@@ -31,7 +32,7 @@ export default function CompanyAdminSignup() {
   const handleSendCode = async () => {
     setIsSendingCode(true);
     const fullEmail = `${emailLocal}@${emailDomain}`;
-    const res = await fetch(`http://localhost:8081/api/email/send?email=${encodeURIComponent(fullEmail)}`, {
+    const res = await fetch(apiUrl(`/api/email/send?email=${encodeURIComponent(fullEmail)}`), {
       method: 'POST',
     });
     if (res.ok) {
@@ -73,7 +74,7 @@ export default function CompanyAdminSignup() {
 
   const handleVerifyCode = async () => {
     const fullEmail = `${emailLocal}@${emailDomain}`;
-    const res = await fetch(`http://localhost:8081/api/email/verify?email=${encodeURIComponent(fullEmail)}&code=${verificationCode}`, {
+    const res = await fetch(apiUrl(`/api/email/verify?email=${encodeURIComponent(fullEmail)}&code=${verificationCode}`), {
       method: 'POST',
     });
     if (res.ok) {
@@ -111,7 +112,7 @@ export default function CompanyAdminSignup() {
     };
 
     try {
-      const res = await fetch('http://localhost:8081/api/companyadmins', {
+      const res = await fetch(apiUrl('/api/companyadmins'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -166,7 +167,7 @@ export default function CompanyAdminSignup() {
                       return;
                     }
                     try {
-                      const res = await fetch(`http://localhost:8081/api/companyadmins/check-id?loginId=${encodeURIComponent(loginId)}`);
+                      const res = await fetch(apiUrl(`/api/companyadmins/check-id?loginId=${encodeURIComponent(loginId)}`));
                       if (res.ok) {
                         const data = await res.text();
                         alert(data);

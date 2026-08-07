@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { apiUrl } from '../../api/config';
 import { Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 
@@ -17,7 +18,7 @@ export default function FindIdPage() {
     setGithubLogin('');
     
     try {
-      const res = await axios.post('http://localhost:8081/api/candidates/find-id', {
+      const res = await axios.post(apiUrl('/api/candidates/find-id'), {
         name,
         email,
       });
