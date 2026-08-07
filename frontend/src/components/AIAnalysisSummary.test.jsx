@@ -32,3 +32,10 @@ test('renders the evidence ledger with verification metadata', () => {
   expect(screen.getByText(/근거 ID evidence-1234/)).toBeInTheDocument();
   expect(screen.getByText('근거 커버리지 100%')).toBeInTheDocument();
 });
+
+test('does not render invalid numeric AI metadata as NaN', () => {
+  render(<AIAnalysisSummary analysis={{ summary: 'legacy result', confidence: 'unknown', evidence_coverage: 'unknown' }} score="unknown" />);
+
+  expect(screen.queryByText(/NaN/)).not.toBeInTheDocument();
+  expect(screen.getByText('legacy result')).toBeInTheDocument();
+});

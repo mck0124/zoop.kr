@@ -1,6 +1,16 @@
 import React from 'react';
 
 const asArray = (value) => (Array.isArray(value) ? value : []);
+const finiteNumber = (value) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+};
+const formatPercent = (value) => {
+  const number = finiteNumber(value);
+  if (number === null) return null;
+  const percent = number <= 1 ? number * 100 : number;
+  return Math.round(Math.max(0, Math.min(100, percent)));
+};
 
 export function parseAIAnalysisData(value) {
   if (!value) return null;
@@ -73,15 +83,18 @@ export default function AIAnalysisSummary({ analysis, score, title = 'AI 분석 
   const trace = payload?.decision_trace || payload?.decisionTrace;
   const audit = payload?.audit || payload?.evidence_audit || null;
   const hasStructuredData = Boolean(payload);
+  const safeScore = finiteNumber(score);
+  const coveragePercent = formatPercent(coverage);
+  const confidencePercent = formatPercent(confidence);
 
   return (
     <section className="rounded-xl border border-blue-100 bg-white p-4" aria-label={title}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h5 className="font-semibold text-gray-800">{title}</h5>
         <div className="flex flex-wrap gap-2 text-xs">
-          {score !== undefined && score !== null && <span className="rounded-full bg-blue-50 px-2.5 py-1 font-semibold text-blue-700">점수 {score}/100</span>}
-          {coverage !== undefined && <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">근거 커버리지 {coverage}%</span>}
-          {confidence !== undefined && <span className="rounded-full bg-violet-50 px-2.5 py-1 text-violet-700">신뢰도 {Math.round(Number(confidence) * (Number(confidence) <= 1 ? 100 : 1))}%</span>}
+          {safeScore !== null && <span className="rounded-full bg-blue-50 px-2.5 py-1 font-semibold text-blue-700">점수 {Math.round(Math.max(0, Math.min(100, safeScore)))}/100</span>}
+          {coveragePercent !== null && <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">근거 커버리지 {coveragePercent}%</span>}
+          {confidencePercent !== null && <span className="rounded-full bg-violet-50 px-2.5 py-1 text-violet-700">신뢰도 {confidencePercent}%</span>}
           {decision && <span className={`rounded-full px-2.5 py-1 font-semibold ${decision === 'strong_match' ? 'bg-emerald-100 text-emerald-700' : decision === 'not_enough_evidence' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
             {decision === 'strong_match' ? '근거 충분' : decision === 'not_enough_evidence' ? '근거 부족' : '검토 권장'}
           </span>}
