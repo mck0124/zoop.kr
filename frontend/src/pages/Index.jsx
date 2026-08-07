@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Index.css';
 import Navbar from '../components/Navbar';
 
@@ -130,12 +130,14 @@ export default function Index() {
         <img src="/zoop_main_banner.png" alt="banner" className="hero-image" />
         <div className="hero-text">
           <h1>채용의 모든 것<br />ZOOP에서 쉽고 간편하게</h1>
-          <button
-            className="cta-button"
-            onClick={() => navigate('/auth/applicant/signup')}
-          >
-            👉 3초만에 가입하고 인재 찾기
-          </button>
+          <div className="cta-actions" aria-label="회원 유형 선택">
+            <button className="cta-button" onClick={() => navigate('/auth/applicant/signup')}>
+              구직자로 시작하기 <span aria-hidden="true">→</span>
+            </button>
+            <button className="cta-button secondary" onClick={() => navigate('/auth/company/signup/process')}>
+              기업으로 인재 찾기 <span aria-hidden="true">→</span>
+            </button>
+          </div>
         </div>
       </section>
 
@@ -199,6 +201,8 @@ export default function Index() {
                 type="button"
                 role="tab"
                 aria-selected={demoView === key}
+                aria-controls="ledger-demo-panel"
+                id={`ledger-tab-${key}`}
                 className={demoView === key ? 'active' : ''}
                 key={key}
                 onClick={() => setDemoView(key)}
@@ -207,7 +211,7 @@ export default function Index() {
               </button>
             ))}
           </div>
-          <div className="ledger-demo-panel" role="tabpanel">
+          <div className="ledger-demo-panel" role="tabpanel" id="ledger-demo-panel" aria-live="polite" aria-labelledby={`ledger-tab-${demoView}`}>
             <div className="ledger-demo-score">
               <span className="ledger-demo-score-label">샘플 판단</span>
               <strong>{demoValidated ? '82' : '72'}<small>/100</small></strong>
@@ -323,39 +327,24 @@ export default function Index() {
         <div className="footer-grid">
           <div>
             <strong>서비스</strong>
-            <p>공지사항</p>
-            <p>자주 묻는 질문</p>
-            <p>공동인증서 관리</p>
-            <p>계정 일시잠금</p>
-            <p>고객센터</p>
-            <p>개인(신용)정보 이용·제공 내역 조회</p>
-            <p>브랜드 리소스센터</p>
-            <p>줍의 개인정보 보호</p>
-            <p>줍유스카드</p>
+            <Link to="/notice">공지사항</Link>
+            <Link to="/faq">자주 묻는 질문</Link>
+            <Link to="/support">고객센터</Link>
+            <Link to="/report">서비스 신고</Link>
           </div>
           <div>
             <strong>회사</strong>
-            <p>회사 소개</p>
-            <p>줍스토리</p>
-            <p>줍페이먼츠</p>
-            <p>줍인슈어런스</p>
-            <p>줍증권</p>
-            <p>줍세이프</p>
-            <p>줍플레이스</p>
-            <p>줍인컴</p>
-            <p>채용</p>
-            <p>기술 블로그</p>
-            <p>블로그</p>
-            <p>공고</p>
+            <Link to="/about">회사 소개</Link>
+            <Link to="/careers">채용</Link>
+            <Link to="/auth/login">로그인</Link>
+            <Link to="/auth/applicant/signup">구직자 회원가입</Link>
+            <Link to="/auth/company/signup/process">기업 회원가입</Link>
           </div>
           <div>
             <strong>문의</strong>
-            <p>사업 제휴</p>
-            <p>줍쇼핑 입점문의</p>
-            <p>광고 문의</p>
-            <p>인증 사업 문의</p>
-            <p>마케팅 · PR</p>
-            <p>IR</p>
+            <a href="mailto:support@zoop.im">일반 문의</a>
+            <a href="mailto:partnership@zoop.im">사업 제휴</a>
+            <Link to="/support">도움말 보기</Link>
           </div>
           <div>
             <strong>고객센터</strong>
@@ -370,11 +359,9 @@ export default function Index() {
           <strong>(주)줍스튜디오</strong>
           <p>ZOOP AI Recruiting Platform · KOSA Capstone Prototype</p>
           <p>본 서비스는 기술 시연을 위한 프로젝트입니다.</p>
-          <div className="footer-terms">
-            <p><strong>서비스 이용약관</strong></p>
-            <p><strong>개인정보 처리방침</strong></p>
-            <p><strong>위치기반서비스 이용약관</strong></p>
-            <p><strong>전자금융거래약관</strong></p>
+          <div className="footer-terms" aria-label="정책 안내">
+            <span>서비스 이용약관 준비 중</span>
+            <span>개인정보 처리방침 준비 중</span>
           </div>
           <div className="footer-icons">
             <span>📘</span> <span>🐦</span> <span>📸</span> <span>🔗</span>

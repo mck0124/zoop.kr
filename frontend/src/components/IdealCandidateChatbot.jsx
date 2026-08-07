@@ -74,7 +74,7 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
     if (f.nationwide) regionStr = "전국";
     else if (f.regions && f.regions.length) regionStr = f.regions.join(", ");
     if (regionStr) lines.push(`지역: ${regionStr}`);
-    if (f.salary) lines.push(`연봉: ${f.salary.toLocaleString()}만원`);
+    if (f.salary) lines.push(`연봉: ${Number(f.salary).toLocaleString()}만원`);
     if (f.headcount) lines.push(`인원수: ${f.headcount}명`);
     if (filters.expiryDate) lines.push(`마감일: ${filters.expiryDate}`);
     if (filters.description) lines.push(`상세설명: ${filters.description}`);
@@ -168,7 +168,7 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
       });
       if (!response.ok) throw new Error("API 호출 실패");
       const data = await response.json();
-      let aiResponse = data.answer;
+      let aiResponse = typeof data.answer === "string" ? data.answer : "요청을 처리할 수 있는 AI 응답이 없습니다.";
       // <SUMMARY> 파싱 및 제거 (닫는 태그가 없어도 <SUMMARY> 이후는 모두 제거)
       const summaryMatch = aiResponse.match(/<SUMMARY>([\s\S]*?)(<\/SUMMARY>|$)/);
       if (summaryMatch) {
@@ -450,10 +450,11 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
           gap: "0.75rem",
           alignItems: "center"
         }}>
-          <input
+        <input
             ref={inputRef}
             type="text"
-            value={inputValue}
+          value={inputValue}
+          maxLength={2000}
             onChange={(e) => setInputValue(e.target.value)}
             onCompositionStart={() => setIsComposing(true)}
             onCompositionEnd={() => setIsComposing(false)}

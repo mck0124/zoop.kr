@@ -977,17 +977,25 @@ export default function CandidateList({ activeTab = 'all' }) {
 
   // 2. 템플릿 HTML 생성 함수 (CompanyDashboard에서 복사, postInfo 사용)
   const generateTemplateHtml = (candidate, templateKey, greeting, message) => {
+    const escapeHtml = value => String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
     if (!candidate) {
       candidate = { githubLogin: '후보자', candidateEmail: '' };
     }
-    const postTitle = postInfo?.postTitle || '채용 공고';
-    const postDescription = postInfo?.postDescription || '';
-    const githubLogin = candidate.githubLogin || '후보자';
-    const companyName = postInfo?.companyName || '저희 회사';
-    const postLocation = postInfo?.postLocation || '서울';
-    const postProgrammingLanguage = postInfo?.postProgrammingLanguage || 'Java';
-    const postSalaryStart = postInfo?.postSalaryStart || '5000';
-    const postSalaryEnd = postInfo?.postSalaryEnd || '6000';
+    const postTitle = escapeHtml(postInfo?.postTitle || '채용 공고');
+    const postDescription = escapeHtml(postInfo?.postDescription || '');
+    const githubLogin = escapeHtml(candidate.githubLogin || '후보자');
+    const companyName = escapeHtml(postInfo?.companyName || '저희 회사');
+    const postLocation = escapeHtml(postInfo?.postLocation || '서울');
+    const postProgrammingLanguage = escapeHtml(postInfo?.postProgrammingLanguage || 'Java');
+    const postSalaryStart = escapeHtml(postInfo?.postSalaryStart || '5000');
+    const postSalaryEnd = escapeHtml(postInfo?.postSalaryEnd || '6000');
+    greeting = escapeHtml(greeting);
+    message = escapeHtml(message);
     const postStartDate = postInfo?.postPostedDate ? formatDate(postInfo.postPostedDate) : '';
     const postEndDate = postInfo?.postExpiryDate ? formatDate(postInfo.postExpiryDate) : '';
     const recruitmentPeriod = postStartDate && postEndDate ? `${postStartDate} ~ ${postEndDate}` : '상시모집';

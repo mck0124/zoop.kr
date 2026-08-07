@@ -62,11 +62,24 @@ html, body {
   font-weight: 600;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 .cta-button:hover {
   background-color: #c9f2e3;
   transform: translateY(-2px);
 }
+.cta-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .7rem;
+}
+.cta-button.secondary {
+  background: rgba(255,255,255,.78);
+  border: 1px solid rgba(32, 184, 137, .35);
+  color: #16745a;
+}
+.cta-button.secondary:hover { background: #effcf7; }
 
 /* ===== subtitle fade-in section ===== */
 .subtitle-section {
@@ -393,6 +406,16 @@ html, body {
   font-size: 0.9rem;
   color: #555;
 }
+.footer-grid a {
+  display: block;
+  width: fit-content;
+  margin: 0.55rem 0;
+  color: #555;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.footer-grid a:hover,
+.footer-grid a:focus-visible { color: #0d9d72; text-decoration: underline; }
 .footer-bottom {
   max-width: 1000px;
   width: 100%;
@@ -415,6 +438,7 @@ html, body {
   font-weight: bold;
   color: #111;
 }
+.footer-terms span { color: #555; }
 .footer-icons {
   margin-top: 1.5rem;
   font-size: 1.3rem;

@@ -616,19 +616,27 @@ export default function CompanyDashboard() {
 
   // 선택된 템플릿으로 HTML 생성
   const generateTemplateHtml = (candidate, templateKey, greeting, message) => {
+    const escapeHtml = value => String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
     // candidate가 null이거나 undefined인 경우 기본값 사용
     if (!candidate) {
       candidate = { githubLogin: '후보자', candidateEmail: '' };
     }
     
-    const postTitle = selectedPostDetail?.postTitle || '채용 공고';
-    const postDescription = selectedPostDetail?.postDescription || '';
-    const githubLogin = candidate.githubLogin || '후보자';
-    const companyName = companyInfo?.companyName || '저희 회사';
-    const postLocation = selectedPostDetail?.postLocation || '서울';
-    const postProgrammingLanguage = selectedPostDetail?.postProgrammingLanguage || 'Java';
-    const postSalaryStart = selectedPostDetail?.postSalaryStart || '5000';
-    const postSalaryEnd = selectedPostDetail?.postSalaryEnd || '6000';
+    const postTitle = escapeHtml(selectedPostDetail?.postTitle || '채용 공고');
+    const postDescription = escapeHtml(selectedPostDetail?.postDescription || '');
+    const githubLogin = escapeHtml(candidate.githubLogin || '후보자');
+    const companyName = escapeHtml(companyInfo?.companyName || '저희 회사');
+    const postLocation = escapeHtml(selectedPostDetail?.postLocation || '서울');
+    const postProgrammingLanguage = escapeHtml(selectedPostDetail?.postProgrammingLanguage || 'Java');
+    const postSalaryStart = escapeHtml(selectedPostDetail?.postSalaryStart || '5000');
+    const postSalaryEnd = escapeHtml(selectedPostDetail?.postSalaryEnd || '6000');
+    const safeGreeting = escapeHtml(greeting);
+    const safeMessage = escapeHtml(message);
     
     // 공고기간 포맷팅
     const postStartDate = selectedPostDetail?.postPostedDate ? formatDate(selectedPostDetail.postPostedDate) : '';
@@ -643,8 +651,8 @@ export default function CompanyDashboard() {
             '<p style="color:#e0e7ff; margin:10px 0 0 0; font-size:14px;">개발자 채용 공고</p>' +
           '</div>' +
           '<div style="padding:30px;">' +
-            '<h2 style="color:#1e293b; margin:0 0 20px 0; font-size:24px;">' + greeting + ' ' + githubLogin + '님,</h2>' +
-            '<p style="color:#475569; font-size:16px; line-height:1.6; margin:0 0 25px 0;">' + message + '</p>' +
+            '<h2 style="color:#1e293b; margin:0 0 20px 0; font-size:24px;">' + safeGreeting + ' ' + githubLogin + '님,</h2>' +
+            '<p style="color:#475569; font-size:16px; line-height:1.6; margin:0 0 25px 0;">' + safeMessage + '</p>' +
             '<div style="background:#f1f5f9; border-radius:8px; padding:20px; margin:25px 0;">' +
               '<h3 style="color:#2563eb; margin:0 0 15px 0; font-size:20px;">📋 ' + postTitle + '</h3>' +
               '<p style="color:#475569; margin:0 0 15px 0; line-height:1.6;">' + postDescription + '</p>' +
@@ -670,8 +678,8 @@ export default function CompanyDashboard() {
             '<p style="color:#bbf7d0; margin:10px 0 0 0;">함께 성장할 동료를 찾습니다!</p>' +
           '</div>' +
           '<div style="padding:25px;">' +
-            '<h2 style="color:#166534; margin:0 0 20px 0; font-size:22px;">😊 ' + greeting + ' ' + githubLogin + '님!</h2>' +
-            '<p style="color:#374151; font-size:16px; line-height:1.7; margin:0 0 20px 0;">' + message + '</p>' +
+            '<h2 style="color:#166534; margin:0 0 20px 0; font-size:22px;">😊 ' + safeGreeting + ' ' + githubLogin + '님!</h2>' +
+            '<p style="color:#374151; font-size:16px; line-height:1.7; margin:0 0 20px 0;">' + safeMessage + '</p>' +
             '<div style="background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius:12px; padding:20px; margin:20px 0; border-left:4px solid #22c55e;">' +
               '<h3 style="color:#22c55e; margin:0 0 15px 0; font-size:18px;">🎯 ' + postTitle + '</h3>' +
               '<p style="color:#374151; margin:0 0 15px 0; line-height:1.6;">' + postDescription + '</p>' +
@@ -698,8 +706,8 @@ export default function CompanyDashboard() {
             '<p style="color:#c4b5fd; margin:10px 0 0 0; font-size:12px; position:relative; z-index:1; text-transform:uppercase; letter-spacing:2px;">NEXT GENERATION TECH</p>' +
           '</div>' +
           '<div style="padding:30px; color:#e5e7eb;">' +
-            '<h2 style="color:#f3f4f6; margin:0 0 20px 0; font-size:20px; font-weight:300;">' + greeting + ' ' + githubLogin + ',</h2>' +
-            '<p style="color:#d1d5db; font-size:15px; line-height:1.8; margin:0 0 25px 0; font-weight:300;">' + message + '</p>' +
+            '<h2 style="color:#f3f4f6; margin:0 0 20px 0; font-size:20px; font-weight:300;">' + safeGreeting + ' ' + githubLogin + ',</h2>' +
+            '<p style="color:#d1d5db; font-size:15px; line-height:1.8; margin:0 0 25px 0; font-weight:300;">' + safeMessage + '</p>' +
             '<div style="background:rgba(124, 58, 237, 0.1); border:1px solid #7c3aed; border-radius:12px; padding:20px; margin:25px 0;">' +
               '<h3 style="color:#a855f7; margin:0 0 15px 0; font-size:18px; font-weight:400;">' + postTitle + '</h3>' +
               '<p style="color:#d1d5db; margin:0 0 15px 0; line-height:1.7; font-weight:300;">' + postDescription + '</p>' +
