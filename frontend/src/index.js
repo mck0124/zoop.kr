@@ -6,8 +6,8 @@ import './pages/candidate/Portfolio/PortfolioNavbar.css';
 import './pages/candidate/Sidebar/Sidebar.css';
 import './pages/candidate/Sidebar/Header.css';
 import App from './App';
+import AppErrorBoundary from './components/AppErrorBoundary';
 import reportWebVitals from './reportWebVitals';
-import { AuthProvider } from './context/AuthContext';
 import axios from 'axios';
 import { API_BASE_URL, isTrustedApiUrl, withApiBase } from './api/config';
 
@@ -42,9 +42,9 @@ axios.interceptors.request.use(config => {
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <AuthProvider>
+    <AppErrorBoundary>
       <App />
-    </AuthProvider>
+    </AppErrorBoundary>
   </React.StrictMode>
 );
 
