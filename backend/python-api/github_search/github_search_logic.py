@@ -13,10 +13,13 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
 def get_headers():
-    return {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github.v3+json"
+    headers = {
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "ZOOP-recruiting-platform/1.0",
     }
+    if GITHUB_TOKEN:
+        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+    return headers
 
 EMAIL_PATTERN = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"
 
@@ -174,7 +177,7 @@ def enhanced_search_github_candidates(filters, post_id=None):
             while len(email_results) < headcount and page <= 10:  # 최대 10페이지(500명)까지 반복
                 query = f"language:{language} location:{location}"
                 url = f"https://api.github.com/search/users?q={query}&per_page=50&page={page}"
-                resp = requests.get(url, headers=get_headers())
+                resp = requests.get(url, headers=get_headers(), timeout=20)
                 users = resp.json().get("items", [])
                 if not users:
                     break
@@ -188,21 +191,24 @@ def enhanced_search_github_candidates(filters, post_id=None):
                     # Get followers and public_repos for prompt
                     try:
                         user_url = f"https://api.github.com/users/{login}"
-                        user_res = requests.get(user_url, headers=get_headers())
+                        user_res = requests.get(user_url, headers=get_headers(), timeout=20)
                         if user_res.status_code == 200:
                             user_info = user_res.json()
                             followers = user_info.get("followers", "불명")
                             public_repos = user_info.get("public_repos", "불명")
                     except Exception:
                         pass
-                    if email:
-                        # 상세 정보 수집
+                    # 공개 이메일이 없어도 후보자 분석은 가능해야 한다.
+                    # 연락처가 없는 후보자는 결과에 명시적으로 표시하고, 초대 단계에서 확인한다.
+                    if login:
                         details = get_github_candidate_details(login)
                         # 분석 및 점수/근거/요약 생성
                         candidate_obj = {
                             "login": login,
                             "profile_url": profile_url,
                             "email": email,
+                            "contactable": bool(email),
+                            "contact_status": "public_email" if email else "email_not_public",
                             "followers": followers,
                             "public_repos": public_repos
                         }
