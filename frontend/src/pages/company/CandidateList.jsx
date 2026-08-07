@@ -5,6 +5,7 @@ import Navbar from '../../components/Navbar';
 import { FaGithub, FaExpandAlt, FaTimes, FaStar, FaCode, FaEnvelope } from 'react-icons/fa';
 import SEO from '../../components/SEO';
 import MatchingDetailModal from './MatchingDetailModal';
+import { apiUrl } from '../../api/config';
 
 // =========== Styled Components ===========
 
@@ -1375,7 +1376,7 @@ export default function CandidateList({ activeTab = 'all' }) {
         bulkCustomGreeting,
         bulkCustomMessage
       );
-      const res = await fetch('http://localhost:8081/api/invitations/send-bulk', {
+      const res = await fetch(apiUrl('/api/invitations/send-bulk'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1408,7 +1409,7 @@ export default function CandidateList({ activeTab = 'all' }) {
   // 실제 데이터 fetch (네가 쓰던 코드 그대로!)
   useEffect(() => {
     // 공고 정보 조회
-    fetch(`http://localhost:8081/api/postings/info/${postId}`)
+    fetch(apiUrl(`/api/postings/info/${postId}`))
       .then(res => {
         if (!res.ok) throw new Error('공고 정보 조회 실패');
         return res.json();
@@ -1419,12 +1420,12 @@ export default function CandidateList({ activeTab = 'all' }) {
     // 후보자 데이터 조회 (DB에서)
     const fetchCandidates = async () => {
       try {
-        const response = await fetch(`http://localhost:8081/api/github-search/by-post/${postId}`);
+        const response = await fetch(apiUrl(`/api/github-search/by-post/${postId}`));
         if (!response.ok) throw new Error('후보자 데이터 조회 실패');
         const candidatesData = await response.json();
 
         // AI 분석 결과도 함께 조회
-        const aiResponse = await fetch(`http://localhost:8081/api/ai-analysis-results/post/${postId}`);
+        const aiResponse = await fetch(apiUrl(`/api/ai-analysis-results/post/${postId}`));
         let aiAnalysisData = [];
         if (aiResponse.ok) aiAnalysisData = await aiResponse.json();
         setAiAnalysisResults(aiAnalysisData);
@@ -1445,20 +1446,19 @@ export default function CandidateList({ activeTab = 'all' }) {
             portfolioAnalysis = 'AI 분석 결과 없음';
           }
           return {
-            githubLogin: candidate.githubLogin,
-            candidateEmail: candidate.candidateEmail,
             score: candidate.analysisScore || 0,
             portfolioAnalysis: portfolioAnalysis,
             candidateLanguages: candidateLanguages,
             profileUrl: candidate.githubProfileUrl,
             githubSearchResultId: candidate.githubSearchResultId,
-            ...candidate
+            ...candidate,
+            candidateEmail: candidate.candidateEmail === 'not_found@example.com' ? null : candidate.candidateEmail
           };
         });
 
         // 이메일 있는 사람을 먼저, 없는 사람을 나중에 정렬
-        const emailFirst = mappedCandidates.filter(c => c.candidateEmail !== 'not_found@example.com');
-        const noEmail = mappedCandidates.filter(c => c.candidateEmail === 'not_found@example.com');
+        const emailFirst = mappedCandidates.filter(c => Boolean(c.candidateEmail));
+        const noEmail = mappedCandidates.filter(c => !c.candidateEmail);
         setCandidates([...emailFirst, ...noEmail]);
         setLoading(false);
       } catch (error) {
@@ -1531,7 +1531,7 @@ export default function CandidateList({ activeTab = 'all' }) {
     try {
       setLoadingId(githubLogin); // 👉 로딩 시작
 
-      const res = await fetch("http://localhost:8081/api/invitations/send", {
+      const res = await fetch(apiUrl('/api/invitations/send'), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
