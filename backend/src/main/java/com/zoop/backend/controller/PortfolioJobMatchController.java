@@ -63,7 +63,7 @@ public class PortfolioJobMatchController {
     @PostMapping
     public ResponseEntity<?> savePortfolioJobMatch(@RequestBody Map<String, Object> request) {
         try {
-            log.info("포트폴리오-채용공고 매칭 결과 저장 시작: {}", request);
+            log.info("포트폴리오-채용공고 매칭 결과 저장 시작");
             
             Long candPortfolioId = Long.valueOf(request.get("candPortfolioId").toString());  // portfolioId -> candPortfolioId로 변경
             Long jobPostingId = Long.valueOf(request.get("jobPostingId").toString());

@@ -30,6 +30,11 @@ export default function MatchingDetailPage() {
     }
   };
 
+  const getEvidenceValue = (key, fallback) => {
+    const evidence = getMatchEvidence();
+    return evidence?.[key] ?? fallback;
+  };
+
   useEffect(() => {
     if (!candPortfolioId || !jobCandidateId || !analysisId) {
       setError('필수 정보가 누락되었습니다.');
@@ -102,6 +107,18 @@ export default function MatchingDetailPage() {
                 <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: 12 }}>
                   <b style={{ color: '#1d4ed8' }}>다음 검증 행동</b>
                   <ul style={{ margin: '8px 0 0 18px', padding: 0, fontSize: 13 }}>{(matchEvidence.verification_plan || matchEvidence.interview_focus || ['대표 프로젝트의 기여도 확인']).slice(0, 4).map((item, i) => <li key={i}>{item}</li>)}</ul>
+                </div>
+                <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 10, padding: 12 }}>
+                  <b style={{ color: '#6d28d9' }}>판단을 바꿀 수 있는 증거</b>
+                  <ul style={{ margin: '8px 0 0 18px', padding: 0, fontSize: 13 }}>
+                    {(getEvidenceValue('counterfactuals', [{ missing_signal: '대표 프로젝트의 실제 기여도', validation_action: '면접에서 확인' }])).slice(0, 3).map((item, i) => <li key={i}><b>{item.missing_signal}</b><br />{item.validation_action}</li>)}
+                  </ul>
+                </div>
+                <div style={{ background: '#ecfeff', border: '1px solid #a5f3fc', borderRadius: 10, padding: 12, fontSize: 13 }}>
+                  <b style={{ color: '#0e7490' }}>AI 신뢰도</b>
+                  <div style={{ marginTop: 8 }}>근거 커버리지: <strong>{getEvidenceValue('evidence_coverage', '-')}%</strong></div>
+                  <div>근거 확신도: <strong>{getEvidenceValue('confidence', '-') === '-' ? '-' : `${Math.round(getEvidenceValue('confidence', 0) * 100)}%`}</strong></div>
+                  <div>편향 방지: <strong>직무 관련 정보만 평가</strong></div>
                 </div>
               </div>
             )}

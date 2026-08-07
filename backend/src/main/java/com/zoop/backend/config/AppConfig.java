@@ -54,18 +54,20 @@ public class AppConfig {
                     "/api/candidates/find-id",
                     "/api/resumes/public",
                     "/api/incident-reports/submit",
-                    "/api/companies/**",
                     "/api/files/**",
                     "/health",
                     "/error"
                 ).permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/companies/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/companies").permitAll()
                 .requestMatchers(
                     "/api/companyadmins/**",
                     "/api/admin-interview-evaluations/**",
                     "/api/github-search/**",
                     "/api/candidates/*",
                     "/api/candidates/*/**",
-                    "/api/postings/**"
+                    "/api/postings/**",
+                    "/api/companies/**"
                 ).authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/portfolio-job-matches/**").authenticated()
                 .requestMatchers("/api/interview-questions/**").authenticated()
