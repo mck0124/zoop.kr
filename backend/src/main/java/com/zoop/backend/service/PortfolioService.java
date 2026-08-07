@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -93,7 +94,8 @@ public class PortfolioService {
             boolean agreeOptionalPersonal,
             boolean agreeFutureProposals,
             boolean agreeReceiveRecruitmentInfo,
-            String source // "apply" or "dashboard"
+            String source, // "apply" or "dashboard"
+            String language
     ) {
         // 필수 동의 체크
         if (!agreeRequiredPersonal) {
@@ -271,6 +273,7 @@ public class PortfolioService {
             extraInfo.put("portfolio_content", goalStatement != null ? goalStatement : "");
             extraInfo.put("desired_job", candidateInfo.getPreferredJob() != null ? candidateInfo.getPreferredJob() : "");
             extraInfo.put("self_introduction", ""); // Candidate 엔티티에 selfIntro 필드가 없으므로 빈 문자열로 설정
+            extraInfo.put("language", language != null && Set.of("en", "ko", "zh").contains(language) ? language : "en");
             requestBody.put("extra_info", extraInfo);
             
             HttpEntity<java.util.Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
@@ -488,7 +491,8 @@ public class PortfolioService {
                 java.util.regex.Pattern.compile("\\(점수: (\\d+)점\\)"),
                 java.util.regex.Pattern.compile("점수: (\\d+)점"),
                 java.util.regex.Pattern.compile("종합 점수: (\\d+)점"),
-                java.util.regex.Pattern.compile("총점: (\\d+)점")
+                java.util.regex.Pattern.compile("총점: (\\d+)점"),
+                java.util.regex.Pattern.compile("(?i)\\bSCORE\\s*:\\s*(\\d+(?:\\.\\d+)?)")
             };
             
             for (java.util.regex.Pattern pattern : patterns) {

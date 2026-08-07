@@ -698,6 +698,7 @@ const extractScore = (analysisText) => {
   
   // 여러 패턴으로 점수 추출 시도
   const patterns = [
+    /\bSCORE\s*:\s*(\d+(?:\.\d+)?)/i,
     /점수:\s*(\d+)점/,
     /총점:\s*(\d+)점/,
     /\(점수:\s*(\d+)점\)/,

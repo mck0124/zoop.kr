@@ -113,7 +113,10 @@ public class PortfolioController {
             @RequestParam("agreeReceiveRecruitmentInfo") Boolean agreeReceiveRecruitmentInfo,
             
             @Parameter(description = "포트폴리오 제출 소스 (예: 'direct', 'resume', 'standalone')")
-            @RequestParam(value = "source", required = false) String source
+            @RequestParam(value = "source", required = false) String source,
+
+            @Parameter(description = "AI 분석 언어 (en, ko, zh)")
+            @RequestParam(value = "language", required = false, defaultValue = "en") String language
     ) {
         try {
             // JSON 문자열을 객체로 변환
@@ -134,7 +137,8 @@ public class PortfolioController {
                 agreeOptionalPersonal, 
                 agreeFutureProposals, 
                 agreeReceiveRecruitmentInfo,
-                source
+                source,
+                language
             );
             
             // 리다이렉션 URL 추가

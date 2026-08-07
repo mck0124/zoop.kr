@@ -5,12 +5,14 @@ import PortfolioNavbar from './PortfolioNavbar';
 import { Sidebar } from '../Sidebar';
 import './PortfolioSubmissionPage.css';
 import { apiUrl } from '../../../api/config';
+import { useLanguage } from '../../../context/LanguageContext';
 
 function PortfolioSubmissionPage() {
   const MAX_FILE_SIZE = 50 * 1024 * 1024;
   const { postId } = useParams();
   const navigate = useNavigate();
   const { authState, isInitialized } = useAuth();
+  const { language } = useLanguage();
 
   // Portfolio form input states
   const [portfolioFile, setPortfolioFile] = useState(null);
@@ -191,6 +193,7 @@ function PortfolioSubmissionPage() {
     formData.append('candidateId', candidateId);
     formData.append('portfolioContent', portfolioContent);
     formData.append('portfolioUrl', portfolioUrl);
+    formData.append('language', language);
 
     if (portfolioFile) {
       formData.append('portfolioFile', portfolioFile);
