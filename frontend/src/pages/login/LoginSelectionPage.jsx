@@ -35,7 +35,7 @@ function LoginSelectionPage() {
       // .env 파일에서 REACT_APP_GOOGLE_CLIENT_ID 환경 변수 값을 불러옴
       clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID,
        // .env 파일에서 REACT_APP_GOOGLE_REDIRECT_URI 환경 변수 값을 불러오거나 기본값 사용
-      redirectUri: process.env.REACT_APP_GOOGLE_REDIRECT_URI || 'http://localhost:3000/auth/social/google/callback', // Google Cloud Console에 등록된 프론트엔드 콜백 URI
+      redirectUri: process.env.REACT_APP_GOOGLE_REDIRECT_URI || `${window.location.origin}/auth/social/google/callback`, // Google Cloud Console에 등록된 프론트엔드 콜백 URI
       authUrl: 'https://accounts.google.com/o/oauth2/v2/auth', // Google 인증 요청 엔드포인트
       scope: 'email profile openid', // 요청할 권한 범위 (사용자 이메일, 프로필, 고유 ID)
       responseType: 'code', // OAuth 2.0 인가 코드 방식 사용
