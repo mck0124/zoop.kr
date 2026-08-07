@@ -4,6 +4,7 @@ import java.time.LocalDateTime; // Candidate 엔티티 임포트
 import java.util.HashMap; // CandidateRepository 임포트
 import java.util.Map; // 자체 JWT 유틸리티 임포트
 import java.util.Optional; // 설정 값 주입을 위한 Value 어노테이션 임포트
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value; // HTTP 헤더 관련 클래스 임포트
 import org.springframework.http.HttpHeaders; // 미디어 타입 관련 클래스 임포트
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional; // 요청 본�
 import org.springframework.web.reactive.function.BodyInserters; // WebClient 클래스
 import org.springframework.web.reactive.function.client.WebClient; // WebClient HTTP 응답 예외
 import org.springframework.web.reactive.function.client.WebClientResponseException; // JSON 노드 표현
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.fasterxml.jackson.databind.JsonNode; // JSON 파서
 import com.fasterxml.jackson.databind.ObjectMapper; // 시간 관리를 위해 추가 (Java 8+ 시간 API)
@@ -27,6 +29,7 @@ public class SocialAuthService {
     private final CandidateRepository candidateRepository; // Candidate 데이터 접근을 위한 Repository 주입
     private final JwtUtil jwtUtil; // 자체 JWT 발급 및 검증을 위한 유틸리티 주입
     private final WebClient webClient; // 외부 HTTP 통신을 위한 WebClient 주입
+    private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper = new ObjectMapper(); // JSON 데이터 파싱을 위한 ObjectMapper 인스턴스
 
     // ✅ application.yml 에서 Google 소셜 로그인 설정 값 주입
@@ -41,10 +44,11 @@ public class SocialAuthService {
 
     // 생성자 주입: 필요한 의존성(Repository, JwtUtil, WebClient Builder)을 주입받습니다.
     // WebClient.Builder는 Spring Boot가 자동 구성해주는 빈입니다.
-    public SocialAuthService(CandidateRepository candidateRepository, JwtUtil jwtUtil, WebClient.Builder webClientBuilder) {
+    public SocialAuthService(CandidateRepository candidateRepository, JwtUtil jwtUtil, WebClient.Builder webClientBuilder, PasswordEncoder passwordEncoder) {
         this.candidateRepository = candidateRepository;
         this.jwtUtil = jwtUtil;
         this.webClient = webClientBuilder.build(); // WebClient Builder로 WebClient 인스턴스 생성
+        this.passwordEncoder = passwordEncoder;
     }
 
     // ✅ 소셜 로그인 요청 처리의 메인 메소드 (Google 전용)
@@ -292,10 +296,9 @@ public class SocialAuthService {
              // TODO: findByGithubLogin(조합된 값) 으로 이미 존재하는지 확인 후 중복 처리 로직 구현 필요
 
 
-            // 소셜 로그인 사용자는 비밀번호가 없습니다.
-            // DB 스키마에서 candidate_password가 NOT NULL인 경우 기본값 설정 또는 "SOCIAL_LOGIN_USER" 등으로 채움
-             candidate.setCandidatePassword("SOCIAL_LOGIN_USER"); // 예시 기본값 (DB nullable=false 일 때)
-             // DB 스키마에서 nullable=true로 변경하는 것이 더 적합할 수 있습니다.
+            // 소셜 계정은 비밀번호 로그인을 사용하지 않지만 DB의 NOT NULL 제약을
+            // 만족하기 위해 추측 불가능한 해시만 저장합니다.
+            candidate.setCandidatePassword(passwordEncoder.encode(UUID.randomUUID().toString()));
 
 
             candidate.setCandidateRegistrationDate(LocalDateTime.now());
