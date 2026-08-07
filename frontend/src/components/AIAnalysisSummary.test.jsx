@@ -6,6 +6,7 @@ test('renders the evidence ledger with verification metadata', () => {
     summary: '제출물에서 확인된 API 설계 경험입니다.',
     evidence_coverage: 100,
     confidence: 0.9,
+    decision: 'strong_match',
     evidence: [{
       evidence_id: 'evidence-1234',
       claim: '실제 API 운영 경험',
@@ -25,6 +26,7 @@ test('renders the evidence ledger with verification metadata', () => {
   render(<AIAnalysisSummary analysis={analysis} score={86} />);
 
   expect(screen.getByText('Evidence Ledger')).toBeInTheDocument();
+  expect(screen.getByText('근거 충분')).toBeInTheDocument();
   expect(screen.getByText('제출물에서 확인된 API 설계 경험입니다.')).toBeInTheDocument();
   expect(screen.getByText('후보자 원문 확인')).toBeInTheDocument();
   expect(screen.getByText(/근거 ID evidence-1234/)).toBeInTheDocument();

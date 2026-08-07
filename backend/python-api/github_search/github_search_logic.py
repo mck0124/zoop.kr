@@ -515,10 +515,14 @@ def analyze_candidate_with_prompt(candidate, details):
         result = json.loads(response.choices[0].message.content or "{}")
         max_scores = {"기술 스택": 20, "프로젝트 품질": 20, "활동 신호": 20, "문제 해결 깊이": 20, "커뮤니티·협업 신호": 20}
         dimensions = []
+        seen_dimension_names = set()
         for item in result.get("dimensions", []) if isinstance(result.get("dimensions"), list) else []:
             if not isinstance(item, dict):
                 continue
             name = str(item.get("name", "평가 항목"))
+            if name not in max_scores or name in seen_dimension_names:
+                continue
+            seen_dimension_names.add(name)
             maximum = max_scores.get(name, 20)
             try:
                 score = max(0.0, min(float(maximum), float(item.get("score", 0) or 0)))
@@ -540,20 +544,33 @@ def analyze_candidate_with_prompt(candidate, details):
                     "confidence": round(max(0.0, min(1.0, confidence if str(evidence_item.get("source", "unknown")) in {"languages", "skills_analysis", "repo", "top_repos", "recent_events", "contribution_stats"} else confidence * 0.25)), 2),
                 })
             dimensions.append({"name": name, "score": score, "max": maximum, "evidence": evidence or [{"evidence_id": _evidence_id("github", name, "missing"), "source": "missing", "claim": "확인된 근거 없음", "verification_state": "needs_verification", "confidence": 0.0}]})
+        for name, maximum in max_scores.items():
+            if name not in seen_dimension_names:
+                dimensions.append({
+                    "name": name,
+                    "score": 0.0,
+                    "max": maximum,
+                    "evidence": [{"evidence_id": _evidence_id("github", name, "missing"), "source": "missing", "claim": "이 평가 차원에 대한 확인 근거 없음", "verification_state": "needs_verification", "confidence": 0.0}],
+                })
         if not dimensions:
             raise ValueError("GitHub 분석 차원이 비어 있습니다.")
         grounded = [item for dimension in dimensions for item in dimension["evidence"] if item["verification_state"] == "grounded" and item["claim"] != "확인된 근거 없음"]
+        score = round(min(100.0, sum(item["score"] for item in dimensions)), 1)
+        decision = "strong_match" if score >= 75 and len(grounded) >= 3 else "review" if score >= 50 and grounded else "not_enough_evidence"
         result.update({
             "version": "github-evidence-v1",
             "dimensions": dimensions,
-            "score": round(min(100.0, sum(item["score"] for item in dimensions)), 1),
+            "score": score,
+            "decision": decision,
+            "grounded_evidence_ids": [item["evidence_id"] for item in grounded],
+            "evidence_count": len(grounded),
             "evidence_coverage": round(min(100.0, len(grounded) / max(1, len(dimensions)) * 100), 1),
             "confidence": round(sum(item["confidence"] for item in grounded) / max(1, len(grounded)), 2),
             "gaps": [str(item) for item in result.get("gaps", []) if item][:6] or ["실제 코드 기여도와 협업 맥락은 GitHub 공개 데이터만으로 확인 불가"],
             "risk_flags": [str(item) for item in result.get("risk_flags", []) if item][:6] or ["공개 활동량을 실력의 직접 증거로 해석하지 않음"],
             "verification_plan": [str(item) for item in result.get("verification_plan", []) if item][:6] or ["대표 저장소의 실제 기여와 설계 선택을 면접에서 확인"],
             "fairness_guard": result.get("fairness_guard") if isinstance(result.get("fairness_guard"), dict) else {"status": "pass", "excluded_attributes": ["이름", "이메일", "위치", "회사"], "evaluated_attributes": ["공개 기술·프로젝트 근거"]},
-            "decision_trace": ["직무와 무관한 개인정보를 평가에서 제외", "공개 GitHub 신호를 5개 직무 관련 차원으로 분리", f"{len(grounded)}개 근거와 확인 불가 영역을 분리"],
+            "decision_trace": ["직무와 무관한 개인정보를 평가에서 제외", "공개 GitHub 신호를 5개 직무 관련 차원으로 분리", f"{len(grounded)}개 근거와 확인 불가 영역을 분리", f"근거 수준에 따른 판단: {decision}"],
             "audit": {
                 "ledger_version": "zoop-evidence-ledger-v1",
                 "policy_version": "grounded-hiring-v1",

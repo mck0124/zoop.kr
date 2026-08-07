@@ -63,6 +63,7 @@ export default function AIAnalysisSummary({ analysis, score, title = 'AI 분석 
   const summary = payload?.summary || payload?.overall_summary || payload?.overallSummary || payload?.conclusion || totalFeedback?.summary || payload?.overallEvaluation;
   const coverage = payload?.evidence_coverage ?? payload?.evidenceCoverage;
   const confidence = payload?.confidence;
+  const decision = payload?.decision;
   const stack = payload?.stack || payload?.technical_stack || payload?.technicalStack;
   const gaps = payload?.gaps || payload?.missing_evidence || payload?.missingEvidence;
   const risks = payload?.risk_flags || payload?.riskFlags;
@@ -81,6 +82,9 @@ export default function AIAnalysisSummary({ analysis, score, title = 'AI 분석 
           {score !== undefined && score !== null && <span className="rounded-full bg-blue-50 px-2.5 py-1 font-semibold text-blue-700">점수 {score}/100</span>}
           {coverage !== undefined && <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">근거 커버리지 {coverage}%</span>}
           {confidence !== undefined && <span className="rounded-full bg-violet-50 px-2.5 py-1 text-violet-700">신뢰도 {Math.round(Number(confidence) * (Number(confidence) <= 1 ? 100 : 1))}%</span>}
+          {decision && <span className={`rounded-full px-2.5 py-1 font-semibold ${decision === 'strong_match' ? 'bg-emerald-100 text-emerald-700' : decision === 'not_enough_evidence' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+            {decision === 'strong_match' ? '근거 충분' : decision === 'not_enough_evidence' ? '근거 부족' : '검토 권장'}
+          </span>}
           {hasStructuredData && <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600">구조화된 분석</span>}
           {audit?.ledger_version && <span className="rounded-full bg-slate-900 px-2.5 py-1 font-semibold text-white">Evidence Ledger</span>}
         </div>
