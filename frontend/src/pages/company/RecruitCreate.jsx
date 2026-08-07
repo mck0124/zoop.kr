@@ -7,6 +7,13 @@ import "react-datepicker/dist/react-datepicker.css";
 import { ko } from "date-fns/locale";
 import SEO from "../../components/SEO";
 import { apiUrl } from "../../api/config";
+import { useLanguage } from "../../context/LanguageContext";
+
+const RECRUIT_COPY = {
+  en: { title: "Set your hiring criteria", subtitle: "Use ZOOP's smart filters to find a better-fit candidate.", role: "Role", language: "Languages", region: "Location", nationwide: "Any location (nationwide)", salary: "Salary (KRW 10,000s)", headcount: "Open headcount", description: "Description", descriptionPlaceholder: "Add context about the role and team.", deadline: "Application deadline", deadlineLabel: "Deadline", apply: "Apply filters", selectLanguage: "Select at least one language.", selectRegion: "Select a location or choose nationwide.", selectDeadline: "Choose an application deadline.", userError: "Could not load your company profile.", createError: "Could not create the job posting.", createFailed: "Job posting creation failed: ", quickDays: "days", candidateSuffix: " candidates", salarySuffix: " ten-thousand KRW" },
+  ko: { title: "채용 필터 기준 설정", subtitle: "ZOOP의 스마트 필터링으로 맞춤 인재를 추천받으세요.", role: "직무", language: "언어", region: "지역", nationwide: "지역 상관없음 (전국)", salary: "연봉 (만원)", headcount: "채용 인원", description: "상세 설명", descriptionPlaceholder: "공고에 대한 상세 설명을 입력하세요.", deadline: "공고 마감일", deadlineLabel: "마감일", apply: "필터링 적용", selectLanguage: "언어를 하나 이상 선택하세요.", selectRegion: "지역을 선택하거나 전국을 체크하세요.", selectDeadline: "마감일을 입력하세요.", userError: "사용자 정보를 가져올 수 없습니다.", createError: "공고 생성에 실패했습니다.", createFailed: "공고 생성 중 오류가 발생했습니다: ", quickDays: "일", candidateSuffix: "명", salarySuffix: "만원" },
+  zh: { title: "设置招聘筛选条件", subtitle: "使用 ZOOP 的智能筛选，找到更匹配的人才。", role: "职位", language: "语言", region: "地区", nationwide: "不限地区（全国）", salary: "薪资（万韩元）", headcount: "招聘人数", description: "职位描述", descriptionPlaceholder: "请输入职位和团队的相关信息。", deadline: "申请截止日期", deadlineLabel: "截止日期", apply: "应用筛选", selectLanguage: "请至少选择一种语言。", selectRegion: "请选择地区或选择全国。", selectDeadline: "请选择截止日期。", userError: "无法读取公司信息。", createError: "无法创建职位。", createFailed: "创建职位时发生错误：", quickDays: "天", candidateSuffix: " 人", salarySuffix: " 万韩元" }
+};
 
 const chipStyle = (selected) => ({
   border: selected ? "none" : "1.5px solid #e0e3e7",
@@ -99,6 +106,8 @@ const formatDate = (date) => {
 
 export default function RecruitCreate() {
   const navigate = useNavigate();
+  const { language } = useLanguage();
+  const copy = RECRUIT_COPY[language] || RECRUIT_COPY.en;
 
   const [description, setDescription] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
@@ -129,15 +138,15 @@ export default function RecruitCreate() {
 
   const handleSubmit = async () => {
     if (filters.languages.length === 0) {
-      alert("언어를 하나 이상 선택하세요.");
+      alert(copy.selectLanguage);
       return;
     }
     if (!filters.nationwide && filters.regions.length === 0) {
-      alert("지역을 선택하거나 전국을 체크하세요.");
+      alert(copy.selectRegion);
       return;
     }
     if (!expiryDate) {
-      alert("마감일을 입력하세요.");
+      alert(copy.selectDeadline);
       return;
     }
 
@@ -151,7 +160,7 @@ export default function RecruitCreate() {
       });
       
       if (!userInfoResponse.ok) {
-        throw new Error("사용자 정보를 가져올 수 없습니다.");
+        throw new Error(copy.userError);
       }
       
       const userInfo = await userInfoResponse.json();
@@ -180,15 +189,15 @@ export default function RecruitCreate() {
         body: JSON.stringify(postData),
       });
 
-      if (!response.ok) throw new Error("공고 생성에 실패했습니다.");
+      if (!response.ok) throw new Error(copy.createError);
 
       const result = await response.json();
       const postId = result.postId;
 
-      const stateData = { filters, description, expiryDate, postId };
+      const stateData = { filters, description, expiryDate, postId, language };
       navigate(`/company/ideal-candidate/${postId}`, { state: stateData });
     } catch (error) {
-      alert("공고 생성 중 오류가 발생했습니다: " + error.message);
+      alert(copy.createFailed + error.message);
     }
   };
 
@@ -355,7 +364,7 @@ export default function RecruitCreate() {
               lineHeight: 1.16,
             }}
           >
-            채용 필터 기준 설정
+            {copy.title}
           </h2>
           <div
             style={{
@@ -366,11 +375,11 @@ export default function RecruitCreate() {
               marginTop: "0.1rem",
             }}
           >
-            ZOOP의 스마트 필터링으로 맞춤 인재를 추천받으세요.
+            {copy.subtitle}
           </div>
         </motion.div>
 
-        <Section title="직무">
+        <Section title={copy.role}>
           {[
             "개발PM",
             "데이터엔지니어",
@@ -397,7 +406,7 @@ export default function RecruitCreate() {
           ))}
         </Section>
 
-        <Section title="언어">
+        <Section title={copy.language}>
           {[
             "Python",
             "JavaScript",
@@ -439,7 +448,7 @@ export default function RecruitCreate() {
           })}
         </Section>
 
-        <Section title="지역">
+        <Section title={copy.region}>
           {[
             "서울",
             "인천",
@@ -481,11 +490,11 @@ export default function RecruitCreate() {
             onClick={handleNationwideToggle}
             style={chipStyle(filters.nationwide)}
           >
-            지역 상관없음 (전국)
+            {copy.nationwide}
           </motion.div>
         </Section>
 
-        <Section title="연봉 (만원)">
+        <Section title={copy.salary}>
           <div
             style={{
               marginBottom: "0.7rem",
@@ -495,7 +504,7 @@ export default function RecruitCreate() {
               letterSpacing: "-0.3px",
             }}
           >
-            {filters.salary.toLocaleString()}만원
+            {filters.salary.toLocaleString()}{copy.salarySuffix}
           </div>
           <input
             type="range"
@@ -508,7 +517,7 @@ export default function RecruitCreate() {
           />
         </Section>
 
-        <Section title="채용 인원">
+        <Section title={copy.headcount}>
           <div
             style={{
               marginBottom: "0.7rem",
@@ -517,7 +526,7 @@ export default function RecruitCreate() {
               fontWeight: 500,
             }}
           >
-            {filters.headcount}명
+            {filters.headcount}{copy.candidateSuffix}
           </div>
           <input
             type="range"
@@ -530,11 +539,11 @@ export default function RecruitCreate() {
           />
         </Section>
 
-        <Section title="상세 설명">
+        <Section title={copy.description}>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="공고에 대한 상세 설명을 입력하세요."
+            placeholder={copy.descriptionPlaceholder}
             rows="6"
             style={{
               padding: "1.2rem",
@@ -556,7 +565,7 @@ export default function RecruitCreate() {
         </Section>
 
         {/* 가로로 넓은 2달짜리 달력 + 버튼 */}
-        <Section title="공고 마감일">
+        <Section title={copy.deadline}>
           <div
             style={{
               display: "flex",
@@ -586,7 +595,7 @@ export default function RecruitCreate() {
                 selected={expiryDate ? new Date(expiryDate) : null}
                 onChange={date => setExpiryDate(date ? formatDate(date) : "")}
                 minDate={new Date()}
-                locale={ko}
+                locale={language === 'ko' ? ko : undefined}
                 inline
                 dateFormat="yyyy-MM-dd"
                 calendarStartDay={0}
@@ -642,7 +651,7 @@ export default function RecruitCreate() {
                   }}
                 >
                   <ClockIcon />
-                  {`+${days}일`}
+                  {`+${days} ${copy.quickDays}`}
                 </motion.button>
               ))}
             </div>
@@ -671,7 +680,7 @@ export default function RecruitCreate() {
             >
               <CalendarIcon />
               <span style={{marginLeft: 10}}>
-                마감일: {new Date(expiryDate).toLocaleDateString('ko-KR', {
+                {copy.deadlineLabel}: {new Date(expiryDate).toLocaleDateString(language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
@@ -702,7 +711,7 @@ export default function RecruitCreate() {
             outline: "none",
           }}
         >
-          필터링 적용
+          {copy.apply}
         </motion.button>
       </motion.div>
     </div>
