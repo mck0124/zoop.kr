@@ -4,6 +4,7 @@ import Navbar from '../../components/Navbar';
 import CompanyInfoCard from './CompanyInfoCard';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
+import { apiUrl, MATCHING_API_URL } from '../../api/config';
 
 function JobDetailPage() {
   const { postId } = useParams();
@@ -393,15 +394,16 @@ function JobDetailPage() {
       const formData = new FormData();
       formData.append('portfolio_id', matchingPortfolioId);
       formData.append('analysis_id', matchingAnalysisId);
-      fetch('http://localhost:8003/match-portfolio-jobs', {
+        fetch(apiUrl('/match-portfolio-jobs', MATCHING_API_URL), {
         method: 'POST',
         body: formData
       })
         .then(res => res.ok ? res.json() : Promise.reject('매칭 점수 조회 실패'))
         .then(data => {
           if (data.success && data.matches && data.matches.length > 0) {
-            setMatchingScore(data.matches[0].match_score);
-            setMatchingReason(data.matches[0].match_reason || '');
+            const bestMatch = data.matches[0];
+            setMatchingScore(bestMatch.matching_score ?? bestMatch.match_score ?? null);
+            setMatchingReason(bestMatch.matching_analysis ?? bestMatch.match_reason ?? '');
           } else {
             setMatchingError('매칭 점수/이유를 불러오지 못했습니다.');
           }

@@ -419,7 +419,17 @@ export default function InterviewEvaluation() {
                         <div style={{ fontSize: '1.01rem', color: '#444' }}><b>좋은 예시:</b> {cat.good_example}</div>
                         <div style={{ fontSize: '1.01rem', color: '#888' }}><b>아쉬운 예시:</b> {cat.bad_example}</div>
                         <div style={{ fontSize: '1.01rem', color: '#444' }}><b>개선점:</b> {cat.improvement}</div>
-                        <div style={{ fontSize: '1.01rem', color: '#444' }}><b>다른 지원자와의 비교:</b> {cat.compare_to_others}</div>
+                        <div style={{ fontSize: '1.01rem', color: '#444' }}><b>확신도:</b> {typeof cat.confidence === 'number' ? `${Math.round(cat.confidence * 100)}%` : '확인 필요'}</div>
+                        {Array.isArray(cat.evidence) && cat.evidence.length > 0 && (
+                          <div style={{ fontSize: '0.94rem', color: '#4b5563', background: '#f8fafc', borderRadius: 10, padding: '10px 12px' }}>
+                            <b>답변에서 확인한 근거</b>
+                            {cat.evidence.slice(0, 3).map((item, evidenceIndex) => (
+                              <div key={`${cat.name}-evidence-${evidenceIndex}`} style={{ marginTop: 5 }}>
+                                · {item.claim || '확인된 근거 없음'} <span style={{ color: '#9ca3af' }}>({item.source || 'missing'})</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 2 }}>
                           {cat.tags && cat.tags.length > 0 ? cat.tags.map((tag, i) => (
                             <span key={tag+i} style={{
@@ -458,9 +468,8 @@ export default function InterviewEvaluation() {
                           </RadarChart>
                         </ResponsiveContainer>
                       </div>
-                      <div style={{ margin: '0 auto 2.5rem auto', maxWidth: 520, background: '#f8fafc', borderRadius: 14, padding: '1.1rem 1.5rem', boxShadow: '0 2px 8px #22c55e11', border: '1.5px solid #e2e8f0', display: 'flex', gap: 18, alignItems: 'center', fontSize: '1.01rem', color: '#444', justifyContent: 'center' }}>
-                        <span><b>평균 점수:</b> <span style={{ color: '#22c55e', fontWeight: 700 }}>{parsedAnalysis.visualization.score_distribution?.average}</span></span>
-                        <span><b>상위 10%:</b> <span style={{ color: '#f59e42', fontWeight: 700 }}>{parsedAnalysis.visualization.score_distribution?.top_10_percent}</span></span>
+                      <div style={{ margin: '0 auto 2.5rem auto', maxWidth: 520, background: '#f8fafc', borderRadius: 14, padding: '1.1rem 1.5rem', boxShadow: '0 2px 8px #22c55e11', border: '1.5px solid #e2e8f0', fontSize: '0.92rem', color: '#64748b', textAlign: 'center' }}>
+                        현재 점수는 이 지원자의 답변에서 확인된 항목별 점수 합계입니다. 비교 모집단이 없어 평균·상위권 수치는 표시하지 않습니다.
                       </div>
                     </>
                   )}
@@ -472,6 +481,9 @@ export default function InterviewEvaluation() {
                       <div style={{ fontSize: '1.01rem', color: '#14532d', marginBottom: 8 }}><b>요약:</b> {parsedAnalysis.totalFeedback.summary}</div>
                       <div style={{ fontSize: '1.01rem', color: '#14532d', marginBottom: 8 }}><b>헤드헌팅 추천 포인트:</b> {parsedAnalysis.totalFeedback.headhunting_point}</div>
                       <div style={{ fontSize: '1.01rem', color: '#14532d', marginBottom: 8 }}><b>추천/코멘트:</b> {parsedAnalysis.totalFeedback.recommendation}</div>
+                      {parsedAnalysis.totalFeedback.limitations?.length > 0 && (
+                        <div style={{ fontSize: '0.94rem', color: '#4b5563', marginBottom: 8 }}><b>분석의 한계:</b> {parsedAnalysis.totalFeedback.limitations.join(' ')}</div>
+                      )}
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
                         {parsedAnalysis.totalFeedback.tags && parsedAnalysis.totalFeedback.tags.length > 0 ? parsedAnalysis.totalFeedback.tags.map((tag, i) => (
                           <span key={tag+i} style={{
@@ -787,4 +799,4 @@ export default function InterviewEvaluation() {
       </div>
     </div>
   );
-} 
+}

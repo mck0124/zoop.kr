@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { apiUrl } from '../../api/config';
 
 export default function MatchingDetailModal({ open, onClose, candPortfolioId, postId }) {
   const [portfolio, setPortfolio] = useState(null);
@@ -11,7 +12,6 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
 
   useEffect(() => {
     if (!open) return;
-    console.log('MatchingDetailModal props:', { candPortfolioId, postId });
     if (candPortfolioId == null || postId == null) {
       setError('필수 정보가 누락되었습니다.');
       setLoading(false);
@@ -22,9 +22,9 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
     
     // 매칭 정보와 함께 jobCandidateId도 가져오기
     Promise.all([
-      fetch(`http://localhost:8081/api/portfolio-job-matches/portfolio/${candPortfolioId}/post/${postId}`)
+      fetch(apiUrl(`/api/portfolio-job-matches/portfolio/${candPortfolioId}/post/${postId}`))
         .then(r => r.ok ? r.json() : null),
-      fetch(`http://localhost:8081/api/progress/${postId}/portfolio/${candPortfolioId}/job-candidate-id`)
+      fetch(apiUrl(`/api/progress/${postId}/portfolio/${candPortfolioId}/job-candidate-id`))
         .then(r => r.ok ? r.json() : null)
         .catch(() => null) // jobCandidateId가 없을 수 있음
     ])
@@ -50,7 +50,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
 
     setInviting(true);
     try {
-      const response = await fetch(`http://localhost:8081/api/progress/${jobCandidateId}/update-stage-2p`, {
+      const response = await fetch(apiUrl(`/api/progress/${jobCandidateId}/update-stage-2p`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,13 +89,36 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
             <section>
               <h2 style={{ color: '#222', fontWeight: 800, fontSize: '1.2rem', marginBottom: 12 }}>매칭 점수 및 이유</h2>
               {(() => {
-                const score = match.matchScore ?? match.MATCHING_SCORE ?? match.matchingScore;
-                const reason = match.matchReason ?? match.MATCHING_REASON ?? match.matchingReason;
+                const score = match?.matchScore ?? match?.MATCHING_SCORE ?? match?.matchingScore;
+                const reason = match?.matchReason ?? match?.MATCHING_REASON ?? match?.matchingReason;
+                let reasonPayload = null;
+                try {
+                  reasonPayload = JSON.parse(reason || '{}');
+                } catch (_) {
+                  reasonPayload = null;
+                }
+                const summary = reasonPayload?.summary || reason || '매칭 이유 정보 없음';
+                const dimensions = reasonPayload?.evidence?.dimensions || [];
                 return score !== undefined ? (
                   <div style={{ background: '#f8fafd', borderRadius: 10, padding: 18, fontSize: 16 }}>
                     <div><b>매칭 점수:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{score}</span></div>
                     <div style={{ marginTop: 10 }}><b>매칭 이유:</b></div>
-                    <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, maxHeight: 200, overflow: 'auto' }}>{reason || '매칭 이유 정보 없음'}</pre>
+                    <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, whiteSpace: 'pre-wrap', maxHeight: 240, overflow: 'auto' }}>{summary}</pre>
+                    {dimensions.length > 0 && (
+                      <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>
+                        <strong style={{ color: '#166534' }}>판단 근거 원장</strong>
+                        {dimensions.map((dimension, index) => (
+                          <div key={`${dimension.name}-${index}`} style={{ background: '#fff', border: '1px solid #d1fae5', borderRadius: 10, padding: 12 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                              <b>{dimension.name}</b><span>{dimension.score}/{dimension.max}</span>
+                            </div>
+                            {(dimension.evidence || []).slice(0, 2).map((item, evidenceIndex) => (
+                              <div key={evidenceIndex} style={{ marginTop: 6, color: '#4b5563', fontSize: 14 }}>· {item.claim || '확인된 근거 없음'} <small style={{ color: '#9ca3af' }}>({item.source || 'missing'})</small></div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ) : <div style={{ color: '#888' }}>매칭 점수/이유 정보를 찾을 수 없습니다.</div>;
               })()}
@@ -172,4 +195,4 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
       </div>
     </div>
   );
-} 
+}

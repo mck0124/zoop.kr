@@ -142,65 +142,19 @@ def analyze_portfolio_content(portfolio_content: str, desired_job: Optional[str]
         }
 
 def match_portfolio_to_jobs(analysis_data: str) -> Dict[str, Any]:
-    """포트폴리오 분석 결과를 바탕으로 적합한 채용공고 매칭"""
-    
-    prompt = f"""
-다음은 지원자의 포트폴리오 분석 결과입니다:
-
-{analysis_data}
-
-이 분석 결과를 바탕으로, IT 채용 전문가인 당신이 이 지원자에게 가장 적합한 채용공고의 특징을 파악해주세요.
-
-다음 기준으로 매칭 점수를 계산해주세요:
-
-1. **기술 스택 일치도 (30점)**: 요구 기술과 보유 기술의 일치 정도
-2. **경력 수준 적합성 (25점)**: 요구 경력과 현재 경력 수준의 적합성
-3. **프로젝트 경험 관련성 (25점)**: 과거 프로젝트와 업무 내용의 관련성
-4. **성장 가능성 (20점)**: 회사에서의 성장 가능성과 학습 의지
-
-각 항목별 점수와 근거를 제시하고, 최종 매칭 점수를 계산해주세요.
-
-반드시 아래 형식으로 출력해주세요:
-기술 스택 일치도: [점수]점 - [근거]
-경력 수준 적합성: [점수]점 - [근거]
-프로젝트 경험 관련성: [점수]점 - [근거]
-성장 가능성: [점수]점 - [근거]
-총 매칭 점수: [총점]점
-추천 직무: [추천하는 직무 분야]
-매칭 근거: [3-4줄 매칭 근거]
-"""
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "당신은 IT 채용 매칭 전문가입니다. 정확하고 객관적으로 매칭 분석을 해주세요."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=1000,
-            temperature=0.3
-        )
-        
-        matching_analysis = response.choices[0].message.content
-        
-        # 점수 추출
-        import re
-        score_match = re.search(r"총 매칭 점수:\s*(\d+)점", matching_analysis)
-        score = float(score_match.group(1)) if score_match else 0.0
-        
-        return {
-            "matching_analysis": matching_analysis,
-            "matching_score": score,
-            "recommended_job": "AI 분석 기반 추천 직무"
-        }
-        
-    except Exception as e:
-        print(f"OpenAI matching error: {e}")
-        return {
-            "matching_analysis": f"매칭 분석 중 오류가 발생했습니다: {e}",
-            "matching_score": 0.0,
-            "recommended_job": "분석 불가"
-        }
+    """지원자 증거를 모든 활성 공고와 비교해 실제 공고 ID가 포함된 결과를 반환한다."""
+    active_jobs = get_active_jobs_from_spring()
+    matches = []
+    for job in active_jobs:
+        job_id = job.get("postId")
+        if not job_id:
+            continue
+        result = match_portfolio_to_specific_job(analysis_data, job)
+        result["jobPostingId"] = job_id
+        result["jobTitle"] = job.get("postTitle", "제목 없음")
+        matches.append(result)
+    matches.sort(key=lambda item: item.get("matching_score", 0), reverse=True)
+    return {"matches": matches[:10], "matching_count": len(matches)}
 
 def save_portfolio_analysis_to_spring(portfolio_id: int, analysis_data: str, analysis_type: str = "standalone_portfolio") -> Optional[int]:
     """Spring 백엔드에 포트폴리오 분석 결과 저장"""
@@ -299,11 +253,18 @@ def save_portfolio_job_matches_to_spring(portfolio_id: int, matches: List[Dict[s
     """Spring 백엔드에 포트폴리오-채용공고 매칭 결과 저장"""
     try:
         for match in matches:
+            readable_reason = match.get("matching_analysis", "")
+            evidence = match.get("matching_evidence")
+            if evidence:
+                readable_reason = json.dumps(
+                    {"summary": readable_reason, "evidence": evidence},
+                    ensure_ascii=False
+                )
             payload = {
                 "candPortfolioId": portfolio_id,  # portfolioId -> candPortfolioId로 변경
                 "jobPostingId": match.get("jobPostingId", 0),
                 "matchingScore": match.get("matching_score", 0.0),
-                "matchingReason": match.get("matching_analysis", "")
+                "matchingReason": readable_reason
             }
             
             print(f"[DEBUG] 매칭 저장 시도: candPortfolioId={portfolio_id}, jobPostingId={match.get('jobPostingId')}, score={match.get('matching_score')}")
@@ -847,7 +808,6 @@ async def analyze_candidate_portfolio(
         print(f"[DEBUG] analyze_portfolio_file 호출 완료: 결과 길이={len(analysis_result) if analysis_result else 0}")
         if not analysis_result or len(analysis_result.strip()) < 10:
             raise Exception("분석 실패: 결과 없음")
-        SPRING_API_URL = "http://localhost:8081"
         complete_upload_res = requests.post(
             f"{SPRING_API_URL}/api/portfolios/complete-upload",
             data={"candidateId": candidate_id, "portfolioFilePath": file_url, "analysisData": analysis_result},
@@ -893,12 +853,10 @@ async def match_portfolio_jobs(
         
         analysis_data = analysis_response.json().get("analysisData", "")
         
-        # 매칭 분석 수행
+        # 활성 공고별 매칭 분석 수행. 공고 ID가 없는 결과는 저장하지 않는다.
         matching_result = match_portfolio_to_jobs(analysis_data)
-        
-        # 매칭 결과를 Spring 백엔드에 저장
-        matches = [matching_result]
-        save_success = save_portfolio_job_matches_to_spring(portfolio_id, matches)
+        matches = matching_result.get("matches", [])
+        save_success = save_portfolio_job_matches_to_spring(portfolio_id, matches) if matches else True
         
         if not save_success:
             print(f"[WARN] Failed to save matching results")

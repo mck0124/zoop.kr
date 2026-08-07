@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { apiUrl } from '../../api/config';
 
 export default function MatchingDetailPage() {
   const location = useLocation();
@@ -27,9 +28,9 @@ export default function MatchingDetailPage() {
     setLoading(true);
     setError('');
     Promise.all([
-      fetch(`http://localhost:8081/api/portfolios/${candPortfolioId}`).then(r => r.ok ? r.json() : null),
-      fetch(`http://localhost:8081/api/ai-analysis-results/${analysisId}`).then(r => r.ok ? r.json() : null),
-      fetch(`http://localhost:8081/api/portfolio-job-matches/job-candidate/${jobCandidateId}`).then(r => r.ok ? r.json() : null),
+      fetch(apiUrl(`/api/portfolios/${candPortfolioId}`)).then(r => r.ok ? r.json() : null),
+      fetch(apiUrl(`/api/ai-analysis-results/${analysisId}`)).then(r => r.ok ? r.json() : null),
+      fetch(apiUrl(`/api/portfolio-job-matches/job-candidate/${jobCandidateId}`)).then(r => r.ok ? r.json() : null),
     ]).then(([portfolioData, analysisData, matchData]) => {
       setPortfolio(portfolioData);
       setAnalysis(analysisData);
@@ -75,11 +76,11 @@ export default function MatchingDetailPage() {
       {/* 매칭 점수/이유 */}
       <section>
         <h2 style={{ color: '#222', fontWeight: 800, fontSize: '1.2rem', marginBottom: 12 }}>3. 매칭 점수 및 이유</h2>
-        {match && match.matchScore !== undefined ? (
+        {match && (match.matchScore !== undefined || match.matchingScore !== undefined) ? (
           <div style={{ background: '#f8fafd', borderRadius: 10, padding: 18, fontSize: 16 }}>
-            <div><b>매칭 점수:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{match.matchScore}</span></div>
+            <div><b>매칭 점수:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{match.matchScore ?? match.matchingScore}</span></div>
             <div style={{ marginTop: 10 }}><b>매칭 이유:</b></div>
-            <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, maxHeight: 200, overflow: 'auto' }}>{match.matchReason || '매칭 이유 정보 없음'}</pre>
+            <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, maxHeight: 200, overflow: 'auto', whiteSpace: 'pre-wrap' }}>{match.matchReason || match.matchingReason || '매칭 이유 정보 없음'}</pre>
           </div>
         ) : <div style={{ color: '#888' }}>매칭 점수/이유 정보를 찾을 수 없습니다.</div>}
       </section>
@@ -90,4 +91,4 @@ export default function MatchingDetailPage() {
       </div>
     </div>
   );
-} 
+}

@@ -67,6 +67,10 @@ public class ApplicationController {
                 return ResponseEntity.badRequest()
                     .body(Map.of("error", "GitHub 아이디는 필수입니다."));
             }
+            if (dto.getEmail() == null || !dto.getEmail().matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "유효한 이메일을 입력해 주세요."));
+            }
 
             // 3. 이미 지원했는지 확인 (이메일 기준)
             Candidate existingCandidate = candidateRepository.findByCandidateEmail(dto.getEmail())
@@ -95,6 +99,10 @@ public class ApplicationController {
             } else {
                 // 새로운 지원자 생성
                 String githubLogin = dto.getGithubLogin().trim();
+                if (candidateRepository.findByGithubLogin(githubLogin).isPresent()) {
+                    return ResponseEntity.status(409)
+                        .body(Map.of("error", "이미 등록된 GitHub 계정입니다. 기존 계정으로 로그인해 주세요."));
+                }
                 candidate = Candidate.builder()
                     .githubLogin(githubLogin)
                     .candidateEmail(dto.getEmail())

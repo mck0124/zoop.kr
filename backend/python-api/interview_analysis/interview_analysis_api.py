@@ -156,13 +156,44 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                 {"role": "user", "content": prompt}
             ],
             max_tokens=1500,
-            temperature=0.3
+            temperature=0.3,
+            response_format={"type": "json_object"}
         )
         analysis_json = response.choices[0].message.content
         try:
             analysis_data = json.loads(analysis_json)
-            # 총점 추출 (카테고리별 합산)
-            score = sum([cat.get("score", 0) for cat in analysis_data.get("categories", [])])
+            max_scores = {"전문성": 25, "의사소통": 20, "의사소통 능력": 20, "문제해결": 20, "문제해결 능력": 20, "자신감": 15, "자신감과 태도": 15, "경험의 구체성": 20}
+            categories = analysis_data.get("categories", [])
+            if not isinstance(categories, list):
+                categories = []
+            normalized_categories = []
+            for category in categories:
+                if not isinstance(category, dict):
+                    continue
+                name = str(category.get("name", "평가 항목"))
+                maximum = int(category.get("max_score") or max_scores.get(name, 20))
+                raw_score = category.get("score", 0)
+                try:
+                    normalized_score = max(0, min(maximum, float(raw_score)))
+                except (TypeError, ValueError):
+                    normalized_score = 0
+                category["name"] = name
+                category["max_score"] = maximum
+                category["score"] = normalized_score
+                category.setdefault("reason", "확인된 답변 근거가 부족합니다.")
+                category.setdefault("evidence", [{"source": "missing", "claim": "확인된 근거 없음", "confidence": 0.0}])
+                category.setdefault("confidence", 0.0)
+                normalized_categories.append(category)
+            analysis_data["categories"] = normalized_categories
+            score = sum(category["score"] for category in normalized_categories)
+            analysis_data.setdefault("total_feedback", {})
+            analysis_data["total_feedback"].setdefault("limitations", ["영상의 표정·목소리만으로 성격이나 잠재력을 단정하지 않습니다.", "AI 분석만으로 최종 채용 결정을 내릴 수 없습니다."])
+            labels = [category["name"] for category in normalized_categories]
+            analysis_data["visualization"] = {
+                "category_scores": [category["score"] for category in normalized_categories],
+                "category_labels": labels,
+                "score_distribution": {"current": score}
+            }
         except Exception as e:
             analysis_data = {"error": f"JSON 파싱 오류: {e}", "raw": analysis_json}
             score = 0.0
