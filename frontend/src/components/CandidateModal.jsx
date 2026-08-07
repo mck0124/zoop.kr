@@ -232,13 +232,13 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
         setPdfBlobUrl(null);
       });
 
-    // cleanup
-    return () => {
-      if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
-    };
   // The cleanup intentionally uses the URL captured by this effect.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobCandidateId]);
+
+  useEffect(() => () => {
+    if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
+  }, [pdfBlobUrl]);
 
   
   /** 면접영상을 불러오기 위한 useState */
@@ -272,12 +272,13 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
         setVideoBlobUrl(null);
       });
 
-    return () => {
-      if (videoBlobUrl) URL.revokeObjectURL(videoBlobUrl);
-    };
   // The cleanup intentionally uses the URL captured by this effect.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [interviewVideoUrl]);
+
+  useEffect(() => () => {
+    if (videoBlobUrl) URL.revokeObjectURL(videoBlobUrl);
+  }, [videoBlobUrl]);
 
 
 
@@ -338,6 +339,16 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
     // 최종 닫기
     onClose();
   };
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') handleClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    modalRef.current?.focus();
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen]);
 
   const navigate = useNavigate();
   // 매칭탭에서만 새로운 상세페이지로 이동하는 함수
@@ -473,9 +484,13 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
 
   // 상단 정보 정렬 개선 (2행 2열 그리드)
   return (
-    <div style={{ display: isOpen ? 'flex' : 'none' }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={handleClose}>
+    <div role="presentation" style={{ display: isOpen ? 'flex' : 'none' }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={handleClose}>
       <div
         ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="후보자 상세 정보"
+        tabIndex={-1}
         className="bg-white p-8 rounded-3xl shadow-2xl border border-gray-100 w-[85%] max-w-[900px] max-h-[90%] relative overflow-y-auto flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
