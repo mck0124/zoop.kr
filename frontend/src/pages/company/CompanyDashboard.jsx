@@ -7,6 +7,7 @@ import MatchingDetailModal from './MatchingDetailModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '../../components/SEO';
 import AIAnalysisSummary from '../../components/AIAnalysisSummary';
+import { apiUrl } from '../../api/config';
 
 
 export default function CompanyDashboard() {
@@ -138,7 +139,7 @@ export default function CompanyDashboard() {
         bulkCustomMessage
       );
 
-      const response = await fetch('http://localhost:8081/api/invitations/send-bulk', {
+      const response = await fetch(apiUrl('/api/invitations/send-bulk'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -229,7 +230,6 @@ export default function CompanyDashboard() {
     const tab = urlParams.get('tab');
     const filter = urlParams.get('filter');
     
-    console.log('URL 파라미터:', { postId, tab, filter });
     
     // postId가 있으면 해당 공고 선택
     if (postId) {
@@ -256,7 +256,6 @@ export default function CompanyDashboard() {
       };
       
       const mappedFilter = filterMapping[filter] || filter;
-      console.log('필터 매핑:', filter, '->', mappedFilter);
       setCandidateFilter(mappedFilter);
     }
   }, [location.search]); // location.search가 변경될 때마다 실행
@@ -266,22 +265,19 @@ export default function CompanyDashboard() {
     const userId = localStorage.getItem('userId');
     if (!userId) return;
     
-    console.log('🔍 회사 정보 불러오기 시작 - userId:', userId);
     
-    fetch(`http://localhost:8081/api/companyadmins/info/${userId}`, {
+      fetch(apiUrl(`/api/companyadmins/info/${userId}`), {
       headers: {
         'Content-Type': 'application/json',
       },
     })
       .then((res) => {
-        console.log('🔍 회사 정보 API 응답 상태:', res.status);
         if (!res.ok) {
           throw new Error(`API 호출 실패: ${res.status}`);
         }
         return res.json();
       })
       .then((data) => {
-        console.log('✅ 회사 정보 로드 성공');
         setCompanyInfo(data);
         setCompanyAdminId(data.companyAdminId || 0);
       })
@@ -296,20 +292,17 @@ export default function CompanyDashboard() {
     // JWT 토큰이 있으면 바로 공고를 불러오도록 수정
     const token = localStorage.getItem('jwtToken');
     if (!token) {
-      console.log('JWT 토큰이 없습니다.');
       setLoading(false);
       return;
     }
     
-    console.log('공고 목록을 불러오는 중...');
-    fetch(`http://localhost:8081/api/postings/company`, {
+      fetch(apiUrl('/api/postings/company'), {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
     })
       .then((res) => {
-        console.log('API 응답 상태:', res.status);
         if (!res.ok) {
           throw new Error(`API 호출 실패: ${res.status}`);
         }
@@ -319,7 +312,6 @@ export default function CompanyDashboard() {
         // API 응답이 배열인지 확인
         if (Array.isArray(data)) {
           setPostings(data);
-          console.log(`${data.length}개의 공고를 로드했습니다.`);
         } else {
           console.error('API 응답이 배열이 아님:', data);
           setPostings([]);
@@ -335,14 +327,13 @@ export default function CompanyDashboard() {
 
   // 디버깅을 위한 로그 추가
   useEffect(() => {
-    console.log('현재 상태 - loading:', loading, 'postings 길이:', postings.length);
   }, [loading, postings]);
 
   // 선택된 공고의 상세 정보
   useEffect(() => {
     if (selectedPostId) {
       setLoadingPostDetail(true);
-      fetch(`http://localhost:8081/api/postings/info/${selectedPostId}`, {
+      fetch(apiUrl(`/api/postings/info/${selectedPostId}`), {
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
@@ -375,36 +366,34 @@ export default function CompanyDashboard() {
       switch (filter) {
         case '추가 지원자':
           // 추가 지원자는 해당 공고의 stage가 0인 지원자들을 조회
-          endpoint = `http://localhost:8081/api/github-search/by-post/${postId}/additional-applicants`;
+          endpoint = apiUrl(`/api/github-search/by-post/${postId}/additional-applicants`);
           break;
         case '매칭':
           // 매칭된 지원자는 cand_portfolio_id가 있고 2y 단계인 지원자들을 조회
-          endpoint = `http://localhost:8081/api/github-search/by-post/${postId}/matched-candidates`;
-          console.log('매칭 API 호출:', endpoint);
+          endpoint = apiUrl(`/api/github-search/by-post/${postId}/matched-candidates`);
           break;
         case '전체':
-          endpoint = `http://localhost:8081/api/github-search/by-post/${postId}/all`;
+          endpoint = apiUrl(`/api/github-search/by-post/${postId}/all`);
           break;
         case '미회신자':
-          endpoint = `http://localhost:8081/api/github-search/by-post/${postId}/no-response`;
+          endpoint = apiUrl(`/api/github-search/by-post/${postId}/no-response`);
           break;
         case '회신자':
-          endpoint = `http://localhost:8081/api/github-search/by-post/${postId}/response`;
+          endpoint = apiUrl(`/api/github-search/by-post/${postId}/response`);
           break;
         case '면접 예정자':
-          endpoint = `http://localhost:8081/api/github-search/by-post/${postId}/interview-scheduled`;
+          endpoint = apiUrl(`/api/github-search/by-post/${postId}/interview-scheduled`);
           break;
         case '면접 완료자':
-          endpoint = `http://localhost:8081/api/github-search/by-post/${postId}/interview-completed`;
+          endpoint = apiUrl(`/api/github-search/by-post/${postId}/interview-completed`);
           break;
         default:
-          endpoint = `http://localhost:8081/api/github-search/by-post/${postId}/all`;
+          endpoint = apiUrl(`/api/github-search/by-post/${postId}/all`);
       }
 
       const response = await fetch(endpoint);
       if (!response.ok) throw new Error('후보자 데이터 조회 실패');
       const data = await response.json();
-      console.log('매칭된 후보자 수:', data.length);
       
       // API 응답 구조에 맞게 매핑 (모든 필터 동일한 구조)
       const mapped = data.map(item => ({
@@ -416,8 +405,6 @@ export default function CompanyDashboard() {
         candPortfolioId: item.candPortfolioId || item.candidate.candPortfolioId,
         postId: item.postId || item.candidate.postId,
       }));
-      console.log('매핑된 후보자:', mapped);
-      console.log('매핑된 후보자 상세:', mapped);
       setGithubCandidates(mapped);
     } catch (e) {
       console.error('후보자 조회 오류:', e);
@@ -516,7 +503,7 @@ export default function CompanyDashboard() {
   const handleEditSave = async () => {
     setEditLoading(true);
     try {
-      const res = await fetch(`http://localhost:8081/api/postings/${selectedPostId}`, {
+      const res = await fetch(apiUrl(`/api/postings/${selectedPostId}`), {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -527,7 +514,7 @@ export default function CompanyDashboard() {
       if (res.ok) {
         setShowEditModal(false);
         // 상세 정보 갱신
-        const detailRes = await fetch(`http://localhost:8081/api/postings/info/${selectedPostId}`);
+      const detailRes = await fetch(apiUrl(`/api/postings/info/${selectedPostId}`));
         setSelectedPostDetail(await detailRes.json());
       } else {
         alert('수정에 실패했습니다.');
@@ -541,7 +528,7 @@ export default function CompanyDashboard() {
   const handleDelete = async () => {
     setDeleteLoading(true);
     try {
-      const res = await fetch(`http://localhost:8081/api/postings/${selectedPostId}`, { 
+      const res = await fetch(apiUrl(`/api/postings/${selectedPostId}`), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
@@ -551,7 +538,7 @@ export default function CompanyDashboard() {
         setShowDeleteModal(false);
         setSelectedPostId(null);
         // 목록 갱신
-        const listRes = await fetch(`http://localhost:8081/api/postings/company`, {
+      const listRes = await fetch(apiUrl('/api/postings/company'), {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
           },
@@ -754,7 +741,7 @@ export default function CompanyDashboard() {
         let allCandidates = [];
         for (const post of postings) {
           if (!post.postId) continue;
-          const res = await fetch(`http://localhost:8081/api/github-search/by-post/${post.postId}/interview-scheduled`);
+          const res = await fetch(apiUrl(`/api/github-search/by-post/${post.postId}/interview-scheduled`));
           if (res.ok) {
             const data = await res.json();
             // API 응답 구조에 따라 candidate 정보 추출
@@ -796,7 +783,7 @@ export default function CompanyDashboard() {
       
       // 모든 공고의 추가 지원자를 조회
       for (const post of postings) {
-        const response = await fetch(`http://localhost:8081/api/github-search/by-post/${post.postId}/additional-applicants`);
+        const response = await fetch(apiUrl(`/api/github-search/by-post/${post.postId}/additional-applicants`));
         if (response.ok) {
           const applicants = await response.json();
           const applicantsWithPostInfo = applicants.map(applicant => ({
@@ -822,8 +809,6 @@ export default function CompanyDashboard() {
 
   // 지원자 수락 처리
   const handleAcceptApplicants = async () => {
-    console.log('=== 수락 처리 시작 ===');
-    console.log('선택된 지원자 수:', selectedApplicants.size);
     
     if (selectedApplicants.size === 0) return;
 
@@ -833,13 +818,9 @@ export default function CompanyDashboard() {
     try {
       // 현재 표시 중인 지원자 목록에 따라 다른 배열 사용
       const currentApplicants = showDirectApplicants ? directApplicants : githubCandidates;
-      console.log('현재 표시 중인 지원자 목록:', currentApplicants);
-      console.log('선택된 지원자들:', selectedApplicants);
-      console.log('선택된 지원자들 상세:', Array.from(selectedApplicants));
       
       // 선택된 지원자들의 candidateId와 postId를 모두 수집
       const candidateData = Array.from(selectedApplicants).map(uniqueKey => {
-        console.log('처리 중인 uniqueKey:', uniqueKey, '타입:', typeof uniqueKey);
         
         // uniqueKey가 문자열이 아닌 경우 처리
         if (typeof uniqueKey !== 'string') {
@@ -874,7 +855,7 @@ export default function CompanyDashboard() {
       }).filter(Boolean);
       
       
-      const response = await fetch('http://localhost:8081/api/progress/update-stage-multiple', {
+      const response = await fetch(apiUrl('/api/progress/update-stage-multiple'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -916,13 +897,9 @@ export default function CompanyDashboard() {
     try {
       // 현재 표시 중인 지원자 목록에 따라 다른 배열 사용
       const currentApplicants = showDirectApplicants ? directApplicants : githubCandidates;
-      console.log('거절 처리 - 현재 표시 중인 지원자 목록:', currentApplicants);
-      console.log('거절 처리 - 선택된 지원자들:', selectedApplicants);
-      console.log('거절 처리 - 선택된 지원자들 상세:', Array.from(selectedApplicants));
       
       // 선택된 지원자들의 candidateId와 postId를 모두 수집
       const candidateData = Array.from(selectedApplicants).map(uniqueKey => {
-        console.log('거절 처리 - 처리 중인 uniqueKey:', uniqueKey, '타입:', typeof uniqueKey);
         
         // uniqueKey가 문자열이 아닌 경우 처리
         if (typeof uniqueKey !== 'string') {
@@ -957,7 +934,7 @@ export default function CompanyDashboard() {
       }).filter(Boolean);
       
       
-      const response = await fetch('http://localhost:8081/api/progress/update-stage-multiple', {
+      const response = await fetch(apiUrl('/api/progress/update-stage-multiple'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1000,7 +977,7 @@ export default function CompanyDashboard() {
     if (!confirmed) return;
 
     try {
-      const response = await fetch('http://localhost:8081/api/responder/update-stage', {
+      const response = await fetch(apiUrl('/api/responder/update-stage'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1051,7 +1028,7 @@ export default function CompanyDashboard() {
     if (!confirmed) return;
 
     try {
-      const response = await fetch('http://localhost:8081/api/responder/update-stage', {
+      const response = await fetch(apiUrl('/api/responder/update-stage'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1100,7 +1077,7 @@ export default function CompanyDashboard() {
   const fetchAiAnalysis = async (jobCandidateId) => {
     setAiAnalysisLoading(true);
     try {
-      const response = await fetch(`http://localhost:8081/api/ai-analysis-results/portfolio/${jobCandidateId}`, {
+      const response = await fetch(apiUrl(`/api/ai-analysis-results/portfolio/${jobCandidateId}`), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
         },
@@ -1128,7 +1105,7 @@ export default function CompanyDashboard() {
       for (const candidate of githubCandidates) {
         if (candidate.candPortfolioId) {
           try {
-            const res = await fetch(`http://localhost:8081/api/portfolio-job-matches/portfolio/${candidate.candPortfolioId}`);
+            const res = await fetch(apiUrl(`/api/portfolio-job-matches/portfolio/${candidate.candPortfolioId}`));
             const data = await res.json();
             map[candidate.candPortfolioId] = data;
           } catch (e) {
@@ -1210,7 +1187,6 @@ export default function CompanyDashboard() {
                            transition: 'all 0.2s ease'
                          }}
                                                 onClick={() => {
-                                                  console.log('수락 버튼 클릭됨! (첫 번째)');
                                                   handleAcceptApplicants();
                                                 }}
                        >
@@ -1839,7 +1815,6 @@ export default function CompanyDashboard() {
                                     transition: 'all 0.2s ease'
                                   }}
                                   onClick={() => {
-                                    console.log('수락 버튼 클릭됨! (두 번째)');
                                     handleAcceptApplicants();
                                   }}
                                 >

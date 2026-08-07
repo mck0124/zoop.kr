@@ -4,6 +4,7 @@ import IdealCandidateChatbot from "../../components/IdealCandidateChatbot";
 import IdealCandidateCard from "../../components/IdealCandidateCard";
 import Navbar from "../../components/Navbar";
 import SEO from "../../components/SEO";
+import { apiUrl } from "../../api/config";
 
 export default function IdealCandidate() {
   const location = useLocation();
@@ -11,8 +12,6 @@ export default function IdealCandidate() {
   const { postId } = useParams();
   const [summary, setSummary] = useState("");
   const [summaryHistory, setSummaryHistory] = useState([]);
-  const [answer, setAnswer] = useState("");
-  const [examples, setExamples] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [redoHistory, setRedoHistory] = useState([]);
@@ -32,66 +31,10 @@ export default function IdealCandidate() {
     headcount: headcount // 명시적으로 headcount 설정
   };
 
-  // 강화된 디버깅
-  console.log("=== IdealCandidate 디버깅 ===");
-  console.log("location:", location);
-  console.log("location.state:", location.state);
-  console.log("locationState:", locationState);
-  console.log("filtersFromState:", filtersFromState);
-  console.log("추출된 headcount:", headcount);
-  console.log("최종 filters:", filters);
-  console.log("filters.headcount:", filters.headcount);
-  console.log("================================");
-
   // 더 연하고 은은한 네온 호버 효과 스타일
   const neonBoxShadow = '0 0 0 2px #19e3a355, 0 2px 12px #19e3a333';
 
-  // 로딩 메시지 배열 (더 상세하고 다양하게)
-  const loadingMessages = [
-    "완벽한 후보자를 찾고 있습니다...",
-    "AI가 필터링 중입니다...",
-    "조금만 기다려주세요...",
-    "GitHub에서 개발자들을 분석 중입니다...",
-    "AI 점수 측정 중입니다...",
-    "거의 다 왔습니다...",
-    "최종 후보자 선별 중입니다...",
-    "이메일 정보를 확인 중입니다...",
-    "포트폴리오를 분석 중입니다...",
-    "최적의 매칭을 찾고 있습니다...",
-    "코드 품질을 평가 중입니다...",
-    "기술 스택을 분석 중입니다...",
-    "경력 사항을 검토 중입니다...",
-    "프로젝트 이력을 확인 중입니다...",
-    "커뮤니케이션 능력을 평가 중입니다...",
-    "팀워크 적합성을 분석 중입니다...",
-    "성장 잠재력을 측정 중입니다...",
-    "문화적 적합성을 확인 중입니다...",
-    "최종 순위를 결정 중입니다...",
-    "결과를 정리 중입니다...",
-    "이메일이 있는 후보자를 찾는 중입니다...",
-    "GitHub 프로필을 스캔 중입니다...",
-    "연락 가능한 후보자를 선별 중입니다...",
-    "최종 후보자 목록을 완성 중입니다...",
-    "GitHub API에서 데이터를 수집 중입니다...",
-    "개발자 프로필을 상세 분석 중입니다...",
-    "기술적 역량을 종합 평가 중입니다...",
-    "활동 이력을 검토 중입니다...",
-    "커밋 패턴을 분석 중입니다...",
-    "프로젝트 품질을 평가 중입니다...",
-    "협업 능력을 측정 중입니다...",
-    "문제 해결 능력을 분석 중입니다...",
-    "코딩 스타일을 검토 중입니다...",
-    "기술 문서화 능력을 평가 중입니다...",
-    "오픈소스 기여도를 확인 중입니다...",
-    "최신 기술 트렌드를 반영 중입니다...",
-    "기업 문화와의 적합성을 분석 중입니다...",
-    "성장 가능성을 종합 평가 중입니다...",
-    "최종 후보자 순위를 결정 중입니다...",
-    "결과 데이터를 정리 중입니다...",
-    "이메일 주소를 검증 중입니다...",
-    "연락 가능성을 최종 확인 중입니다...",
-    "후보자 목록을 완성 중입니다..."
-  ];
+  const loadingMessages = ["인재상과 채용 조건을 확인하는 중입니다..."];
 
   // 동적 메시지 생성
   const getDynamicMessage = (progress, headcount) => {
@@ -117,6 +60,8 @@ export default function IdealCandidate() {
   };
 
   // 로딩 진행률 시뮬레이션
+  // Kept for backward-compatible imports from older UI snapshots; real progress now follows API phases.
+  // eslint-disable-next-line no-unused-vars
   const simulateLoading = (headcount) => {
     // 이메일이 있는 후보자를 찾는 시간을 고려한 더 긴 로딩 시간
     const baseTime = 15000; // 기본 15초로 증가 (이메일 확인 시간 포함)
@@ -124,10 +69,6 @@ export default function IdealCandidate() {
     const emailSearchTime = headcount * 2500; // 이메일이 있는 후보자 찾는 시간 증가
     const totalTime = baseTime + perPersonTime + emailSearchTime;
     
-    console.log(`총 로딩 시간: ${Math.round(totalTime/1000)}초 (인원수: ${headcount}명)`);
-    console.log(`- 기본 시간: ${Math.round(baseTime/1000)}초`);
-    console.log(`- 인원당 추가 시간: ${Math.round(perPersonTime/headcount/1000)}초`);
-    console.log(`- 이메일 검색 시간: ${Math.round(emailSearchTime/1000)}초`);
     
     const startTime = Date.now();
     const interval = setInterval(() => {
@@ -168,6 +109,8 @@ export default function IdealCandidate() {
   };
 
   // 실제 API 호출 완료 후 로딩 완료 처리
+  // Kept for backward-compatible imports from older UI snapshots.
+  // eslint-disable-next-line no-unused-vars
   const completeLoading = () => {
     setLoadingProgress(100);
     setLoadingMessage("완료! 후보자 목록으로 이동합니다...");
@@ -212,24 +155,10 @@ export default function IdealCandidate() {
     setLoadingProgress(0);
     setLoadingMessage(loadingMessages[0]);
     setCurrentStep(0);
-    let loadingInterval = null;
     const abortController = new AbortController();
     try {
-      console.log("=== handleFinish 디버깅 ===");
-      console.log("현재 filters:", filters);
-      console.log("현재 postId:", filters.postId);
-      console.log("현재 headcount:", filters.headcount);
-      console.log("추출된 headcount 변수:", headcount);
-      
-      // 로딩 시뮬레이션 시작 - 여러 방법으로 headcount 확보
-      const loadingHeadcount = filters.headcount || headcount || 5;
-      console.log("로딩 시뮬레이션에 사용할 headcount:", loadingHeadcount);
-      console.log("================================");
-      
-      loadingInterval = simulateLoading(loadingHeadcount);
-      
       // 1. 먼저 인재상을 공고에 저장
-      const idealCandidateResponse = await fetch(`http://localhost:8081/api/postings/${filters.postId}/ideal-candidate`, {
+      const idealCandidateResponse = await fetch(apiUrl(`/api/postings/${filters.postId}/ideal-candidate`), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idealCandidate: summary }),
@@ -238,11 +167,13 @@ export default function IdealCandidate() {
       
       if (!idealCandidateResponse.ok) {
         const errorText = await idealCandidateResponse.text();
-        console.error("인재상 저장 오류:", errorText);
         setLoading(false);
         analysisStarted.current = false;
         throw new Error('인재상 저장에 실패했습니다 (경로: /api/postings/' + filters.postId + '/ideal-candidate): ' + errorText);
       }
+      setLoadingProgress(35);
+      setCurrentStep(2);
+      setLoadingMessage("인재상 저장 완료 — 공개 기술 근거를 수집하는 중입니다...");
 
       // 2. Spring Boot API를 통해 GitHub 검색 실행 (DB 저장 포함)
       const searchPayload = {
@@ -253,9 +184,7 @@ export default function IdealCandidate() {
         headcount: filters.headcount,
         idealCandidate: summary
       };
-      console.log("Spring Boot GitHub 검색에 전송할 payload:", searchPayload); // 디버깅용
-      
-      const searchResponse = await fetch("http://localhost:8081/api/github-search", {
+      const searchResponse = await fetch(apiUrl("/api/github-search"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(searchPayload),
@@ -264,38 +193,30 @@ export default function IdealCandidate() {
       
       if (!searchResponse.ok) {
         const errorText = await searchResponse.text();
-        console.error("Spring Boot GitHub 검색 API Error:", errorText);
         setLoading(false);
         analysisStarted.current = false;
         throw new Error(`GitHub 검색 실패: ${searchResponse.status} ${searchResponse.statusText} - ${errorText}`);
       }
+      setLoadingProgress(90);
+      setCurrentStep(5);
+      setLoadingMessage("공개 근거 수집 완료 — 후보자별 분석 결과를 정리하는 중입니다...");
       
       // Spring Boot API는 성공 메시지만 반환하므로, 후보자 데이터는 CandidateList에서 DB에서 조회
-      console.log("GitHub 검색 완료, DB에 저장됨");
       // 로딩 완료
-      if (loadingInterval) {
-        clearInterval(loadingInterval);
-      }
       navigate(`/company/candidates/${filters.postId}`, {
         state: { ...filters, idealCandidate: summary },
       });
+      setLoadingProgress(100);
+      setLoadingMessage("완료! 후보자 목록으로 이동합니다...");
       setLoading(false);
       analysisStarted.current = false;
       
     } catch (e) {
-      console.error("Error in handleFinish:", e);
       // 로딩 중단
-      if (loadingInterval) {
-        clearInterval(loadingInterval);
-      }
       setLoading(false);
       analysisStarted.current = false;
       alert(`처리 중 오류 발생: ${e.message}`);
     }
-    // 언마운트 시 fetch 취소
-    return () => {
-      abortController.abort();
-    };
   };
 
   // 챗봇의 업데이트 콜백
@@ -304,8 +225,6 @@ export default function IdealCandidate() {
       setSummaryHistory(prev => [...prev, summary]);
       setSummary(data.summary);
     }
-    setAnswer(data.answer || "");
-    setExamples(data.examples || []);
   };
 
   return (
