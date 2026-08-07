@@ -9,7 +9,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,7 +43,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "PortfolioController", description = "포트폴리오 제출 관련 API")
 @RestController
 @RequestMapping("/api/portfolios")
-@CrossOrigin(origins = "http://localhost:3000")
 public class PortfolioController {
 
     private final PortfolioService portfolioService;

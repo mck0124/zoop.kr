@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/incident-reports")
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class IncidentReportController {
 
     @Autowired
@@ -27,4 +26,4 @@ public class IncidentReportController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
-} 
+}

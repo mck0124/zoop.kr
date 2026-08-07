@@ -104,11 +104,8 @@ function PortfolioSubmissionPage() {
         
       } catch (error) {
         console.error('공고 정보를 가져오는 중 오류 발생:', error);
-        // 오류 발생 시 기본값 설정
-        setJobPosting({
-          postTitle: '공고 정보를 불러올 수 없습니다'
-        });
-        setCompanyName('정보 없음');
+        setJobPosting(null);
+        setCompanyName('');
       } finally {
         setLoading(false);
         isFetchingRef.current = false;

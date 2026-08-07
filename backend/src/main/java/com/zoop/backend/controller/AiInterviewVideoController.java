@@ -1,13 +1,11 @@
 package com.zoop.backend.controller;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.zoop.backend.domain.dto.InterviewScheduleResponseDto;
 import com.zoop.backend.domain.entity.AiAnalysisResult;
@@ -36,8 +35,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "AiInterviewVideoController", description = "AI 면접 영상 관련 API")
 @RestController
 @RequestMapping("/api/interview-videos")
-@CrossOrigin(origins = "http://localhost:3000")
 public class AiInterviewVideoController {
+
+    @Value("${python.questions.api.url:http://localhost:8004}")
+    private String pythonQuestionsApiUrl;
 
     private final AiInterviewVideoService aiInterviewVideoService;
     private final AiInterviewScheduleService aiInterviewScheduleService;
@@ -103,13 +104,7 @@ public class AiInterviewVideoController {
             return ResponseEntity.ok(questions);
         } catch (Exception e) {
             e.printStackTrace();
-            // 오류 발생 시 기본 질문 반환
-            List<String> defaultQuestions = Arrays.asList(
-                "자기소개를 해주세요.",
-                "이 직무에 지원한 이유는 무엇인가요?",
-                "가장 기억에 남는 프로젝트에 대해 설명해주세요."
-            );
-            return ResponseEntity.ok(defaultQuestions);
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(List.of());
         }
     }
     
@@ -118,13 +113,7 @@ public class AiInterviewVideoController {
             // Python AI API를 호출하여 질문 생성
             return callPythonAIForQuestions(post, portfolioAnalysis);
         } catch (Exception e) {
-            e.printStackTrace();
-            // 오류 발생 시 기본 질문 반환
-            return Arrays.asList(
-                "자기소개를 해주세요.",
-                "이 직무에 지원한 이유는 무엇인가요?",
-                "가장 기억에 남는 프로젝트에 대해 설명해주세요."
-            );
+            throw new IllegalStateException("AI 면접 질문 생성에 실패했습니다.", e);
         }
     }
     
@@ -133,7 +122,7 @@ public class AiInterviewVideoController {
             System.out.println("[AiInterviewVideoController] Python AI API 호출 시작");
             
             // Python AI API URL
-            String pythonApiUrl = "http://localhost:8004/generate-questions";
+            String pythonApiUrl = pythonQuestionsApiUrl + "/generate-questions";
             
             // 공고 정보 준비
             String postTitle = post.getPostTitle() != null ? post.getPostTitle() : "";
@@ -242,25 +231,15 @@ public class AiInterviewVideoController {
             
             System.out.println("[AiInterviewVideoController] 파싱된 질문: " + questions);
             
-            // 질문이 없으면 기본 질문 반환
             if (questions.isEmpty()) {
-                System.out.println("[AiInterviewVideoController] 파싱된 질문이 없어 기본 질문 사용");
-                return Arrays.asList(
-                    "자기소개를 해주세요.",
-                    "이 직무에 지원한 이유는 무엇인가요?",
-                    "가장 기억에 남는 프로젝트에 대해 설명해주세요."
-                );
+                throw new IllegalStateException("AI 응답에 면접 질문이 없습니다.");
             }
             
             return questions;
         } catch (Exception e) {
             System.err.println("[AiInterviewVideoController] JSON 파싱 오류: " + e.getMessage());
             e.printStackTrace();
-            return Arrays.asList(
-                "자기소개를 해주세요.",
-                "이 직무에 지원한 이유는 무엇인가요?",
-                "가장 기억에 남는 프로젝트에 대해 설명해주세요."
-            );
+            throw new IllegalStateException("AI 면접 질문 응답을 해석하지 못했습니다.", e);
         }
     }
 
@@ -342,4 +321,4 @@ public class AiInterviewVideoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-} 
+}

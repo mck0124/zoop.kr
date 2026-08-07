@@ -3,7 +3,6 @@ package com.zoop.backend.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +20,6 @@ import com.zoop.backend.service.AiInterviewScheduleService;
 
 @RestController
 @RequestMapping("/api/interviews")
-@CrossOrigin(origins = "http://localhost:3000") // CORS 설정 확인
 public class InterviewController {
 
     @Autowired
@@ -60,5 +58,4 @@ public class InterviewController {
         }
     }
 }
-
 
