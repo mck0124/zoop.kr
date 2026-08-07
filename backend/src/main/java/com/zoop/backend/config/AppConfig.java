@@ -63,6 +63,8 @@ public class AppConfig {
                     "/api/companyadmins/**",
                     "/api/admin-interview-evaluations/**",
                     "/api/github-search/**",
+                    "/api/candidates/*",
+                    "/api/candidates/*/**",
                     "/api/postings/**"
                 ).authenticated()
                 // Legacy candidate and AI worker routes still perform their own ownership checks

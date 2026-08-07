@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.zoop.backend.domain.dto.CandidateSignupRequest;
 import com.zoop.backend.domain.dto.finding.FindGithubLoginRequest;
@@ -178,6 +179,7 @@ public class CandidateController {
     @PutMapping("/{candidateId}/profile")
     public ResponseEntity<?> updateProfile(@PathVariable Long candidateId, @RequestBody Map<String, String> request) {
         try {
+            assertCandidateAccess(candidateId);
             Candidate updated = candidateService.updateProfile(
                     candidateId, request.get("candidateName"), request.get("candidateEmail"));
             return ResponseEntity.ok(updated);
@@ -189,10 +191,21 @@ public class CandidateController {
     @PutMapping("/{candidateId}/password")
     public ResponseEntity<?> changePassword(@PathVariable Long candidateId, @RequestBody Map<String, String> request) {
         try {
+            assertCandidateAccess(candidateId);
             candidateService.changePassword(candidateId, request.get("currentPassword"), request.get("newPassword"));
             return ResponseEntity.ok(Map.of("message", "비밀번호가 변경되었습니다."));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    private void assertCandidateAccess(Long candidateId) {
+        String subject = SecurityContextHolder.getContext().getAuthentication() == null
+                ? "" : SecurityContextHolder.getContext().getAuthentication().getName();
+        Candidate candidate = candidateRepository.findById(candidateId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        if (!String.valueOf(candidateId).equals(subject) && !candidate.getGithubLogin().equals(subject)) {
+            throw new org.springframework.security.access.AccessDeniedException("본인 계정만 변경할 수 있습니다.");
         }
     }
 
