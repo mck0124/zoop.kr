@@ -15,20 +15,25 @@ import org.springframework.web.client.RestTemplate;
 
 import com.zoop.backend.domain.entity.JobCandProgress;
 import com.zoop.backend.domain.entity.Post;
+import com.zoop.backend.domain.entity.AiInterviewSchedule;
+import com.zoop.backend.repository.AiInterviewScheduleRepository;
 import com.zoop.backend.repository.JobCandProgressRepository;
 
 @Service
 public class InterviewAnalysisService {
     
     private final JobCandProgressRepository jobCandProgressRepository;
+    private final AiInterviewScheduleRepository aiInterviewScheduleRepository;
     private final RestTemplate restTemplate;
     
     @Value("${python.interview.api.url:${python.api.url:http://localhost:8002}}")
     private String pythonApiUrl;
     
     @Autowired
-    public InterviewAnalysisService(JobCandProgressRepository jobCandProgressRepository) {
+    public InterviewAnalysisService(JobCandProgressRepository jobCandProgressRepository,
+                                    AiInterviewScheduleRepository aiInterviewScheduleRepository) {
         this.jobCandProgressRepository = jobCandProgressRepository;
+        this.aiInterviewScheduleRepository = aiInterviewScheduleRepository;
         this.restTemplate = new RestTemplate();
     }
     
@@ -36,6 +41,16 @@ public class InterviewAnalysisService {
      * 면접 완료 시 비동기로 분석 시작
      */
     public void startInterviewAnalysis(Integer scheduleId, Long jobCandidateId) {
+        AiInterviewSchedule schedule = aiInterviewScheduleRepository.findById(Long.valueOf(scheduleId))
+            .orElseThrow(() -> new RuntimeException("해당 면접 일정을 찾을 수 없습니다: " + scheduleId));
+        String currentAnalysisStatus = schedule.getAiAnalysisStatus();
+        if ("done".equals(currentAnalysisStatus) || "processing".equals(currentAnalysisStatus)) {
+            System.out.println("[InterviewAnalysis] Analysis already claimed or completed: schedule=" + scheduleId + ", status=" + currentAnalysisStatus);
+            return;
+        }
+        schedule.setAiAnalysisStatus("processing");
+        aiInterviewScheduleRepository.save(schedule);
+
         CompletableFuture.runAsync(() -> {
             try {
                 System.out.println("[InterviewAnalysis] Starting analysis for schedule: " + scheduleId + ", jobCandidate: " + jobCandidateId);
@@ -67,14 +82,29 @@ public class InterviewAnalysisService {
                 
                 if (response.getStatusCode().is2xxSuccessful()) {
                     System.out.println("[InterviewAnalysis] Analysis started successfully");
+                    if (response.getBody() != null && response.getBody().contains("\"success\":false")) {
+                        markAnalysisFailed(scheduleId);
+                    }
                 } else {
                     System.err.println("[InterviewAnalysis] Failed to start analysis: " + response.getStatusCode());
+                    markAnalysisFailed(scheduleId);
                 }
                 
             } catch (Exception e) {
                 System.err.println("[InterviewAnalysis] Error starting analysis: " + e.getMessage());
                 e.printStackTrace();
+                aiInterviewScheduleRepository.findById(Long.valueOf(scheduleId)).ifPresent(failedSchedule -> {
+                    failedSchedule.setAiAnalysisStatus("failed");
+                    aiInterviewScheduleRepository.save(failedSchedule);
+                });
             }
+        });
+    }
+
+    private void markAnalysisFailed(Integer scheduleId) {
+        aiInterviewScheduleRepository.findById(Long.valueOf(scheduleId)).ifPresent(schedule -> {
+            schedule.setAiAnalysisStatus("failed");
+            aiInterviewScheduleRepository.save(schedule);
         });
     }
     

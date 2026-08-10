@@ -514,6 +514,9 @@ async def analyze_interview(
 ):
     """면접 영상 분석 API"""
     try:
+        # Claim the schedule before doing any expensive transcription. The
+        # background pending worker will skip schedules in this state.
+        update_analysis_status(schedule_id, "processing")
         print(f"Starting interview analysis for schedule_id: {schedule_id}, job_candidate_id: {job_candidate_id}")
         print(f"공고 정보: title={post_title}, description={post_description}, ideal_candidate={ideal_candidate}")
         
@@ -567,6 +570,7 @@ async def analyze_interview(
                 continue
         
         if not transcripts:
+            update_analysis_status(schedule_id, "failed")
             return InterviewAnalysisResponse(
                 success=False,
                 error="텍스트 추출에 실패했습니다."
@@ -605,6 +609,7 @@ async def analyze_interview(
         
     except Exception as e:
         print(f"Interview analysis error: {e}")
+        update_analysis_status(schedule_id, "failed")
         return InterviewAnalysisResponse(
             success=False,
             error="면접 분석을 완료하지 못했습니다. 영상과 AI 서비스 상태를 확인한 뒤 다시 시도해주세요."

@@ -266,8 +266,12 @@ public class AiInterviewScheduleService {
             schedule.setAiInterviewCompletionTime(LocalDateTime.now());
         }
         
-        // 분석 상태를 pending으로 변경 (영상이 업로드되면 분석 시작)
-        schedule.setAiAnalysisStatus("pending");
+        // 새 완료 요청은 분석을 대기열에 넣는다. 이미 처리 중이거나 완료된
+        // 재시도 요청은 상태를 되돌리지 않아 중복 분석을 만들지 않는다.
+        String analysisStatus = schedule.getAiAnalysisStatus();
+        if (!alreadyCompleted || (!"done".equals(analysisStatus) && !"processing".equals(analysisStatus))) {
+            schedule.setAiAnalysisStatus("pending");
+        }
         
         AiInterviewSchedule updatedSchedule = aiInterviewScheduleRepository.save(schedule);
         System.out.println("[AiInterviewScheduleService] 면접 일정 상태 업데이트 완료: " + updatedSchedule.getAiInterviewStatus());
