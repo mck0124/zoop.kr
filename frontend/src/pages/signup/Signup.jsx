@@ -38,6 +38,8 @@ export default function Signup() {
       <Navbar />
 
       <div className="signup-wrapper">
+        <h1 className="signup-title">Join ZOOP</h1>
+        <p className="signup-description">Choose how you want to use evidence-first hiring.</p>
         <div className="signup-tabs">
           <button
             className={selectedTab === 'applicant' ? 'active' : ''}

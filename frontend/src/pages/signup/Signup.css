@@ -1,8 +1,23 @@
 .signup-wrapper {
     max-width: 500px;
-    margin: 20rem auto 5rem;
+    margin: 7rem auto 5rem;
     text-align: center;
     font-family: 'Arial', sans-serif;
+  }
+
+  .signup-title {
+    margin: 0;
+    color: #172033;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+
+  .signup-description {
+    margin: 0.75rem 0 2.2rem;
+    color: #64748b;
+    font-size: 1rem;
+    line-height: 1.6;
   }
   
   .signup-tabs {
@@ -82,4 +97,19 @@
     color: #30c59b;
     text-decoration: none;
     font-weight: 500;
+  }
+
+  @media (max-width: 600px) {
+    .signup-wrapper {
+      margin: 4.5rem auto 3rem;
+      padding: 0 1.25rem;
+    }
+
+    .signup-tabs {
+      gap: 1.25rem;
+    }
+
+    .signup-icons {
+      gap: 1rem;
+    }
   }
