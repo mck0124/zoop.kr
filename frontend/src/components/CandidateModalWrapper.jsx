@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 import CandidateModal from './CandidateModal';
 import { apiUrl } from '../api/config';
 
+const authenticatedFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+    ...(options.headers || {}),
+  },
+});
+
 const CandidateModalWrapper = ({ children, postId, fromMatchingTab }) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -14,7 +22,7 @@ const CandidateModalWrapper = ({ children, postId, fromMatchingTab }) => {
     const stagesNeedingFile = ['2y', '3n', '3y', '4n', '4y'];
     if (stagesNeedingFile.includes(candidate.jobCandCurrStage)) {
       try {
-        const res = await fetch(apiUrl(`/api/portfolios/${candidate.jobCandidateId}/file-path`));
+        const res = await authenticatedFetch(apiUrl(`/api/portfolios/${candidate.jobCandidateId}/file-path`));
         if (!res.ok) throw new Error("포트폴리오 경로 요청 실패");
         const data = await res.json();
         const filePath = data.filePath;
