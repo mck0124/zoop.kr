@@ -68,3 +68,27 @@ test('does not hide a source decision-gate downgrade inside the fused score', ()
   expect(fusion.reviewSources).toEqual(['portfolio']);
   expect(fusion.decision).toBe('review');
 });
+
+test('builds a cross-source evidence matrix for comparable dimensions', () => {
+  const withDimensions = (score, name, grounded = true) => ({
+    analysisScore: score,
+    analysisData: JSON.stringify({
+      evidence_coverage: 90,
+      dimensions: [{
+        name,
+        score,
+        max: 100,
+        evidence: grounded ? [{ verification_state: 'grounded' }] : [],
+      }],
+    }),
+  });
+  const fusion = buildEvidenceFusion({
+    githubScore: withDimensions(80, 'Technical skills'),
+    portfolioAnalysis: withDimensions(84, '기술 스택 일치도'),
+    interviewAnalysis: withDimensions(78, '전문성'),
+  });
+
+  expect(fusion.evidenceMatrix).toEqual(expect.arrayContaining([
+    expect.objectContaining({ key: 'technical', groundedSignals: 3, independentSignals: 3 }),
+  ]));
+});

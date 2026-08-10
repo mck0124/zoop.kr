@@ -43,6 +43,49 @@ const sourceNeedsReview = (payload) => {
     || fairness?.status === 'review';
 };
 
+const dimensionKey = (name) => {
+  const value = String(name || '').toLowerCase();
+  if (/technical|skill|stack|기술|전문성/.test(value)) return 'technical';
+  if (/problem|solve|문제|해결/.test(value)) return 'problem_solving';
+  if (/communication|collab|의사|소통|협업/.test(value)) return 'communication';
+  if (/project|experience|career|경험|경력|프로젝트/.test(value)) return 'delivery';
+  if (/growth|potential|성장|가능성/.test(value)) return 'growth';
+  return null;
+};
+
+const buildEvidenceMatrix = (sources) => {
+  const labels = {
+    technical: 'Technical signal',
+    problem_solving: 'Problem solving',
+    communication: 'Communication',
+    delivery: 'Project delivery',
+    growth: 'Growth signal',
+  };
+  const matrix = new Map();
+  sources.forEach(source => {
+    const dimensions = source.payload?.dimensions || source.payload?.categories || [];
+    dimensions.forEach(dimension => {
+      if (!dimension || typeof dimension !== 'object') return;
+      const key = dimensionKey(dimension.name || dimension.category);
+      if (!key) return;
+      const rawScore = Number(dimension.score);
+      const max = Number(dimension.max_score || dimension.max || 100);
+      const score = Number.isFinite(rawScore) && Number.isFinite(max) && max > 0
+        ? Math.round(Math.max(0, Math.min(100, rawScore / max * 100)))
+        : null;
+      const evidence = Array.isArray(dimension.evidence) ? dimension.evidence : [];
+      const grounded = evidence.some(item => ['verified', 'grounded'].includes(item?.verification_state));
+      if (!matrix.has(key)) matrix.set(key, { key, label: labels[key], signals: [] });
+      matrix.get(key).signals.push({ source: source.key, score, grounded });
+    });
+  });
+  return [...matrix.values()].map(row => ({
+    ...row,
+    independentSignals: row.signals.filter(signal => signal.score !== null).length,
+    groundedSignals: row.signals.filter(signal => signal.grounded).length,
+  }));
+};
+
 function buildEvidenceFusion({ githubScore, portfolioAnalysis, interviewAnalysis }) {
   const githubPayload = analysisRoot(githubScore?.analysisData ?? githubScore);
   const portfolioPayload = analysisRoot(portfolioAnalysis?.analysisData ?? portfolioAnalysis);
@@ -98,6 +141,7 @@ function buildEvidenceFusion({ githubScore, portfolioAnalysis, interviewAnalysis
     fairnessReview,
     reviewSources,
     reviewRequired: reviewSources.length > 0 || fairnessReview || consistency.status !== 'aligned',
+    evidenceMatrix: buildEvidenceMatrix(sources),
   };
 }
 
@@ -159,6 +203,37 @@ function EvidenceFusionCard({ candidate, portfolioAnalysis, interviewAnalysis })
       {fusion.reviewSources.length > 0 && (
         <div className="mt-2 rounded-xl border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-xs leading-5 text-amber-100">
           <strong>Safety gate:</strong> {fusion.reviewSources.map(source => source[0].toUpperCase() + source.slice(1)).join(', ')} signal{fusion.reviewSources.length === 1 ? '' : 's'} require review; the fused signal cannot override that decision.
+        </div>
+      )}
+      {fusion.evidenceMatrix.length > 0 && (
+        <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <strong className="text-xs uppercase tracking-[0.14em] text-slate-300">Evidence cross-check</strong>
+            <span className="text-[11px] text-slate-400">Independent source coverage by signal</span>
+          </div>
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full min-w-[460px] text-left text-xs" aria-label="Evidence cross-check matrix">
+              <thead className="text-slate-500">
+                <tr>
+                  <th className="px-2 py-1 font-medium">Dimension</th>
+                  {fusion.sources.map(source => <th key={source.key} className="px-2 py-1 font-medium">{source.label}</th>)}
+                  <th className="px-2 py-1 font-medium">Cross-check</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fusion.evidenceMatrix.map(row => (
+                  <tr key={row.key} className="border-t border-white/10">
+                    <th className="px-2 py-2 font-medium text-slate-300">{row.label}</th>
+                    {fusion.sources.map(source => {
+                      const signal = row.signals.find(item => item.source === source.key);
+                      return <td key={source.key} className={`px-2 py-2 font-semibold ${signal?.grounded ? 'text-emerald-300' : signal ? 'text-amber-300' : 'text-slate-600'}`}>{signal?.score === null || signal?.score === undefined ? '—' : `${signal.score}${signal.grounded ? ' ✓' : ' ·'}`}</td>;
+                    })}
+                    <td className="px-2 py-2 text-slate-400">{row.groundedSignals}/{row.independentSignals} grounded</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </section>
