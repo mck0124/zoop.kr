@@ -45,6 +45,7 @@ export default function InterviewEvaluation() {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [analysisChecking, setAnalysisChecking] = useState(true);
   const [existingEvaluation, setExistingEvaluation] = useState(null);
   const [evaluation, setEvaluation] = useState({
     adminIntrvwScore: '',
@@ -56,7 +57,6 @@ export default function InterviewEvaluation() {
   useEffect(() => {
     fetchCandidateData();
     fetchInterviewVideos();
-    fetchAnalysisResult();
     fetchExistingEvaluation();
     // These loaders are intentionally scoped to the candidate route.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,6 +97,7 @@ export default function InterviewEvaluation() {
   };
 
   const fetchAnalysisResult = async () => {
+    setAnalysisChecking(true);
     try {
       // jobCandidateId로 직접 면접 분석 결과 조회
       const response = await fetch(apiUrl(`/api/analysis/${candidateId}/interview`), {
@@ -110,8 +111,26 @@ export default function InterviewEvaluation() {
       }
     } catch (error) {
       console.error('면접 분석 결과 조회 실패:', error);
+    } finally {
+      setAnalysisChecking(false);
     }
   };
+
+  useEffect(() => {
+    let cancelled = false;
+    const check = async () => {
+      if (cancelled || analysisResult) return;
+      await fetchAnalysisResult();
+    };
+    check();
+    const interval = window.setInterval(check, 10000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+    // Poll only while this candidate has no completed analysis.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [candidateId, analysisResult]);
 
   const fetchExistingEvaluation = async () => {
     try {
@@ -595,10 +614,19 @@ export default function InterviewEvaluation() {
                   borderRadius: '8px',
                   border: '1px solid #e2e8f0'
                 }}>
-                  <p>No AI interview analysis is available yet.</p>
+                  <p>{analysisChecking ? 'Checking the AI analysis status...' : 'AI interview analysis is still processing.'}</p>
                   <p style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>
-                    Analysis may still be running or has not been completed.
+                    This page will check again automatically. You can also refresh the status manually.
                   </p>
+                  {!analysisChecking && (
+                    <button
+                      type="button"
+                      onClick={fetchAnalysisResult}
+                      style={{ marginTop: 12, border: '1px solid #86efac', borderRadius: 999, padding: '8px 14px', background: '#f0fdf4', color: '#166534', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      Refresh analysis status
+                    </button>
+                  )}
                 </div>
               )}
             </div>
