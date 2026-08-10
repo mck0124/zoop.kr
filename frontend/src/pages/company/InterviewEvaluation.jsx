@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import SEO from '../../components/SEO';
-import AIAnalysisSummary from '../../components/AIAnalysisSummary';
+import AIAnalysisSummary, { getEvidenceGroundedScore } from '../../components/AIAnalysisSummary';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import { apiUrl } from '../../api/config';
 
@@ -274,6 +274,7 @@ export default function InterviewEvaluation() {
   };
 
   const parsedAnalysis = parseAnalysisData(analysisResult?.analysisData);
+  const groundedInterviewScore = getEvidenceGroundedScore(analysisResult, parsedAnalysis?.totalScore ?? analysisResult?.analysisScore);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -456,7 +457,7 @@ export default function InterviewEvaluation() {
                       marginBottom: 4
                     }}>
                       <StarIcon size={26} color="#fff" />
-                      {parsedAnalysis.totalScore} points
+                      {groundedInterviewScore === null ? 'Evidence review needed' : `${groundedInterviewScore} points`}
                     </div>
                     <div style={{
                       fontSize: '1rem',
@@ -470,7 +471,7 @@ export default function InterviewEvaluation() {
 
                   <AIAnalysisSummary
                     analysis={analysisResult}
-                    score={parsedAnalysis.totalScore ?? analysisResult.analysisScore}
+                    score={groundedInterviewScore}
                     title="Evidence ledger and verification plan"
                   />
 
@@ -654,7 +655,7 @@ export default function InterviewEvaluation() {
                   </h3>
                   <AIAnalysisSummary
                     analysis={analysisResult}
-                    score={analysisResult.analysisScore}
+                    score={groundedInterviewScore}
                   />
                 </div>
               ) : (

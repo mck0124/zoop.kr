@@ -30,6 +30,27 @@ const formatPercent = (value) => {
   return Math.round(Math.max(0, Math.min(100, percent)));
 };
 
+const GROUNDED_ANALYSIS_VERSIONS = new Set(['github-evidence-v1', 'portfolio-evidence-v1', 'interview-evidence-v1']);
+
+export function getEvidenceGroundedScore(analysis, requestedScore) {
+  const payload = parseAIAnalysisData(analysis?.analysisData ?? analysis);
+  const root = payload?.analysis && typeof payload.analysis === 'object' ? payload.analysis : payload;
+  if (!root) return null;
+  const categories = asArray(root.categories || root.dimensions);
+  const evidence = [
+    ...asArray(root.evidence),
+    ...asArray(root.verified_evidence),
+    ...categories.flatMap(category => asArray(category.evidence)),
+  ];
+  const groundedCount = evidence.filter(item => ['verified', 'grounded'].includes(item?.verification_state)).length;
+  const hasGroundingRecord = groundedCount > 0 && (
+    GROUNDED_ANALYSIS_VERSIONS.has(root.version) ||
+    Boolean(root.audit?.ledger_version || root.evidence_quality?.grounded_evidence || root.score_calibration || evidence.length)
+  );
+  const score = finiteNumber(root.score_calibration?.calibrated_score ?? root.score ?? payload?.score ?? requestedScore);
+  return hasGroundingRecord && score !== null ? Math.round(Math.max(0, Math.min(100, score))) : null;
+}
+
 export function parseAIAnalysisData(value) {
   if (!value) return null;
   if (typeof value === 'object') return value;
@@ -167,7 +188,7 @@ export default function AIAnalysisSummary({ analysis, score, title }) {
   const evidenceQuality = data?.evidence_quality || data?.evidenceQuality || null;
   const decisionGate = data?.decision_gate || data?.decisionGate || null;
   const hasStructuredData = Boolean(payload);
-  const safeScore = finiteNumber(score);
+  const safeScore = getEvidenceGroundedScore(analysis, score);
   const coveragePercent = formatPercent(coverage);
   const confidencePercent = formatPercent(confidence);
   const handleDownloadReceipt = () => downloadDecisionReceipt(createDecisionReceipt(data, { title: resolvedTitle, score: safeScore, language }));

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { useNavigate } from 'react-router-dom';
 import { apiUrl as buildApiUrl } from '../api/config';
-import AIAnalysisSummary, { parseAIAnalysisData } from './AIAnalysisSummary';
+import AIAnalysisSummary, { getEvidenceGroundedScore, parseAIAnalysisData } from './AIAnalysisSummary';
 pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL}/pdf.worker.min.mjs`;
 
 const FUSION_SOURCES = [
@@ -10,16 +10,6 @@ const FUSION_SOURCES = [
   { key: 'portfolio', label: 'Portfolio', weight: 0.35 },
   { key: 'interview', label: 'Interview', weight: 0.35 },
 ];
-
-const finiteScore = (value) => {
-  const score = Number(value);
-  return Number.isFinite(score) && score >= 0 ? Math.min(100, score) : null;
-};
-
-const scoreIfAnalyzed = (value, payload) => {
-  const score = finiteScore(value);
-  return score === 0 && !payload ? null : score;
-};
 
 const evidenceCoverage = (payload) => {
   const value = payload?.evidence_coverage ?? payload?.evidenceCoverage;
@@ -99,9 +89,9 @@ function buildEvidenceFusion({ githubScore, portfolioAnalysis, interviewAnalysis
   const portfolioPayload = analysisRoot(portfolioAnalysis?.analysisData ?? portfolioAnalysis);
   const interviewPayload = analysisRoot(interviewAnalysis?.analysisData ?? interviewAnalysis);
   const inputs = {
-    github: { score: scoreIfAnalyzed(githubScore?.analysisScore ?? githubScore, githubPayload), payload: githubPayload },
-    portfolio: { score: scoreIfAnalyzed(portfolioAnalysis?.analysisScore, portfolioPayload), payload: portfolioPayload },
-    interview: { score: scoreIfAnalyzed(interviewAnalysis?.analysisScore, interviewPayload), payload: interviewPayload },
+    github: { score: getEvidenceGroundedScore(githubScore, githubScore?.analysisScore ?? githubScore), payload: githubPayload },
+    portfolio: { score: getEvidenceGroundedScore(portfolioAnalysis, portfolioAnalysis?.analysisScore), payload: portfolioPayload },
+    interview: { score: getEvidenceGroundedScore(interviewAnalysis, interviewAnalysis?.analysisScore), payload: interviewPayload },
   };
   const sources = FUSION_SOURCES.map(source => {
     const input = inputs[source.key];

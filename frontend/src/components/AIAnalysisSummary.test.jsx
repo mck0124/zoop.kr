@@ -55,6 +55,12 @@ test('does not render invalid numeric AI metadata as NaN', () => {
   expect(screen.getByText('legacy result')).toBeInTheDocument();
 });
 
+test('does not render a legacy score without grounded evidence', () => {
+  render(renderAnalysis({ summary: 'Legacy score without a source ledger.', analysisScore: 91 }, 91));
+
+  expect(screen.queryByText(/Score 91\/100/)).not.toBeInTheDocument();
+});
+
 test('renders the evidence that could change a hiring decision', () => {
   render(renderAnalysis({
     summary: 'Review recommended',

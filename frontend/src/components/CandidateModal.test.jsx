@@ -10,6 +10,7 @@ const source = (score, coverage = 90, fairness = 'pass') => ({
   analysisScore: score,
   analysisData: JSON.stringify({
     evidence_coverage: coverage,
+    evidence: [{ verification_state: 'grounded', claim: 'Verified source signal' }],
     fairness_guard: { status: fairness }
   })
 });
@@ -53,6 +54,7 @@ test('does not hide a source decision-gate downgrade inside the fused score', ()
   const portfolio = source(93);
   portfolio.analysisData = JSON.stringify({
     evidence_coverage: 95,
+    evidence: [{ verification_state: 'grounded', claim: 'Verified portfolio signal' }],
     decision_gate: {
       status: 'downgraded',
       final_decision: 'review',

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { apiUrl } from '../../api/config';
-import AIAnalysisSummary, { parseAIAnalysisData } from '../../components/AIAnalysisSummary';
+import AIAnalysisSummary, { getEvidenceGroundedScore, parseAIAnalysisData } from '../../components/AIAnalysisSummary';
 
 const authenticatedFetch = (url, options = {}) => fetch(url, {
   ...options,
@@ -44,7 +44,7 @@ export default function MatchingDetailPage() {
   };
 
   const analysisPayload = parseAIAnalysisData(analysis?.analysisData ?? analysis);
-  const analysisScore = analysisPayload?.score ?? analysis?.analysisScore;
+  const analysisScore = getEvidenceGroundedScore(analysis, analysisPayload?.score ?? analysis?.analysisScore);
 
   useEffect(() => {
     if (!candPortfolioId || !jobCandidateId || !analysisId) {
