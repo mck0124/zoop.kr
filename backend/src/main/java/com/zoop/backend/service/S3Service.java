@@ -1,6 +1,8 @@
 package com.zoop.backend.service;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +23,7 @@ public class S3Service {
 
     private final S3Client s3Client;
     private final String bucket;
+    private final String region;
 
     public S3Service(
         @Value("${cloud.aws.credentials.access-key}") String accessKey,
@@ -29,6 +32,7 @@ public class S3Service {
         @Value("${cloud.aws.s3.bucket}") String bucket
     ) {
         this.bucket = bucket;
+        this.region = region;
         this.s3Client = S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(
@@ -58,7 +62,7 @@ public class S3Service {
         }
         
         // region을 포함한 올바른 S3 URL 생성
-        String url = "https://" + bucket + ".s3.ap-northeast-2.amazonaws.com/" + key;
+        String url = "https://" + bucket + ".s3." + region + ".amazonaws.com/" + key;
         System.out.println("[S3Service] S3 업로드 URL: " + url);
         System.out.println("[S3Service] 파일 크기: " + file.getSize() + " bytes");
         System.out.println("[S3Service] 파일 타입: " + file.getContentType());
@@ -84,7 +88,7 @@ public class S3Service {
             System.err.println("[S3Service] S3 업로드 실패: " + e.getMessage());
             throw e;
         }
-        String url = "https://" + bucket + ".s3.ap-northeast-2.amazonaws.com/" + key;
+        String url = "https://" + bucket + ".s3." + region + ".amazonaws.com/" + key;
         System.out.println("[S3Service] S3 업로드 URL: " + url);
         System.out.println("[S3Service] 파일 크기: " + file.getSize() + " bytes");
         System.out.println("[S3Service] 파일 타입: " + file.getContentType());
@@ -100,20 +104,26 @@ public class S3Service {
      * @throws IOException
     */
     public ResponseInputStream<GetObjectResponse> downloadFile(String s3Url) throws IOException {
-        // S3 URL에서 bucket과 key 추출
-        // 예: https://bucket-name.s3.ap-northeast-2.amazonaws.com/portfolios/uuid_filename.pdf
-        String[] urlParts = s3Url.replace("https://", "").split("/");
-        String bucketAndRegion = urlParts[0]; // bucket-name.s3.ap-northeast-2.amazonaws.com
-        String bucket = bucketAndRegion.split("\\.")[0]; // bucket-name
+        URI uri;
+        try {
+            uri = new URI(s3Url);
+        } catch (URISyntaxException | NullPointerException e) {
+            throw new IOException("Invalid S3 URL", e);
+        }
+        String expectedHost = bucket + ".s3." + region + ".amazonaws.com";
+        if (!"https".equalsIgnoreCase(uri.getScheme()) || !expectedHost.equalsIgnoreCase(uri.getHost())) {
+            throw new IOException("S3 URL is outside the configured bucket");
+        }
+        String key = uri.getPath() == null ? "" : uri.getPath().replaceFirst("^/", "");
+        if (key.isBlank() || !(key.startsWith("portfolios/") || key.startsWith("videos/"))) {
+            throw new IOException("S3 object key is not an allowed ZOOP upload");
+        }
         
-        // key는 URL의 나머지 부분
-        String key = s3Url.substring(s3Url.indexOf("/", 8) + 1); // https:// 이후 첫 번째 / 다음부터
-        
-        System.out.println("[S3Service] S3 다운로드 시도: bucket=" + bucket + ", key=" + key);
+        System.out.println("[S3Service] S3 다운로드 시도: bucket=" + this.bucket + ", key=" + key);
         
         try {
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucket)
+                .bucket(this.bucket)
                 .key(key)
                 .build();
             
@@ -125,4 +135,4 @@ public class S3Service {
             throw e;
         }
     }
-} 
+}

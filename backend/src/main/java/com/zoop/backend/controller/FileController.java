@@ -2,6 +2,8 @@ package com.zoop.backend.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -37,14 +39,17 @@ public class FileController {
 
     @GetMapping("/download/{filename}")
     public ResponseEntity<InputStreamResource> downloadFile(@PathVariable String filename) throws IOException {
-        File file = new File(uploadDir + File.separator + filename);
-        log.info("파일이름: ",filename, " uploadDir : ", uploadDir );
-        if (!file.exists()) {
+        Path uploadRoot = Paths.get(uploadDir).toAbsolutePath().normalize();
+        Path requestedFile = uploadRoot.resolve(filename).normalize();
+        if (!requestedFile.startsWith(uploadRoot) || !Files.isRegularFile(requestedFile)) {
+            log.warn("Rejected file download outside upload directory: {}", filename);
             log.info("파일이 전달되지 않았습니다." );
             return ResponseEntity.notFound().build();
         }
 
-        InputStreamResource resource = new InputStreamResource(Files.newInputStream(file.toPath()));
+        File file = requestedFile.toFile();
+        log.info("Serving file {} from upload directory", requestedFile.getFileName());
+        InputStreamResource resource = new InputStreamResource(Files.newInputStream(requestedFile));
 
         return ResponseEntity.ok()
             // 파일을 다운로드 하지 않고 브라우저에서 바로 띄우는 코드
