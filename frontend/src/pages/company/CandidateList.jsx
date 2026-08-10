@@ -2167,8 +2167,9 @@ export default function CandidateList({ activeTab = 'all' }) {
 
 // Toss-style Candidate Card (with hover state)
 const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openAnalysisModal, toggleSelect, compareSelected, toggleCompare }) => {
-  const analysisText = candidate.portfolioAnalysis || candidate.analysis || '';
-  const score = extractScore(analysisText) || candidate.score || candidate.parsed_score || 0;
+  const analysisText = analysisResult?.analysisData || candidate.portfolioAnalysis || candidate.analysis || '';
+  const analysisPayload = getAnalysisPayload(candidate, analysisResult);
+  const score = analysisPayload.score ?? 0;
   const keywords = extractKeywords(analysisText);
   const langsArr = getStackArray(candidate.candidateLanguages || candidate.languages);
   const login = candidate.githubLogin || candidate.login;
@@ -2246,7 +2247,8 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
   if (typeof displayScore !== 'number' || isNaN(displayScore)) {
     displayScore = Object.values(radarScores).reduce((a, b) => a + (typeof b === 'number' ? b : 0), 0);
   }
-  const hasVerifiedScore = !isAllZero && displayScore > 0;
+  const hasVerifiedScore = analysisPayload.hasStructuredEvidence && analysisPayload.evidenceCount > 0 && !isAllZero && displayScore > 0;
+  const safeRadarScores = hasVerifiedScore ? radarScores : {};
   return (
     <TossCard
       key={login}
@@ -2330,7 +2332,7 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
                 transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
               }}>
                 <RadarChartSVG 
-                  scores={radarScores}
+                  scores={safeRadarScores}
                   size={130} 
                   totalScore={displayScore}
                   showLabels={true}
