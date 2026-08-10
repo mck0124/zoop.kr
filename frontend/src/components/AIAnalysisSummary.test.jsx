@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import AIAnalysisSummary from './AIAnalysisSummary';
+import AIAnalysisSummary, { createDecisionReceipt } from './AIAnalysisSummary';
 import { LanguageProvider } from '../context/LanguageContext';
 
 const renderAnalysis = (analysis, score) => (
@@ -83,4 +83,20 @@ test('renders evidence diversity as a separate reliability signal', () => {
   expect(screen.getByText('Evidence diversity')).toBeInTheDocument();
   expect(screen.getByText('3 source type(s)')).toBeInTheDocument();
   expect(screen.getByText('recent_events')).toBeInTheDocument();
+});
+
+test('creates a portable decision receipt with audit-critical fields', () => {
+  const receipt = createDecisionReceipt({
+    decision: 'review',
+    evidence_coverage: 50,
+    counterfactuals: [{ missing_signal: 'Ownership' }],
+    audit: { source_fingerprint: 'abc123' },
+  }, { title: 'Candidate review', score: 64, language: 'en' });
+
+  expect(receipt.schema_version).toBe('zoop-decision-receipt-v1');
+  expect(receipt.title).toBe('Candidate review');
+  expect(receipt.score).toBe(64);
+  expect(receipt.decision).toBe('review');
+  expect(receipt.counterfactuals).toHaveLength(1);
+  expect(receipt.audit.source_fingerprint).toBe('abc123');
 });
