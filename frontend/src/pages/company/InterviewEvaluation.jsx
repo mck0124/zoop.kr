@@ -46,6 +46,9 @@ export default function InterviewEvaluation() {
   const [loading, setLoading] = useState(true);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [analysisChecking, setAnalysisChecking] = useState(true);
+  const [analysisStatus, setAnalysisStatus] = useState('unknown');
+  const [analysisScheduleId, setAnalysisScheduleId] = useState(null);
+  const [retryingAnalysis, setRetryingAnalysis] = useState(false);
   const [existingEvaluation, setExistingEvaluation] = useState(null);
   const [evaluation, setEvaluation] = useState({
     adminIntrvwScore: '',
@@ -116,11 +119,27 @@ export default function InterviewEvaluation() {
     }
   };
 
+  const fetchAnalysisStatus = async () => {
+    try {
+      const response = await fetch(apiUrl(`/api/interview-schedules/${candidateId}/schedule`), {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAnalysisStatus(data.analysisStatus || 'unknown');
+        setAnalysisScheduleId(data.scheduleId || null);
+      }
+    } catch (error) {
+      console.error('면접 분석 상태 조회 실패:', error);
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
     const check = async () => {
       if (cancelled || analysisResult) return;
       await fetchAnalysisResult();
+      await fetchAnalysisStatus();
     };
     check();
     const interval = window.setInterval(check, 10000);
@@ -131,6 +150,22 @@ export default function InterviewEvaluation() {
     // Poll only while this candidate has no completed analysis.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candidateId, analysisResult]);
+
+  const retryInterviewAnalysis = async () => {
+    if (!analysisScheduleId || retryingAnalysis) return;
+    setRetryingAnalysis(true);
+    try {
+      const response = await fetch(apiUrl(`/api/interview-schedules/${analysisScheduleId}/retry-analysis`), { method: 'POST' });
+      if (!response.ok) throw new Error('Could not restart the AI analysis.');
+      setAnalysisStatus('processing');
+      setAnalysisResult(null);
+      await fetchAnalysisResult();
+    } catch (error) {
+      alert(error.message || 'Could not restart the AI analysis.');
+    } finally {
+      setRetryingAnalysis(false);
+    }
+  };
 
   const fetchExistingEvaluation = async () => {
     try {
@@ -614,10 +649,20 @@ export default function InterviewEvaluation() {
                   borderRadius: '8px',
                   border: '1px solid #e2e8f0'
                 }}>
-                  <p>{analysisChecking ? 'Checking the AI analysis status...' : 'AI interview analysis is still processing.'}</p>
+                  <p>{analysisStatus === 'failed' ? 'AI interview analysis failed.' : analysisChecking ? 'Checking the AI analysis status...' : 'AI interview analysis is still processing.'}</p>
                   <p style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>
-                    This page will check again automatically. You can also refresh the status manually.
+                    {analysisStatus === 'failed' ? 'Retry the analysis after checking the uploaded interview recordings.' : 'This page will check again automatically. You can also refresh the status manually.'}
                   </p>
+                  {analysisStatus === 'failed' && analysisScheduleId && (
+                    <button
+                      type="button"
+                      onClick={retryInterviewAnalysis}
+                      disabled={retryingAnalysis}
+                      style={{ marginTop: 12, marginRight: 8, border: '1px solid #fbbf24', borderRadius: 999, padding: '8px 14px', background: '#fffbeb', color: '#92400e', fontWeight: 700, cursor: retryingAnalysis ? 'wait' : 'pointer' }}
+                    >
+                      {retryingAnalysis ? 'Restarting analysis...' : 'Retry AI analysis'}
+                    </button>
+                  )}
                   {!analysisChecking && (
                     <button
                       type="button"

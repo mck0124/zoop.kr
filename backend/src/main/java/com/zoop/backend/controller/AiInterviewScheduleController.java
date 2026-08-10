@@ -212,6 +212,23 @@ public class AiInterviewScheduleController {
         }
     }
 
+    @Operation(summary = "AI 면접 분석 재시도", description = "실패한 면접 분석을 다시 대기열에 넣습니다.")
+    @PostMapping("/{scheduleId}/retry-analysis")
+    public ResponseEntity<InterviewScheduleResponseDto> retryInterviewAnalysis(
+            @PathVariable Integer scheduleId) {
+        try {
+            InterviewScheduleResponseDto response = aiInterviewScheduleService.retryInterviewAnalysis(scheduleId.longValue());
+            interviewAnalysisService.startInterviewAnalysis(scheduleId, response.getJobCandidateId());
+            return ResponseEntity.ok(response);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(InterviewScheduleResponseDto.builder().success(false).message(e.getMessage()).build());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(InterviewScheduleResponseDto.builder().success(false).message("해당 면접 일정을 찾을 수 없습니다.").build());
+        }
+    }
+
     @Operation(summary = "PENDING 상태 면접 스케줄 조회", description = "분석 대기 중인 면접 스케줄 전체를 반환합니다.")
     @GetMapping("/pending")
     public ResponseEntity<?> getPendingInterviewSchedules() {

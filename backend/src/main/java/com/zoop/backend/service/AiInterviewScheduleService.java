@@ -325,7 +325,26 @@ public class AiInterviewScheduleService {
     public Optional<AiInterviewScheduleResponse> getScheduleInfo(Long jobCandidateId) {
         return aiInterviewScheduleRepository.findByJobCandProgress_JobCandidateId(jobCandidateId).stream()
                 .findFirst()
-                .map(s -> new AiInterviewScheduleResponse(s.getAiInterviewScheduledTime(), s.getAiInterviewStatus()));
+                .map(s -> new AiInterviewScheduleResponse(
+                        s.getAiInterviewScheduleId(),
+                        s.getAiInterviewScheduledTime(),
+                        s.getAiInterviewStatus(),
+                        s.getAiAnalysisStatus()));
+    }
+
+    @Transactional
+    public InterviewScheduleResponseDto retryInterviewAnalysis(Long scheduleId) {
+        AiInterviewSchedule schedule = aiInterviewScheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new RuntimeException("해당 면접 일정을 찾을 수 없습니다."));
+        if ("processing".equals(schedule.getAiAnalysisStatus())) {
+            throw new IllegalStateException("면접 분석이 이미 진행 중입니다.");
+        }
+        if ("done".equals(schedule.getAiAnalysisStatus())) {
+            return getInterviewSchedule(scheduleId);
+        }
+        schedule.setAiAnalysisStatus("pending");
+        aiInterviewScheduleRepository.save(schedule);
+        return getInterviewSchedule(scheduleId);
     }
 
     public Optional<InterviewVideoResponse> getInterviewVideo(Long jobCandidateId) {
