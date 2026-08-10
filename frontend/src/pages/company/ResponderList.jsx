@@ -73,16 +73,16 @@ export default function ResponderList() {
     <div>
       <Navbar />
       <SEO
-        title={`${postId}번 공고 회신자 목록`}
-        description={`${postId}번 공고에 대한 회신자 목록을 확인할 수 있습니다.`}
-        keywords={`${postId}번 공고, 회신자 목록, 채용 공고`}
+        title={`Responders for job ${postId}`}
+        description={`Review candidates who responded to job ${postId}.`}
+        keywords={`job ${postId}, responders, hiring`}
       />
       <div className="px-12 pt-28 pb-12 bg-gradient-to-b from-emerald-50 to-white min-h-screen">
         <h2 className="text-3xl font-bold text-emerald-800 mb-10 border-b pb-2">
-          🔍 {postId}번 공고 회신자 목록
+          🔍 Responders for job {postId}
         </h2>
         {responder.length === 0 ? (
-          <p>회신자가 없습니다.</p>
+          <p>No responders yet.</p>
         ) : (
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {responder.map((r, i) => (
@@ -95,10 +95,10 @@ export default function ResponderList() {
                 </div>
                 <div className="mb-2 text-emerald-700 font-semibold text-lg">{r.name}</div>
                 <div className="text-sm text-gray-700">
-                  <p><strong>이메일:</strong> {r.email}</p>
-                  <p><strong>지역:</strong> {r.location}</p>
-                  <p><strong>언어:</strong> {r.languages}</p>
-                  <p><strong>점수:</strong> {r.score}</p>
+                  <p><strong>Email:</strong> {r.email}</p>
+                  <p><strong>Location:</strong> {r.location}</p>
+                  <p><strong>Languages:</strong> {r.languages}</p>
+                  <p><strong>Score:</strong> {r.score}</p>
                 </div>
                 <div className="text-sm mt-2 italic text-gray-600 line-clamp-3">
                   {r.portfolioAnalysis}
@@ -108,7 +108,7 @@ export default function ResponderList() {
                   onClick={() => handleDetail(r)}
                   className="mt-4 w-full py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 transition"
                 >
-                  자세히 보기
+                  View details
                 </button>
               </li>
             ))}
@@ -123,32 +123,32 @@ export default function ResponderList() {
               onClick={e => e.stopPropagation()}
             >
               {/* Header */}
-              <h3 className="text-2xl font-bold text-emerald-700 mb-6 border-b pb-3">회신자 상세 정보</h3>
+              <h3 className="text-2xl font-bold text-emerald-700 mb-6 border-b pb-3">Responder details</h3>
 
               {/* Info grid */}
               <div className="grid grid-cols-2 gap-y-4 gap-x-8 mb-10 text-sm">
                 <div className="flex items-center gap-4">
-                  <span className="text-gray-500 font-medium">이름</span>
+                  <span className="text-gray-500 font-medium">Name</span>
                   <span className="text-emerald-800 font-semibold">{selectedResponder.name}</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-gray-500 font-medium">이메일</span>
+                  <span className="text-gray-500 font-medium">Email</span>
                   <span className="text-gray-800">{selectedResponder.email}</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-gray-500 font-medium">지역</span>
+                  <span className="text-gray-500 font-medium">Location</span>
                   <span className="text-gray-800">{selectedResponder.location}</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-gray-500 font-medium">언어</span>
+                  <span className="text-gray-500 font-medium">Languages</span>
                   <span className="text-gray-800">{selectedResponder.languages}</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-gray-500 font-medium">점수</span>
+                  <span className="text-gray-500 font-medium">Score</span>
                   <span className="text-green-700 font-semibold">{selectedResponder.score}</span>
                 </div>
                 <div className="flex items-start gap-4 col-span-2">
-                  <span className="text-gray-500 font-medium">분석</span>
+                  <span className="text-gray-500 font-medium">Analysis</span>
                   <span className="text-gray-700 leading-relaxed whitespace-pre-line">{selectedResponder.portfolioAnalysis}</span>
                 </div>
               </div>
@@ -157,7 +157,7 @@ export default function ResponderList() {
 
 
               {/* PDF Preview */}
-              <h4 className="text-lg font-semibold text-emerald-700 mb-3">📎 포트폴리오 미리보기</h4>
+              <h4 className="text-lg font-semibold text-emerald-700 mb-3">📎 Portfolio preview</h4>
               <div className="relative w-full h-full border border-gray-200 rounded-md overflow-hidden shadow-inner bg-gray-50">
                 {/* Zoom Buttons */}
                 <div className="absolute top-4 right-4 z-20 flex space-x-2">
@@ -205,7 +205,7 @@ export default function ResponderList() {
                   onClick={closeModal}
                   className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition"
                 >
-                  닫기
+                  Close
                 </button>
               </div>
             </div>

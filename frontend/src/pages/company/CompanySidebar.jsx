@@ -174,7 +174,7 @@ export default function CompanySidebar({
         borderBottom: '2px solid #f8f9fa'
       }}>
         <MegaphoneIcon />
-        공고 관리
+        Job postings
       </h3>
 
       <button
@@ -208,7 +208,7 @@ export default function CompanySidebar({
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
           </svg>
-          <span style={{ fontSize: '1rem', fontWeight: '600' }}>새 공고 추가</span>
+          <span style={{ fontSize: '1rem', fontWeight: '600' }}>Add new job</span>
         </div>
       </button>
 
@@ -249,7 +249,7 @@ export default function CompanySidebar({
             <circle cx="12" cy="7" r="4"/>
           </svg>
           <span style={{ fontWeight: '600', fontSize: '1.1rem' }}>
-            추가 지원자 보기
+            View additional candidates
           </span>
         </div>
         </div>
@@ -270,7 +270,7 @@ export default function CompanySidebar({
             <animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite"/>
           </circle>
         </svg>
-        공고 목록을 불러오는 중...
+        Loading job postings...
         </div>
       ) : postings.length === 0 ? (
         <div style={{
@@ -287,7 +287,7 @@ export default function CompanySidebar({
             <line x1="10" y1="11" x2="10" y2="17"/>
             <line x1="14" y1="11" x2="14" y2="17"/>
           </svg>
-          등록된 공고가 없습니다.
+          No job postings yet.
         </div>
       ) : (
         <div style={{ marginBottom: '1rem' }}>
@@ -303,7 +303,7 @@ export default function CompanySidebar({
             borderBottom: '1px solid #f1f3f4'
           }}>
             <Badge count={postings.length} />
-            등록된 공고
+            Your job postings
           </h4>
           <div style={{
             maxHeight: '1200px',
@@ -387,7 +387,7 @@ export default function CompanySidebar({
                         fontWeight: '600',
                         zIndex: 10
                       }}>
-                        {post.postStatus === 'ACTIVE' ? '진행중' : '마감'}
+                        {post.postStatus === 'ACTIVE' ? 'Active' : 'Closed'}
                       </div>
                       <div style={{ 
                         fontWeight: '600', 
@@ -406,7 +406,7 @@ export default function CompanySidebar({
                             <path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/>
                             <circle cx="12" cy="11" r="2.5"/>
                           </svg>
-                          {post.postLocation || '지역 미정'}
+                      {post.postLocation || 'Location not set'}
                         </span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           {/* 머니백 SVG */}
@@ -425,7 +425,7 @@ export default function CompanySidebar({
                             <circle cx="17" cy="10" r="3"/>
                             <path d="M7 13c-2.67 0-8 1.34-8 4v3h22v-3c0-2.66-5.33-4-8-4"/>
                           </svg>
-                          {post.postHeadcount || 0}명 모집
+                      {post.postHeadcount || 0} openings
                         </span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           {/* 달력 SVG */}

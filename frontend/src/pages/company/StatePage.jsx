@@ -15,7 +15,7 @@ export default function StatePage() {
   const [searchResults, setSearchResults] = useState([]);
   const [selected, setSelected] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [tab, setTab] = useState('전체');
+  const [tab, setTab] = useState('All');
   const resultsPerPage = 6;
   const [sending, setSending] = useState(false);
   const [companyAdminId, setCompanyAdminId] = useState(0);
@@ -80,7 +80,7 @@ export default function StatePage() {
   const handleSendEmail = async () => {
     const targets = searchResults.filter(r => selected.includes(r.githubLogin) && r.candidateEmail);
     if (targets.length === 0) {
-      alert('연락 가능한 후보자를 한 명 이상 선택해주세요.');
+      alert('Select at least one candidate with contact information.');
       return;
     }
     setSending(true); // 👉 버튼 비활성화 시작
@@ -102,13 +102,13 @@ export default function StatePage() {
       });
 
       if (res.ok) {
-        alert("📨 메일을 성공적으로 보냈습니다.");
+        alert("📨 Email sent successfully.");
       } else {
-        alert("❌ 메일 전송 실패");
+        alert("❌ Email delivery failed.");
       }
     } catch (err) {
       console.error("메일 전송 오류:", err);
-      alert("⚠️ 서버 오류로 전송에 실패했습니다.");
+      alert("⚠️ A server error prevented delivery.");
     } finally {
       setSending(false); // 👉 버튼 다시 활성화
     }
@@ -116,22 +116,22 @@ export default function StatePage() {
 
   const getStageLabel = (code) => {
     switch (code) {
-      case '1n': return '필터링';
-      case '2n': return '메일발송';
-      case '2y': return '회신';
-      case '3n': return '면접 예정자';
-      case '3y': return '면접 완료자';
-      case '4n': return '불합격';
-      case '4y': return '합격';
-      default: return '필터링';
+      case '1n': return 'Filtered';
+      case '2n': return 'Invitation sent';
+      case '2y': return 'Responded';
+      case '3n': return 'Interview scheduled';
+      case '3y': return 'Interview completed';
+      case '4n': return 'Rejected';
+      case '4y': return 'Hired';
+      default: return 'Filtered';
     }
   };
 
   const filteredResults = searchResults.filter((r) => {
-    if (tab === '전체') return true;
-    if (tab === '회신자') return r.jobCandCurrStage === '2y';
-    if (tab === '면접 예정자') return r.jobCandCurrStage === '3n';
-    if (tab === '면접 완료자') {
+    if (tab === 'All') return true;
+    if (tab === 'Responded') return r.jobCandCurrStage === '2y';
+    if (tab === 'Interview scheduled') return r.jobCandCurrStage === '3n';
+    if (tab === 'Interview completed') {
       return ['3y', '4n', '4y'].includes(r.jobCandCurrStage);
     }
     return true;
@@ -146,20 +146,20 @@ export default function StatePage() {
   const nextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   const prevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
 
-  const tabs = ['전체', '회신자', '면접 예정자', '면접 완료자'];
+  const tabs = ['All', 'Responded', 'Interview scheduled', 'Interview completed'];
 
   return (
     <div className="min-h-screen bg-emerald-50 pt-20">
       <Navbar />
       <SEO
-        title={`${postId} 후보자 상태`}
-        description={`${postId} 후보자의 상태를 확인하고 이메일을 보낼 수 있습니다.`}
-        keywords={`${postId}, 후보자 상태, 이메일 보내기, 채용 관리`}
+        title={`Candidate status for job ${postId}`}
+        description={`Review candidate status and send invitations for job ${postId}.`}
+        keywords={`${postId}, candidate status, hiring`}
       />
       <div className="flex">
         <CompanySidebar />
         <div className="flex-1 p-10 font-sans">
-          <h1 className="text-3xl font-bold mb-8 text-emerald-700">📊 후보자 상태</h1>
+          <h1 className="text-3xl font-bold mb-8 text-emerald-700">📊 Candidate status</h1>
 
           {/* 탭 UI */}
           <div className="flex space-x-4 mb-8">
@@ -181,7 +181,7 @@ export default function StatePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {currentResults.map((r, i) => (
               <div key={i} className="relative bg-white border border-gray-200 rounded-xl shadow p-6 flex flex-col justify-between">
-                {tab === '전체' && (
+                {tab === 'All' && (
                   <div className="absolute top-3 right-3">
                     <input
                       type="checkbox"
@@ -194,10 +194,10 @@ export default function StatePage() {
 
                 <div className="text-sm text-gray-700 flex flex-col gap-2">
                   <div>
-                    <span className="font-semibold text-emerald-700">점수:</span> {r.githubAnalysisScore}
+                    <span className="font-semibold text-emerald-700">Score:</span> {r.githubAnalysisScore}
                   </div>
                   <div className="flex-1">
-                    <span className="font-semibold text-emerald-700">분석:</span>
+                    <span className="font-semibold text-emerald-700">Analysis:</span>
                     <div className="mt-2">
                       <AIAnalysisSummary
                         analysis={{ analysisData: r.analysisData }}
@@ -206,7 +206,7 @@ export default function StatePage() {
                     </div>
                   </div>
                   <div>
-                    <span className="font-semibold text-emerald-700">상태:</span> {getStageLabel(r.jobCandCurrStage)}
+                    <span className="font-semibold text-emerald-700">Status:</span> {getStageLabel(r.jobCandCurrStage)}
                   </div>
                 </div>
 
@@ -214,7 +214,7 @@ export default function StatePage() {
                   onClick={() => handleDetail(r)}
                   className="mt-4 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-1.5 px-4 rounded-md text-sm self-end"
                 >
-                  상세보기
+                  View details
                 </button>
               </div>
             ))}
@@ -224,17 +224,17 @@ export default function StatePage() {
           {totalPages > 1 && (
             <div className="flex justify-center mt-8 space-x-4 text-sm text-gray-700">
               <button onClick={prevPage} disabled={currentPage === 1} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">
-                ◀ 이전
+                ◀ Previous
               </button>
               <span className="px-4 py-1">{currentPage} / {totalPages}</span>
               <button onClick={nextPage} disabled={currentPage === totalPages} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">
-                다음 ▶
+                Next ▶
               </button>
             </div>
           )}
 
           {/* 이메일 보내기 버튼 */}
-          {tab === '전체' && selected.length > 0 && (
+          {tab === 'All' && selected.length > 0 && (
             <div className="mt-8 text-right">
               <button
                 onClick={handleSendEmail}
@@ -266,13 +266,13 @@ export default function StatePage() {
                         d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                       />
                     </svg>
-                    전송 중...
+                    Sending...
                   </>
                 ) : (
                   <>
-                    ✉ 이메일 보내기 ({selected.length}명)
+                    ✉ Send email ({selected.length})
                     {/* 전송 중일 때도 공간을 차지하도록 invisible 처리 */}
-                    <span className="invisible absolute">전송 중...</span>
+                    <span className="invisible absolute">Sending...</span>
                   </>
                 )}
               </button>

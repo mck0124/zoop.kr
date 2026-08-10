@@ -36,7 +36,7 @@ export default function IdealCandidate() {
   // 더 연하고 은은한 네온 호버 효과 스타일
   const neonBoxShadow = '0 0 0 2px #19e3a355, 0 2px 12px #19e3a333';
 
-  const loadingMessages = ["인재상과 채용 조건을 확인하는 중입니다..."];
+  const loadingMessages = ["Reviewing the ideal-candidate brief and job requirements..."];
 
   useEffect(() => {
     const globalChatbotBtn = document.querySelector('.chatbot-mint-btn');
@@ -56,13 +56,13 @@ export default function IdealCandidate() {
     setLoading(true);
     analysisStarted.current = true;
     if (!filters.postId) {
-      alert("공고 ID가 없습니다. 다시 시도해주세요.");
+      alert("The job ID is missing. Please try again.");
       setLoading(false);
       analysisStarted.current = false;
       return;
     }
     if (!summary.trim()) {
-      alert("인재상을 작성해주세요.");
+      alert("Add an ideal-candidate brief before continuing.");
       setLoading(false);
       analysisStarted.current = false;
       return;
@@ -84,11 +84,11 @@ export default function IdealCandidate() {
         const errorText = await idealCandidateResponse.text();
         setLoading(false);
         analysisStarted.current = false;
-        throw new Error('인재상 저장에 실패했습니다 (경로: /api/postings/' + filters.postId + '/ideal-candidate): ' + errorText);
+        throw new Error('Could not save the ideal-candidate brief: ' + errorText);
       }
       setLoadingProgress(35);
       setCurrentStep(2);
-      setLoadingMessage("인재상 저장 완료 — 공개 기술 근거를 수집하는 중입니다...");
+      setLoadingMessage("Brief saved — collecting public technical evidence...");
 
       // 2. Spring Boot API를 통해 GitHub 검색 실행 (DB 저장 포함)
       const searchPayload = {
@@ -111,11 +111,11 @@ export default function IdealCandidate() {
         const errorText = await searchResponse.text();
         setLoading(false);
         analysisStarted.current = false;
-        throw new Error(`GitHub 검색 실패: ${searchResponse.status} ${searchResponse.statusText} - ${errorText}`);
+        throw new Error(`Public evidence search failed: ${searchResponse.status} ${searchResponse.statusText} - ${errorText}`);
       }
       setLoadingProgress(90);
       setCurrentStep(5);
-      setLoadingMessage("공개 근거 수집 완료 — 후보자별 분석 결과를 정리하는 중입니다...");
+      setLoadingMessage("Evidence collected — preparing candidate analyses...");
       
       // Spring Boot API는 성공 메시지만 반환하므로, 후보자 데이터는 CandidateList에서 DB에서 조회
       // 로딩 완료
@@ -123,7 +123,7 @@ export default function IdealCandidate() {
         state: { ...filters, idealCandidate: summary },
       });
       setLoadingProgress(100);
-      setLoadingMessage("완료! 후보자 목록으로 이동합니다...");
+      setLoadingMessage("Done. Opening the candidate list...");
       setLoading(false);
       analysisStarted.current = false;
       
@@ -131,7 +131,7 @@ export default function IdealCandidate() {
       // 로딩 중단
       setLoading(false);
       analysisStarted.current = false;
-      alert(`처리 중 오류 발생: ${e.message}`);
+      alert(`The analysis could not be completed: ${e.message}`);
     }
   };
 
