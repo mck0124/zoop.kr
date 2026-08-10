@@ -459,15 +459,16 @@ const TargetIcon = (props) => (
 );
 
 // Radar chart SVG for 6 component scores
-const radarLabels = ['팔로워 수','공개 저장소 수','언어 다양성','최근 활동성','프로젝트 품질','기술적 깊이'];
+const radarKeys = ['팔로워 수','공개 저장소 수','언어 다양성','최근 활동성','프로젝트 품질','기술적 깊이'];
+const radarLabels = ['Followers','Public repositories','Language breadth','Recent activity','Project quality','Technical depth'];
 const radarMax = [10, 15, 15, 20, 20, 20]; // 각 항목별 만점
 function RadarChartSVG({ scores = {}, size = 90, totalScore, showLabels = false, showScores = false }) {
   const cx = size / 2, cy = size / 2, r = size * 0.41;
-  const radarShortLabels = ['팔로워', '저장소', '언어', '활동', '품질', '깊이'];
+  const radarShortLabels = ['Followers', 'Repos', 'Languages', 'Activity', 'Quality', 'Depth'];
   // 각 축의 각도
   const angles = radarLabels.map((_, i) => (Math.PI * 2 * i) / radarLabels.length - Math.PI/2);
   // 점수값(0~1)
-  const values = radarLabels.map((label, i) => Math.max(0, Math.min(1, (scores[label] || 0) / radarMax[i])));
+  const values = radarKeys.map((key, i) => Math.max(0, Math.min(1, (scores[key] || 0) / radarMax[i])));
   // 폴리곤 좌표
   const points = values.map((v, i) => {
     const angle = angles[i];
@@ -486,7 +487,7 @@ function RadarChartSVG({ scores = {}, size = 90, totalScore, showLabels = false,
     cx + (r + 14) * Math.cos(a),
     cy + (r + 14) * Math.sin(a)
   ]);
-  const allZero = radarLabels.every(label => (scores[label] || 0) === 0);
+  const allZero = radarKeys.every(key => (scores[key] || 0) === 0);
   return (
     <svg width={size} height={size} style={{
       display:'block',
@@ -531,7 +532,7 @@ function RadarChartSVG({ scores = {}, size = 90, totalScore, showLabels = false,
       ))}
       {/* 점수 폴리곤 with 3D glow effect */}
       {allZero ? (
-        <text x={cx} y={cy+5} textAnchor="middle" fontSize="15" fill="#30c59b" opacity="0.7" fontWeight="600">분석 데이터 없음</text>
+        <text x={cx} y={cy+5} textAnchor="middle" fontSize="15" fill="#30c59b" opacity="0.7" fontWeight="600">No analysis data</text>
       ) : (
         <g filter="url(#glow)">
         <polygon
@@ -567,7 +568,7 @@ function RadarChartSVG({ scores = {}, size = 90, totalScore, showLabels = false,
       {/* 축 점수 */}
       {showScores && scorePoints.map(([x, y], i) => (
         <text key={i} x={x} y={y} textAnchor="middle" alignmentBaseline="middle" fontSize={size > 120 ? 16 : 13} fill="#222" fontWeight="600" opacity="0.98">
-          {scores[radarLabels[i]] !== undefined ? scores[radarLabels[i]] : 0}
+          {scores[radarKeys[i]] !== undefined ? scores[radarKeys[i]] : 0}
         </text>
       ))}
       {/* 중앙 점수 */}
@@ -1107,20 +1108,20 @@ export default function CandidateList({ activeTab = 'all' }) {
   // 1. 이메일 템플릿 정의 (CompanyDashboard에서 복사)
   const emailTemplates = {
     professional: {
-      name: "프로페셔널",
-      description: "깔끔하고 전문적인 스타일",
-      preview: "🏢 정중하고 격식있는 톤",
-      defaultGreeting: "안녕하세요",
-      defaultMessage: "저희 회사에서 귀하의 뛰어난 개발 역량을 높이 평가하여 특별히 연락드립니다.",
+      name: "Professional",
+      description: "Clean and polished",
+      preview: "🏢 Formal and focused",
+      defaultGreeting: "Hello",
+      defaultMessage: "We were impressed by your engineering work and would love to explore an opportunity with you.",
       color: "#2563eb",
       bgColor: "#eff6ff"
     },
     friendly: {
-      name: "친근한",
-      description: "따뜻하고 친근한 스타일",
-      preview: "😊 편안하고 친근한 톤",
-      defaultGreeting: "안녕하세요",
-      defaultMessage: "안녕하세요! 귀하의 GitHub 프로필을 보고 정말 인상깊었습니다. 저희와 함께 성장해보지 않으실까요?",
+      name: "Friendly",
+      description: "Warm and approachable",
+      preview: "😊 Relaxed and personal",
+      defaultGreeting: "Hi",
+      defaultMessage: "I came across your GitHub profile and was genuinely impressed. Would you like to grow with our team?",
       color: "#059669",
       bgColor: "#ecfdf5"
     },
@@ -1144,13 +1145,13 @@ export default function CandidateList({ activeTab = 'all' }) {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
     if (!candidate) {
-      candidate = { githubLogin: '후보자', candidateEmail: '' };
+      candidate = { githubLogin: 'candidate', candidateEmail: '' };
     }
-    const postTitle = escapeHtml(postInfo?.postTitle || '채용 공고');
+    const postTitle = escapeHtml(postInfo?.postTitle || 'Open role');
     const postDescription = escapeHtml(postInfo?.postDescription || '');
-    const githubLogin = escapeHtml(candidate.githubLogin || '후보자');
-    const companyName = escapeHtml(postInfo?.companyName || '저희 회사');
-    const postLocation = escapeHtml(postInfo?.postLocation || '서울');
+    const githubLogin = escapeHtml(candidate.githubLogin || 'candidate');
+    const companyName = escapeHtml(postInfo?.companyName || 'Our company');
+    const postLocation = escapeHtml(postInfo?.postLocation || 'Remote');
     const postProgrammingLanguage = escapeHtml(postInfo?.postProgrammingLanguage || 'Java');
     const postSalaryStart = escapeHtml(postInfo?.postSalaryStart || '5000');
     const postSalaryEnd = escapeHtml(postInfo?.postSalaryEnd || '6000');
@@ -1158,11 +1159,11 @@ export default function CandidateList({ activeTab = 'all' }) {
     message = escapeHtml(message);
     const postStartDate = postInfo?.postPostedDate ? formatDate(postInfo.postPostedDate) : '';
     const postEndDate = postInfo?.postExpiryDate ? formatDate(postInfo.postExpiryDate) : '';
-    const recruitmentPeriod = postStartDate && postEndDate ? `${postStartDate} ~ ${postEndDate}` : '상시모집';
+    const recruitmentPeriod = postStartDate && postEndDate ? `${postStartDate} ~ ${postEndDate}` : 'Open until filled';
     if (templateKey === 'professional') {
-      return `<div style="font-family:Arial, sans-serif; background-color:#f8fafc; padding:20px;"><div style="max-width:600px; margin:0 auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.1);"><div style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding:30px; text-align:center;"><h1 style="color:white; margin:0; font-size:28px; font-weight:bold;">${companyName}</h1><p style="color:#e0e7ff; margin:10px 0 0 0; font-size:14px;">개발자 채용 공고</p></div><div style="padding:30px;"><h2 style="color:#1e293b; margin:0 0 20px 0; font-size:24px;">${greeting} ${githubLogin}님,</h2><p style="color:#475569; font-size:16px; line-height:1.6; margin:0 0 25px 0;">${message}</p><div style="background:#f1f5f9; border-radius:8px; padding:20px; margin:25px 0;"><h3 style="color:#2563eb; margin:0 0 15px 0; font-size:20px;">📋 ${postTitle}</h3><p style="color:#475569; margin:0 0 15px 0; line-height:1.6;">${postDescription}</p><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px;"><div><strong>기술스택:</strong> ${postProgrammingLanguage}</div><div><strong>위치:</strong> ${postLocation}</div><div><strong>급여:</strong> ${postSalaryStart} ~ ${postSalaryEnd}만원</div><div><strong>공고기간:</strong> ${recruitmentPeriod}</div></div></div><div style="text-align:center; margin:30px 0;"><a href="{{invitationLink}}" style="background:#2563eb; color:white; text-decoration:none; padding:15px 30px; border-radius:8px; font-weight:bold; display:inline-block; font-size:16px;">지원하기</a></div><p style="color:#64748b; font-size:14px; margin:0;">감사합니다.<br/>${companyName} 인사팀</p></div></div></div>`;
+      return `<div style="font-family:Arial, sans-serif; background-color:#f8fafc; padding:20px;"><div style="max-width:600px; margin:0 auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.1);"><div style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding:30px; text-align:center;"><h1 style="color:white; margin:0; font-size:28px; font-weight:bold;">${companyName}</h1><p style="color:#e0e7ff; margin:10px 0 0 0; font-size:14px;">Engineering opportunity</p></div><div style="padding:30px;"><h2 style="color:#1e293b; margin:0 0 20px 0; font-size:24px;">${greeting} ${githubLogin},</h2><p style="color:#475569; font-size:16px; line-height:1.6; margin:0 0 25px 0;">${message}</p><div style="background:#f1f5f9; border-radius:8px; padding:20px; margin:25px 0;"><h3 style="color:#2563eb; margin:0 0 15px 0; font-size:20px;">📋 ${postTitle}</h3><p style="color:#475569; margin:0 0 15px 0; line-height:1.6;">${postDescription}</p><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px;"><div><strong>Stack:</strong> ${postProgrammingLanguage}</div><div><strong>Location:</strong> ${postLocation}</div><div><strong>Salary:</strong> ${postSalaryStart} ~ ${postSalaryEnd}</div><div><strong>Period:</strong> ${recruitmentPeriod}</div></div></div><div style="text-align:center; margin:30px 0;"><a href="{{invitationLink}}" style="background:#2563eb; color:white; text-decoration:none; padding:15px 30px; border-radius:8px; font-weight:bold; display:inline-block; font-size:16px;">View opportunity</a></div><p style="color:#64748b; font-size:14px; margin:0;">Best regards,<br/>${companyName} Recruiting</p></div></div></div>`;
     } else if (templateKey === 'friendly') {
-      return `<div style="font-family:'Malgun Gothic', '맑은 고딕', sans-serif; background-color:#f0fdf4; padding:20px;"><div style="max-width:600px; margin:0 auto; background:#fff; border-radius:16px; overflow:hidden; border:3px solid #22c55e;"><div style="background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%); padding:25px; text-align:center;"><h1 style="color:white; margin:0; font-size:26px;">🌟 ${companyName} 🌟</h1><p style="color:#bbf7d0; margin:10px 0 0 0;">함께 성장할 동료를 찾습니다!</p></div><div style="padding:25px;"><h2 style="color:#166534; margin:0 0 20px 0; font-size:22px;">😊 ${greeting} ${githubLogin}님!</h2><p style="color:#374151; font-size:16px; line-height:1.7; margin:0 0 20px 0;">${message}</p><div style="background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius:12px; padding:20px; margin:20px 0; border-left:4px solid #22c55e;"><h3 style="color:#22c55e; margin:0 0 15px 0; font-size:18px;">🎯 ${postTitle}</h3><p style="color:#374151; margin:0 0 15px 0; line-height:1.6;">${postDescription}</p><div style="background:white; border-radius:8px; padding:15px; margin:15px 0;"><p style="margin:5px 0; color:#059669;"><strong>💻 기술스택:</strong> ${postProgrammingLanguage}</p><p style="margin:5px 0; color:#059669;"><strong>📍 위치:</strong> ${postLocation}</p><p style="margin:5px 0; color:#059669;"><strong>💰 급여:</strong> ${postSalaryStart} ~ ${postSalaryEnd}만원</p><p style="margin:5px 0; color:#059669;"><strong>📅 공고기간:</strong> ${recruitmentPeriod}</p></div></div><div style="text-align:center; margin:25px 0;"><a href="{{invitationLink}}" style="background:#22c55e; color:white; text-decoration:none; padding:12px 25px; border-radius:25px; font-weight:bold; display:inline-block; font-size:16px;">🚀 함께하기</a></div><p style="color:#6b7280; font-size:14px; margin:0; text-align:center;">💝 ${companyName} 팀 일동</p></div></div></div>`;
+      return `<div style="font-family:Arial, sans-serif; background-color:#f0fdf4; padding:20px;"><div style="max-width:600px; margin:0 auto; background:#fff; border-radius:16px; overflow:hidden; border:3px solid #22c55e;"><div style="background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%); padding:25px; text-align:center;"><h1 style="color:white; margin:0; font-size:26px;">🌟 ${companyName} 🌟</h1><p style="color:#bbf7d0; margin:10px 0 0 0;">We are looking for our next teammate!</p></div><div style="padding:25px;"><h2 style="color:#166534; margin:0 0 20px 0; font-size:22px;">😊 ${greeting} ${githubLogin}!</h2><p style="color:#374151; font-size:16px; line-height:1.7; margin:0 0 20px 0;">${message}</p><div style="background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius:12px; padding:20px; margin:20px 0; border-left:4px solid #22c55e;"><h3 style="color:#22c55e; margin:0 0 15px 0; font-size:18px;">🎯 ${postTitle}</h3><p style="color:#374151; margin:0 0 15px 0; line-height:1.6;">${postDescription}</p><div style="background:white; border-radius:8px; padding:15px; margin:15px 0;"><p style="margin:5px 0; color:#059669;"><strong>💻 Stack:</strong> ${postProgrammingLanguage}</p><p style="margin:5px 0; color:#059669;"><strong>📍 Location:</strong> ${postLocation}</p><p style="margin:5px 0; color:#059669;"><strong>💰 Salary:</strong> ${postSalaryStart} ~ ${postSalaryEnd}</p><p style="margin:5px 0; color:#059669;"><strong>📅 Period:</strong> ${recruitmentPeriod}</p></div></div><div style="text-align:center; margin:25px 0;"><a href="{{invitationLink}}" style="background:#22c55e; color:white; text-decoration:none; padding:12px 25px; border-radius:25px; font-weight:bold; display:inline-block; font-size:16px;">🚀 Explore the role</a></div><p style="color:#6b7280; font-size:14px; margin:0; text-align:center;">💝 The ${companyName} team</p></div></div></div>`;
     } else { // modern
       // The template contains escaped SVG attribute quotes inside a string literal.
       // eslint-disable-next-line no-useless-escape
@@ -1389,7 +1390,7 @@ export default function CandidateList({ activeTab = 'all' }) {
   const top10CandidateScore = percentileScore(90);
 
   if (loading) {
-    return <Wrapper><Navbar /><Container>후보자 목록을 불러오는 중...</Container></Wrapper>;
+    return <Wrapper><Navbar /><Container>Loading candidates...</Container></Wrapper>;
   }
 
   if (loadError) {
@@ -1399,10 +1400,10 @@ export default function CandidateList({ activeTab = 'all' }) {
         <Container>
           <div role="alert" style={{ maxWidth: 640, margin: '5rem auto', padding: '2.5rem 2rem', border: '1px solid #fecaca', borderRadius: 20, background: '#fff7f7', textAlign: 'center' }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>⚠️</div>
-            <h1 style={{ margin: 0, color: '#991b1b', fontSize: '1.35rem' }}>후보자 데이터를 불러오지 못했습니다</h1>
+            <h1 style={{ margin: 0, color: '#991b1b', fontSize: '1.35rem' }}>We could not load candidates</h1>
             <p style={{ color: '#7f1d1d', lineHeight: 1.6 }}>{loadError}</p>
             <button type="button" onClick={() => { setLoading(true); setReloadToken(value => value + 1); }} style={{ border: 0, borderRadius: 999, padding: '0.8rem 1.4rem', background: '#16b886', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>
-              다시 시도
+              Try again
             </button>
           </div>
         </Container>
@@ -1413,9 +1414,9 @@ export default function CandidateList({ activeTab = 'all' }) {
   return (
     <Wrapper>
       <SEO 
-        title={`${postInfo?.postTitle ? `${postInfo.postTitle} - 후보자 목록` : '후보자 목록'}`}
-        description={`${postInfo?.postTitle ? `${postInfo.postTitle} 공고에 대한 AI 추천 후보자 ${candidates.length}명을 확인하세요.` : 'AI가 추천한 개발자 후보자들을 확인하세요.'}`}
-        keywords={`${postInfo?.postTitle ? `${postInfo.postTitle}, 개발자 채용, AI 추천 후보자, GitHub 개발자` : '개발자 채용, AI 추천 후보자, GitHub 개발자'}`}
+        title={`${postInfo?.postTitle ? `${postInfo.postTitle} - Candidate review` : 'Candidate review'}`}
+        description={`${postInfo?.postTitle ? `Review ${candidates.length} AI-ranked candidates for ${postInfo.postTitle}.` : 'Review AI-ranked developer candidates with traceable evidence.'}`}
+        keywords={`${postInfo?.postTitle ? `${postInfo.postTitle}, candidate review, AI recruiting, GitHub developers` : 'candidate review, AI recruiting, GitHub developers'}`}
       />
       <Navbar />
       <Container>
@@ -1424,14 +1425,14 @@ export default function CandidateList({ activeTab = 'all' }) {
           <PostInfoCard>
             <PostInfoHeader>{postInfo.postTitle}</PostInfoHeader>
             <PostInfoGrid>
-              <div><InfoLabel>지역</InfoLabel><InfoText>{postInfo.postLocation || '미정'}</InfoText></div>
-              <div><InfoLabel>연봉</InfoLabel><InfoText>{postInfo.postSalaryStart || '0'} ~ {postInfo.postSalaryEnd || '0'}</InfoText></div>
-              <div><InfoLabel>모집 인원</InfoLabel><InfoText>{postInfo.postHeadcount || 0}명</InfoText></div>
-              <div><InfoLabel>등록일</InfoLabel><InfoText>{formatDate(postInfo.postPostedDate)}</InfoText></div>
+              <div><InfoLabel>Location</InfoLabel><InfoText>{postInfo.postLocation || 'Not specified'}</InfoText></div>
+              <div><InfoLabel>Salary</InfoLabel><InfoText>{postInfo.postSalaryStart || '0'} – {postInfo.postSalaryEnd || '0'}</InfoText></div>
+              <div><InfoLabel>Openings</InfoLabel><InfoText>{postInfo.postHeadcount || 0}</InfoText></div>
+              <div><InfoLabel>Posted</InfoLabel><InfoText>{formatDate(postInfo.postPostedDate)}</InfoText></div>
             </PostInfoGrid>
             {postInfo.postDescription && (
               <PostDesc>
-                <InfoLabel>설명</InfoLabel><InfoText>{postInfo.postDescription}</InfoText>
+                <InfoLabel>Description</InfoLabel><InfoText>{postInfo.postDescription}</InfoText>
               </PostDesc>
             )}
           </PostInfoCard>
@@ -1444,8 +1445,8 @@ export default function CandidateList({ activeTab = 'all' }) {
         {/* 후보자 헤더 */}
         <CandidatesHeader style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1.2rem' }}>
           <SectionTitle style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap', margin: 0 }}>
-            <TargetIcon />추천 후보자
-            <b style={{ color: '#30c59b', fontWeight: 800, fontSize: '1.18em', margin: '0 0.1em' }}>{candidates.length}</b>명
+            <TargetIcon />Recommended candidates
+            <b style={{ color: '#30c59b', fontWeight: 800, fontSize: '1.18em', margin: '0 0.1em' }}>{candidates.length}</b>
           </SectionTitle>
           {candidates.length > 0 && (
             <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -1454,14 +1455,14 @@ export default function CandidateList({ activeTab = 'all' }) {
                 disabled={compareSelected.length < 2}
                 style={{ width: 190, minWidth: 170, background: compareSelected.length >= 2 ? '#0f766e' : '#dbe5e3' }}
               >
-                {compareSelected.length >= 2 ? `비교하기 (${compareSelected.length}명)` : '2~3명 비교'}
+                {compareSelected.length >= 2 ? `Compare (${compareSelected.length})` : 'Compare 2–3'}
               </TossAnalysisButton>
               <TossAnalysisButton
                 onClick={openBulkEmailModal}
                 disabled={selected.length === 0}
                 style={{ width: 220, minWidth: 180 }}
               >
-                {selected.length > 0 ? `메일 보내기 (${selected.length}명)` : '메일 보내기'}
+                {selected.length > 0 ? `Email (${selected.length})` : 'Email candidates'}
               </TossAnalysisButton>
             </div>
           )}
@@ -1469,7 +1470,7 @@ export default function CandidateList({ activeTab = 'all' }) {
 
         {/* 포스터 가로 스크롤 */}
         {candidates.length === 0 ? (
-          <PostDesc>아직 추천 후보자가 없습니다.<br />검색이 완료되면 후보자 목록이 표시됩니다.</PostDesc>
+          <PostDesc>No recommended candidates yet.<br />Candidates will appear when the search is complete.</PostDesc>
         ) : (
           <PosterScrollWrap>
             <PostersRow>
@@ -1602,7 +1603,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                   lineHeight: 1.1,
                   flexShrink: 0
                 }}>
-                  {modalScore}점
+                  {modalScore} points
                 </div>
               </div>
             </ModalHeader>
@@ -1626,7 +1627,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                     border: '1px solid #e5e7eb'
                   }}>
                     <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: '600', color: '#1f2937' }}>
-                      종합 역량 분석
+                      Competency overview
                     </h3>
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                       <RadarChartSVG 
@@ -1656,7 +1657,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                             {key}
                           </div>
                           <div style={{ fontSize: '14px', fontWeight: '700', color: '#059669' }}>
-                            {value}점
+                            {value} points
                           </div>
                         </div>
                       ))}
@@ -1672,7 +1673,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                     border: '1px solid #e5e7eb'
                   }}>
                     <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: '600', color: '#1f2937' }}>
-                      기술 스택 분포
+                      Technology distribution
               </h3>
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                       <LanguageDistributionChart 
@@ -1781,7 +1782,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                     border: '1px solid #e5e7eb'
                   }}>
                     <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: '600', color: '#1f2937' }}>
-                      활동 히스토리
+                      Activity history
                     </h3>
                     <CommitHeatmap 
                       commits={Array.isArray(selectedCandidate?.commitHistory) ? selectedCandidate.commitHistory : []}
@@ -1800,7 +1801,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                   border: '1px solid #e5e7eb'
                 }}>
                   <h3 style={{ margin: '0 0 32px 0', fontSize: '22px', fontWeight: '800', color: '#1e40af', letterSpacing: '-1px', textAlign: 'center' }}>
-                    대표 프로젝트
+                    Featured projects
                   </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     {(Array.isArray(selectedCandidate?.topRepos) ? selectedCandidate.topRepos :
@@ -1857,7 +1858,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                 {!(Array.isArray(selectedCandidate?.topRepos) && selectedCandidate.topRepos.length) &&
                  !(Array.isArray(selectedCandidate?.repositories) && selectedCandidate.repositories.length) && (
                   <div style={{ padding: '24px', textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: '12px' }}>
-                    저장된 대표 프로젝트 데이터가 없습니다. 원본 GitHub 프로필에서 직접 확인해 주세요.
+                    No featured project data was saved. Review the original GitHub profile for details.
                   </div>
                 )}
               </div>
@@ -1889,7 +1890,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                 display: 'block'
               }}
             >
-              확인
+                Done
             </ModalActionBtn>
           </ModalCard>
         </ModalOverlay>
@@ -1922,7 +1923,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                   <path d="M22 2L11 13"/>
                   <path d="M22 2L15 22L11 13L2 9L22 2Z"/>
                 </svg>
-                일괄 이메일 전송 ({selected.length}명)
+                Batch email ({selected.length})
               </h2>
             </div>
             <div style={{ maxHeight: '70vh', overflowY: 'auto', padding: '0 2rem 2rem 2rem' }}>
@@ -1936,18 +1937,18 @@ export default function CandidateList({ activeTab = 'all' }) {
                     <path d="M22 2L11 13"/>
                     <path d="M22 2L15 22L11 13L2 9L22 2Z"/>
                   </svg>
-                  ✨ 템플릿 기반 일괄 메일 전송
+                  ✨ Send a template-based batch email
                 </h4>
                 <div style={{ fontSize: '0.85rem', color: '#a16207', lineHeight: '1.5' }}>
-                  • <strong>선택된 후보자</strong>: {selected.length}명에게 동시 전송<br/>
-                  • <strong>개인화</strong>: 각 후보자의 이름이 자동으로 삽입됩니다<br/>
-                  • <strong>전문적 디자인</strong>: 3가지 템플릿 중 선택하여 브랜드에 맞는 디자인 적용
+                  • <strong>Selected candidates</strong>: send to {selected.length} at once<br/>
+                  • <strong>Personalization</strong>: each candidate's name is inserted automatically<br/>
+                  • <strong>Professional design</strong>: choose from three branded templates
                 </div>
               </div>
               {/* 선택된 후보자 목록 미리보기 */}
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ fontWeight: 600, color: '#2d3748', fontSize: '1rem', display: 'block', marginBottom: '0.5rem' }}>
-                  📋 전송 대상 ({selected.length}명)
+                  📋 Recipients ({selected.length})
                 </label>
                 <div style={{ border: '2px solid #e5e7eb', borderRadius: '8px', padding: '1rem', backgroundColor: '#f9fafb', maxHeight: '100px', overflowY: 'auto' }}>
                   {candidates.filter(c => selected.includes(c.githubLogin || c.login)).map(candidate => (
@@ -1962,7 +1963,7 @@ export default function CandidateList({ activeTab = 'all' }) {
               {/* 템플릿 선택 */}
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ fontWeight: 600, color: '#2d3748', fontSize: '1rem', display: 'block', marginBottom: '1rem' }}>
-                  📧 이메일 템플릿 선택
+                  📧 Choose an email template
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.8rem' }}>
                   {Object.entries(emailTemplates).map(([key, template]) => (
@@ -1985,7 +1986,7 @@ export default function CandidateList({ activeTab = 'all' }) {
               {/* 제목 입력 */}
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ fontWeight: 600, color: '#2d3748', fontSize: '1rem', display: 'block', marginBottom: '0.5rem' }}>
-                  📝 메일 제목
+                  📝 Email subject
                 </label>
                 <input
                   type="text"
@@ -2000,7 +2001,7 @@ export default function CandidateList({ activeTab = 'all' }) {
               {/* 인사말 입력 */}
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ fontWeight: 600, color: '#2d3748', fontSize: '1rem', display: 'block', marginBottom: '0.5rem' }}>
-                  👋 인사말
+                  👋 Greeting
                 </label>
                 <input
                   type="text"
@@ -2015,7 +2016,7 @@ export default function CandidateList({ activeTab = 'all' }) {
               {/* 메시지 입력 */}
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ fontWeight: 600, color: '#2d3748', fontSize: '1rem', display: 'block', marginBottom: '0.5rem' }}>
-                  💬 메시지 내용
+                  💬 Message
                 </label>
                 <textarea
                   value={bulkCustomMessage}
@@ -2030,7 +2031,7 @@ export default function CandidateList({ activeTab = 'all' }) {
               {/* 미리보기 */}
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ fontWeight: 600, color: '#2d3748', fontSize: '1rem', display: 'block', marginBottom: '0.5rem' }}>
-                  👀 미리보기 (첫 번째 후보자 기준)
+                  👀 Preview (first candidate)
                 </label>
                 <div style={{ border: '2px solid #e5e7eb', borderRadius: '8px', padding: '1rem', backgroundColor: '#f9fafb', minHeight: '250px', maxHeight: '300px', overflowY: 'auto' }}>
                   {selected.length > 0 && (() => {
@@ -2051,7 +2052,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                   })()}
                 </div>
                 <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem', textAlign: 'center' }}>
-                  각 후보자에게는 개별 이름이 삽입되어 전송됩니다
+                  Each candidate receives a message with their own name.
                 </div>
               </div>
             </div>
@@ -2070,7 +2071,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                 }}
                 style={{ background: '#e2e8f0', color: '#4a5568', padding: '0.8rem 1.5rem', border: 'none', borderRadius: '8px', fontSize: '1rem', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
               >
-                취소
+                Cancel
               </button>
               <button
                 onClick={handleBulkMailSend}
@@ -2096,7 +2097,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                 {bulkEmailSending ? (
                   <>
                     <div style={{ width: '16px', height: '16px', border: '2px solid transparent', borderTop: '2px solid currentColor', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-                    전송 중...
+                    Sending...
                   </>
                 ) : (
                   <>
@@ -2104,7 +2105,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                       <path d="M22 2L11 13"/>
                       <path d="M22 2L15 22L11 13L2 9L22 2Z"/>
                     </svg>
-                    {emailTemplates[bulkSelectedTemplate].name} 템플릿으로 일괄 전송 ({selected.length}명)
+                    Send with {emailTemplates[bulkSelectedTemplate].name} ({selected.length})
                   </>
                 )}
               </button>
@@ -2226,7 +2227,7 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
             onClick={event => { event.stopPropagation(); toggleCompare(login); }}
             style={{ marginTop: 8, border: `1px solid ${compareSelected ? '#0f766e' : '#cbd5e1'}`, borderRadius: 999, padding: '5px 10px', background: compareSelected ? '#ccfbf1' : '#fff', color: compareSelected ? '#0f766e' : '#64748b', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}
           >
-            {compareSelected ? '비교 목록에 추가됨' : '비교에 추가'}
+            {compareSelected ? 'Added to comparison' : 'Add to comparison'}
           </button>
         </div>
         {/* TossMetaTag(이메일 있음/없음)는 완전히 제거 */}
@@ -2301,17 +2302,17 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
               borderRadius: '10px',
               padding: '7px 12px'
             }}>
-              분석 대기 · 확인 가능한 GitHub 근거가 아직 없습니다
+              Analysis pending · no verifiable GitHub evidence yet
             </div>
           )}
 
           {portfolioEvidence && (
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap' }}>
               <span style={{ color: '#0f766e', background: '#ccfbf1', borderRadius: '999px', padding: '4px 9px', fontSize: '0.72rem', fontWeight: 800 }}>
-                근거 커버리지 {portfolioEvidence.evidence_coverage ?? 0}%
+                Evidence coverage {portfolioEvidence.evidence_coverage ?? 0}%
               </span>
               <span style={{ color: '#475569', background: '#f1f5f9', borderRadius: '999px', padding: '4px 9px', fontSize: '0.72rem', fontWeight: 700 }}>
-                신뢰도 {Math.round((portfolioEvidence.confidence ?? 0) * 100)}%
+                Confidence {Math.round((portfolioEvidence.confidence ?? 0) * 100)}%
               </span>
             </div>
           )}
@@ -2326,7 +2327,7 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
               width: '100%'
             }}>
               <div style={{ fontSize: '12px', color: '#30c59b', fontWeight: '600' }}>
-                기술 스택
+                Technology stack
               </div>
               <TechStackVisual languages={langsArr} size={100} />
             </div>
@@ -2347,7 +2348,7 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
           )}
         </div>
         <TossAnalysisButton style={{ width: '100%', marginTop: 'auto', marginBottom: 0 }} onClick={e => { e.stopPropagation(); openAnalysisModal((analysisResult && analysisResult.analysisData) ? analysisResult.analysisData : analysisText, score, candidate); }}>
-          전체 분석보기
+          View full analysis
         </TossAnalysisButton>
       </div>
     </TossCard>
@@ -2359,6 +2360,14 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
 // 항목별 점수 바 차트
 const ScoreBarChart = ({ scores, maxScores, height = 420, width = 600 }) => {
   const categories = Object.keys(scores);
+  const categoryLabels = {
+    '팔로워 수': 'Followers',
+    '공개 저장소 수': 'Public repositories',
+    '언어 다양성': 'Language breadth',
+    '최근 활동성': 'Recent activity',
+    '프로젝트 품질': 'Project quality',
+    '기술적 깊이': 'Technical depth'
+  };
   // 세로 길이와 하단 여백을 더 넉넉하게
   const maxBarHeight = height - 200; // 상단+하단 여백 증가
   // 바 간격을 더 넓게, 바 너비는 자동 조정
@@ -2386,7 +2395,7 @@ const ScoreBarChart = ({ scores, maxScores, height = 420, width = 600 }) => {
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text'
       }}>
-        📊 항목별 상세 점수
+        📊 Dimension scores
       </h3>
       
       <svg width={width - 48} height={height - 140}>
@@ -2503,7 +2512,7 @@ const ScoreBarChart = ({ scores, maxScores, height = 420, width = 600 }) => {
               
               {/* 카테고리 라벨 - 줄바꿈 처리 */}
               {(() => {
-                const words = category.split(' ');
+                const words = (categoryLabels[category] || category).split(' ');
                 const lines = [];
                 let currentLine = '';
                 
@@ -2548,8 +2557,8 @@ const ScoreDistributionChart = ({ currentScore, averageScore, top10Percent, top2
   if (!hasComparisonData) {
     return (
       <div style={{ width: '100%', minWidth: 0, minHeight: height, padding: '32px', boxShadow: '0 6px 32px rgba(80,120,255,0.10)', borderRadius: '24px', background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-        <h3 style={{ margin: '0 0 14px 0', fontSize: '22px', fontWeight: '800', color: '#1e40af' }}>다른 지원자들과의 비교</h3>
-        <p style={{ margin: 0, color: '#475569', lineHeight: 1.6 }}>비교 가능한 AI 분석 점수가 아직 충분하지 않습니다.<br />분석 결과가 쌓이면 실제 후보자 데이터로 표시됩니다.</p>
+        <h3 style={{ margin: '0 0 14px 0', fontSize: '22px', fontWeight: '800', color: '#1e40af' }}>Candidate comparison</h3>
+        <p style={{ margin: 0, color: '#475569', lineHeight: 1.6 }}>There is not enough comparable AI scoring data yet.<br />This view will use real candidate data as analyses accumulate.</p>
       </div>
     );
   }
@@ -2557,7 +2566,7 @@ const ScoreDistributionChart = ({ currentScore, averageScore, top10Percent, top2
   return (
     <div style={{ width: '100%', minWidth: 0, height, padding: '32px', boxShadow: '0 6px 32px rgba(80,120,255,0.10)', borderRadius: '24px', background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)' }}>
       <h3 style={{ margin: '0 0 32px 0', fontSize: '22px', fontWeight: '800', color: '#1e40af', letterSpacing: '-1px', textAlign: 'center' }}>
-        다른 지원자들과의 비교
+        Candidate comparison
       </h3>
       <svg width={width - 64} height={height - 120} style={{ display: 'block', margin: '0 auto' }}>
         {/* 그래프 배경 */}
@@ -2597,7 +2606,7 @@ const ScoreDistributionChart = ({ currentScore, averageScore, top10Percent, top2
           fill="#6366f1"
           fontWeight="700"
         >
-          평균: {averageScore}점
+          Average: {averageScore}
         </text>
         {/* 상위 25% 선 */}
         <line
@@ -2616,7 +2625,7 @@ const ScoreDistributionChart = ({ currentScore, averageScore, top10Percent, top2
           fill="#fbbf24"
           fontWeight="700"
         >
-          상위 25%: {top25Percent}점
+          Top 25%: {top25Percent}
         </text>
         {/* 상위 10% 선 */}
         <line
@@ -2635,7 +2644,7 @@ const ScoreDistributionChart = ({ currentScore, averageScore, top10Percent, top2
           fill="#f87171"
           fontWeight="700"
         >
-          상위 10%: {top10Percent}점
+          Top 10%: {top10Percent}
         </text>
         {/* 현재 점수 마커 */}
         <circle
@@ -2655,12 +2664,12 @@ const ScoreDistributionChart = ({ currentScore, averageScore, top10Percent, top2
           fontWeight="900"
           textAnchor="middle"
         >
-          {currentScore}점
+          {currentScore}
         </text>
         {/* X축 라벨 및 눈금 */}
-        <text x={0} y={height - 90} fontSize="12" fill="#64748b">0점</text>
-        <text x={(width - 64) / 2} y={height - 90} fontSize="12" fill="#64748b" textAnchor="middle">50점</text>
-        <text x={width - 64} y={height - 90} fontSize="12" fill="#64748b" textAnchor="end">100점</text>
+        <text x={0} y={height - 90} fontSize="12" fill="#64748b">0</text>
+        <text x={(width - 64) / 2} y={height - 90} fontSize="12" fill="#64748b" textAnchor="middle">50</text>
+        <text x={width - 64} y={height - 90} fontSize="12" fill="#64748b" textAnchor="end">100</text>
         <line x1={0} y1={height - 110} x2={width - 64} y2={height - 110} stroke="#e0e7ef" strokeWidth="1.5" />
       </svg>
     </div>
@@ -2684,7 +2693,7 @@ const TechStackWordCloud = ({ languages, width = 400, height = 200 }) => {
   return (
     <div style={{ width, height, padding: '20px' }}>
       <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: '600', color: '#1f2937' }}>
-        기술 스택 분포
+        Technology distribution
       </h3>
       <div style={{ 
         width: width - 40, 
@@ -3101,11 +3110,11 @@ const CommitHeatmap = ({ commits = [], width = 400, height = 120 }) => {
   return (
     <div style={{ width: '100%', minWidth: 0, padding: '32px', boxShadow: '0 6px 32px rgba(80,120,255,0.10)', borderRadius: '24px', background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)' }}>
       <h3 style={{ margin: '0 0 32px 0', fontSize: '22px', fontWeight: '800', color: '#1e40af', letterSpacing: '-1px', textAlign: 'center' }}>
-        활동 히스토리
+        Activity history
       </h3>
       {!commits.length && (
         <div style={{ padding: '24px', textAlign: 'center', color: '#64748b', background: '#fff', borderRadius: '12px' }}>
-          최근 활동 원본 데이터가 연결되면 여기에 표시됩니다.
+          Connect the original activity data to show a history here.
         </div>
       )}
       <div style={{ width: '100%', overflowX: 'auto', display: commits.length ? 'block' : 'none' }}>
@@ -3128,13 +3137,13 @@ const CommitHeatmap = ({ commits = [], width = 400, height = 120 }) => {
         </svg>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '18px', fontSize: '13px', color: '#64748b', gap: '16px' }}>
-        <span style={{ fontWeight: 600, color: '#64748b' }}>적음</span>
+        <span style={{ fontWeight: 600, color: '#64748b' }}>Less</span>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {colors.map((color, idx) => (
             <div key={color} style={{ width: '18px', height: '18px', backgroundColor: color, borderRadius: '4px', boxShadow: '0 1px 4px #64748b11', border: idx === 0 ? '1px solid #e0e7ef' : 'none' }}></div>
           ))}
         </div>
-        <span style={{ fontWeight: 600, color: '#1d4ed8' }}>많음</span>
+        <span style={{ fontWeight: 600, color: '#1d4ed8' }}>More</span>
       </div>
     </div>
   );
@@ -3169,17 +3178,17 @@ const EvidenceTrustPanel = ({ candidate, analysisText }) => {
       borderRadius: '18px',
       padding: '22px 24px',
       boxShadow: '0 12px 28px rgba(15, 41, 35, 0.18)'
-    }} aria-label="AI 판단 근거 및 한계">
+    }} aria-label="AI evidence and limitations">
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <div>
           <div style={{ fontSize: '0.75rem', color: '#86efac', fontWeight: 800, letterSpacing: '0.08em' }}>ZOOP TRUST LAYER</div>
-          <h3 style={{ margin: '6px 0 6px', fontSize: '1.25rem', color: '#fff' }}>AI 판단을 설명할 수 있습니다</h3>
+          <h3 style={{ margin: '6px 0 6px', fontSize: '1.25rem', color: '#fff' }}>AI decisions you can explain</h3>
           <p style={{ margin: 0, color: '#c7f9df', lineHeight: 1.6, fontSize: '0.9rem' }}>
-            점수만으로 후보자를 결정하지 않습니다. 실제 입력 신호와 확인되지 않은 정보를 분리해 보여줍니다.
+            Scores never stand alone. We separate observed signals from information that still needs verification.
           </p>
         </div>
         <span style={{ background: '#34d399', color: '#063b2b', borderRadius: '999px', padding: '7px 12px', fontWeight: 800, fontSize: '0.78rem' }}>
-          {structured ? `${evidenceCount}개 검증 근거` : '근거 확인 필요'}
+          {structured ? `${evidenceCount} verified evidence item(s)` : 'Evidence review needed'}
         </span>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '16px' }}>
@@ -3191,13 +3200,13 @@ const EvidenceTrustPanel = ({ candidate, analysisText }) => {
       </div>
       {structured?.gaps?.length > 0 && (
         <div style={{ marginTop: '16px', padding: '12px 14px', background: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(253, 230, 138, 0.35)', borderRadius: '12px', color: '#fef3c7', fontSize: '0.84rem' }}>
-          <strong>추가 검증이 필요한 정보:</strong> {structured.gaps.join(', ')}
+          <strong>Information that still needs verification:</strong> {structured.gaps.join(', ')}
         </div>
       )}
       {structured?.version === 'portfolio-evidence-v1' && (
         <div style={{ marginTop: '12px', display: 'flex', gap: '10px', flexWrap: 'wrap', fontSize: '0.8rem' }}>
-          <span style={{ color: '#d1fae5' }}>원문 커버리지 {structured.evidence_coverage ?? 0}%</span>
-          <span style={{ color: '#d1fae5' }}>신뢰도 {Math.round((structured.confidence ?? 0) * 100)}%</span>
+          <span style={{ color: '#d1fae5' }}>Source coverage {structured.evidence_coverage ?? 0}%</span>
+          <span style={{ color: '#d1fae5' }}>Confidence {Math.round((structured.confidence ?? 0) * 100)}%</span>
           {(structured.evidence || []).filter(item => item.source === 'portfolio').slice(0, 2).map((item, index) => (
             <span key={index} style={{ width: '100%', color: '#bbf7d0', fontStyle: 'italic' }}>“{item.quote}”</span>
           ))}
@@ -3205,20 +3214,20 @@ const EvidenceTrustPanel = ({ candidate, analysisText }) => {
       )}
       {structured?.score_calibration && (
         <div style={{ marginTop: '12px', padding: '10px 12px', background: 'rgba(219, 234, 254, 0.12)', border: '1px solid rgba(191, 219, 254, 0.35)', borderRadius: '10px', fontSize: '0.8rem', color: '#dbeafe' }}>
-          <strong>근거 보정 점수</strong>
+          <strong>Evidence-calibrated score</strong>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '5px' }}>
-            <span>모델 초안 {structured.score_calibration.model_score ?? '-'}점</span>
-            <span>검증 후 {structured.score_calibration.calibrated_score ?? structured.score ?? '-'}점</span>
+            <span>AI draft {structured.score_calibration.model_score ?? '-'}</span>
+            <span>Verified {structured.score_calibration.calibrated_score ?? structured.score ?? '-'} points</span>
           </div>
           {structured.score_calibration.uncalibrated_dimensions?.length > 0 && (
             <div style={{ marginTop: '5px', color: '#fde68a' }}>
-              근거 부족 항목: {structured.score_calibration.uncalibrated_dimensions.join(', ')}
+              Dimensions without grounded evidence: {structured.score_calibration.uncalibrated_dimensions.join(', ')}
             </div>
           )}
         </div>
       )}
       <div style={{ marginTop: '14px', color: '#a7f3d0', fontSize: '0.78rem' }}>
-        AI는 의사결정을 보조하며, 최종 채용 판단은 담당자가 원본 자료와 면접을 확인한 뒤 내려야 합니다.
+        AI supports decisions; the hiring owner should review source material and interview evidence before deciding.
       </div>
     </section>
   );
@@ -3232,7 +3241,7 @@ const StrengthsWeaknesses = ({ analysisText }) => {
   return (
     <div style={{ padding: '20px' }}>
       <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: '600', color: '#1f2937' }}>
-        강점 & 약점 분석
+        Strengths & improvement areas
       </h3>
       <div style={{ display: 'flex', gap: '20px' }}>
         {/* 강점 */}
@@ -3247,7 +3256,7 @@ const StrengthsWeaknesses = ({ analysisText }) => {
             gap: '8px'
           }}>
             <div style={{ width: '12px', height: '12px', backgroundColor: '#10b981', borderRadius: '50%' }}></div>
-            강점
+            Strengths
           </h4>
           <div style={{ 
             background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
@@ -3276,7 +3285,7 @@ const StrengthsWeaknesses = ({ analysisText }) => {
               ))
             ) : (
               <div style={{ color: '#6b7280', fontStyle: 'italic' }}>
-                강점 분석 데이터가 없습니다.
+                No strength data is available.
               </div>
             )}
           </div>
@@ -3294,7 +3303,7 @@ const StrengthsWeaknesses = ({ analysisText }) => {
             gap: '8px'
           }}>
             <div style={{ width: '12px', height: '12px', backgroundColor: '#ef4444', borderRadius: '50%' }}></div>
-            개선점
+            Improvement areas
           </h4>
           <div style={{ 
             background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
@@ -3325,7 +3334,7 @@ const StrengthsWeaknesses = ({ analysisText }) => {
               ))
             ) : (
               <div style={{ color: '#6b7280', fontStyle: 'italic' }}>
-                개선점 분석 데이터가 없습니다.
+                No improvement data is available.
               </div>
             )}
           </div>
@@ -3344,7 +3353,7 @@ const SuitableJobsVisual = ({ jobs, width = 300, height = 120 }) => {
   return (
     <div style={{ width: '100%', minWidth: 0, height, padding: '32px', boxShadow: '0 6px 32px rgba(80,100,200,0.08)', borderRadius: '24px', background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' }}>
       <h3 style={{ margin: '0 0 32px 0', fontSize: '22px', fontWeight: '800', color: '#22223b', letterSpacing: '-1px' }}>
-        적합한 직무
+        Suitable roles
       </h3>
       <div style={{ 
         display: 'flex', 
@@ -3417,7 +3426,7 @@ const GrowthPotentialVisual = ({ growthText, width = 400, height = 150 }) => {
   return (
     <div style={{ width: '100%', minWidth: 0, height, padding: '16px', boxShadow: '0 6px 32px rgba(255,180,60,0.10)', borderRadius: '24px', background: 'linear-gradient(135deg, #fffbe9 0%, #fef6e4 100%)' }}>
       <h3 style={{ margin: '0 0 32px 0', fontSize: '22px', fontWeight: '800', color: '#b45309', letterSpacing: '-1px', textAlign: 'center' }}>
-        성장 가능성
+        Growth potential
       </h3>
       <div style={{
         background: 'linear-gradient(135deg, #fff7d6 0%, #ffe6b7 100%)',
