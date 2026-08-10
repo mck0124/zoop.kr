@@ -275,6 +275,20 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
   const [localStage, setLocalStage] = useState(candidate?.jobCandCurrStage);
   const [invitationLoading, setInvitationLoading] = useState(false);
   const [actionFeedback, setActionFeedback] = useState({ type: '', message: '' });
+  const [sourceErrors, setSourceErrors] = useState({});
+
+  const clearSourceError = (source) => {
+    setSourceErrors(previous => {
+      if (!previous[source]) return previous;
+      const next = { ...previous };
+      delete next[source];
+      return next;
+    });
+  };
+
+  const recordSourceError = (source, message) => {
+    setSourceErrors(previous => ({ ...previous, [source]: message }));
+  };
 
   // candidate가 변경될 때 localStage 동기화
   useEffect(() => {
@@ -305,6 +319,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
   useEffect(() => {
     if (!isOpen || !candidate || !jobCandidateId || fromMatchingTab) return;
 
+    setSourceErrors({});
     const stage = candidate.jobCandCurrStage;
     // portfolioSubmissionDate 
     if (["2y", "2p", "3n", "3y", "4n", "4y"].includes(stage)) {
@@ -334,6 +349,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
           return res.json();
         })
         .then(data => {
+          clearSourceError('portfolio');
           if (data) {
             setInterviewSchedule(data);
           } else {
@@ -362,6 +378,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
         })
         .catch(err => {
           console.error('portfolioAnalysis 조회 오류:', err);
+          recordSourceError('portfolio', 'Portfolio AI analysis could not be loaded. The missing source is excluded from the fused signal.');
           setPortfolioAnalysis(null);
         });
     }
@@ -393,6 +410,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
           return res.json();
         })
         .then(data => {
+          clearSourceError('interview');
           if (data) {
             setInterviewAnalysis(data);
           } else {
@@ -401,6 +419,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
         })
         .catch(err => {
           console.error('interviewAnalysis 조회 오류:', err);
+          recordSourceError('interview', 'Interview AI analysis could not be loaded. The missing source is excluded from the fused signal.');
           setInterviewAnalysis(null);
         });
     }
@@ -800,6 +819,14 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
           portfolioAnalysis={portfolioAnalysis}
           interviewAnalysis={interviewAnalysis}
         />
+        {Object.keys(sourceErrors).length > 0 && (
+          <div role="alert" className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <div className="font-semibold">Some evidence sources are unavailable</div>
+            <ul className="mt-1 list-disc space-y-1 pl-5">
+              {Object.values(sourceErrors).map(message => <li key={message}>{message}</li>)}
+            </ul>
+          </div>
+        )}
 
         {/* 하단: 포트폴리오 미리보기 (확대) */}
         <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 shadow-inner">
