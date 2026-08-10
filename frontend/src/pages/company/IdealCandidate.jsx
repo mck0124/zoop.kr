@@ -20,6 +20,7 @@ export default function IdealCandidate() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [currentStep, setCurrentStep] = useState(0);
+  const [feedback, setFeedback] = useState('');
   
   // location.state에서 headcount를 더 강력하게 추출
   const locationState = location.state || {};
@@ -53,20 +54,17 @@ export default function IdealCandidate() {
 
   const handleFinish = async () => {
     if (loading || analysisStarted.current) return; // 이미 실행 중이면 중복 실행 방지
-    setLoading(true);
-    analysisStarted.current = true;
     if (!filters.postId) {
-      alert("The job ID is missing. Please try again.");
-      setLoading(false);
-      analysisStarted.current = false;
+      setFeedback("The job ID is missing. Please return to the job setup and try again.");
       return;
     }
     if (!summary.trim()) {
-      alert("Add an ideal-candidate brief before continuing.");
-      setLoading(false);
-      analysisStarted.current = false;
+      setFeedback("Add an ideal-candidate brief before continuing.");
       return;
     }
+    setFeedback('');
+    setLoading(true);
+    analysisStarted.current = true;
     setLoadingProgress(0);
     setLoadingMessage(loadingMessages[0]);
     setCurrentStep(0);
@@ -131,7 +129,7 @@ export default function IdealCandidate() {
       // 로딩 중단
       setLoading(false);
       analysisStarted.current = false;
-      alert(`The analysis could not be completed: ${e.message}`);
+      setFeedback(`The analysis could not be completed: ${e.message}`);
     }
   };
 
@@ -153,22 +151,26 @@ export default function IdealCandidate() {
       />
       <div style={{
         display: "flex",
+        flexWrap: "wrap",
+        gap: 24,
         justifyContent: "center",
         alignItems: "flex-end",
         minHeight: "calc(100vh - 80px)",
-        height: "calc(100vh - 80px)",
+        padding: "24px 16px",
+        boxSizing: "border-box",
         background: "#fff"
       }}>
         {/* 챗봇 박스 */}
         <div style={{
-          width: 560,
+          maxWidth: "100%",
+          width: "min(560px, calc(100vw - 32px))",
           height: "80vh",
           minHeight: 540,
           borderRadius: 26,
           border: "1.5px solid #d2f6ea",
           background: "#fff",
           boxShadow: "0 8px 32px #80e9cb22",
-          marginRight: 52,
+          marginRight: 0,
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -181,7 +183,8 @@ export default function IdealCandidate() {
         </div>
         {/* 요약/양식 박스 */}
         <div style={{
-          width: 560,
+          maxWidth: "100%",
+          width: "min(560px, calc(100vw - 32px))",
           height: "80vh",
           minHeight: 540,
           borderRadius: 26,
@@ -300,6 +303,11 @@ export default function IdealCandidate() {
             boxSizing: "border-box",
             position: "relative"
           }}>
+            {feedback && (
+              <div role="alert" style={{ margin: '58px 0 12px', border: '1px solid #fed7aa', borderRadius: 12, background: '#fff7ed', color: '#9a3412', padding: '11px 13px', fontSize: 13, lineHeight: 1.5 }}>
+                {feedback}
+            </div>
+            )}
             <IdealCandidateCard
               summary={summary}
               onEditSummary={newSummary => setSummary(newSummary)}
@@ -342,7 +350,7 @@ export default function IdealCandidate() {
                 e.target.style.transform = "translateX(-50%) translateY(0)";
               }}
             >
-              완료
+              Continue to candidates
             </button>
           )}
         </div>
@@ -366,7 +374,8 @@ export default function IdealCandidate() {
             background: "linear-gradient(135deg, #fff 0%, #f8fffe 100%)",
             padding: "3rem 2.5rem",
             borderRadius: "24px",
-            minWidth: 450,
+            minWidth: 0,
+            width: "min(450px, calc(100vw - 32px))",
             boxShadow: "0 20px 60px rgba(30, 225, 174, 0.15), 0 8px 32px rgba(0,0,0,0.1)",
             textAlign: "center",
             border: "1px solid rgba(30, 225, 174, 0.1)"
@@ -459,7 +468,7 @@ export default function IdealCandidate() {
               color: '#666', 
               fontWeight: 500 
             }}>
-              {filters.headcount || headcount || 5}명의 후보자를 분석 중입니다...
+              Analyzing up to {filters.headcount || headcount || 5} candidates...
             </div>
           </div>
         </div>
