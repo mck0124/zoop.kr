@@ -88,7 +88,15 @@ function List({ items, empty }) {
       {values.slice(0, 6).map((item, index) => (
         <li key={`${index}-${String(item)}`} className="flex gap-2">
           <span className="text-emerald-600" aria-hidden="true">•</span>
-          <span>{typeof item === 'string' ? item : item.text || item.claim || JSON.stringify(item)}</span>
+          <span>
+            {typeof item === 'string' ? item : (
+              <>
+                <span className="font-medium">{item.text || item.claim || item.signal || item.missing_signal || 'Review item'}</span>
+                {(item.action || item.validation_action) && <span className="text-gray-600"> — {item.action || item.validation_action}</span>}
+                {item.priority && <span className="ml-1 text-[11px] font-semibold uppercase text-amber-700">({item.priority})</span>}
+              </>
+            )}
+          </span>
         </li>
       ))}
     </ul>
