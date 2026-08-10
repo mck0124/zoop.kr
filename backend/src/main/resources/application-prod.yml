@@ -77,7 +77,7 @@ social:
     redirect-uri: ${GITHUB_REDIRECT_URI}
     token-uri: https://github.com/login/oauth/access_token
     user-info-uri: https://api.github.com/user
-    scope: rerad:user user:email
+    scope: read:user user:email
 
 cloud:
   aws:

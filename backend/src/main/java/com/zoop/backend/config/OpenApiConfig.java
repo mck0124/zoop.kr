@@ -29,7 +29,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
         version = "v1"
     ),
     servers = { // 서버 정보 추가 (선택 사항)
-        @Server(url = "http://localhost:8080", description = "Local Development Server")
+        @Server(url = "http://localhost:8081", description = "Local Development Server")
        
     }
 )
