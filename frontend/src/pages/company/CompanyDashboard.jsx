@@ -6,7 +6,7 @@ import CandidateModal from '../../components/CandidateModal';
 import MatchingDetailModal from './MatchingDetailModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '../../components/SEO';
-import AIAnalysisSummary from '../../components/AIAnalysisSummary';
+import AIAnalysisSummary, { parseAIAnalysisData } from '../../components/AIAnalysisSummary';
 import { apiUrl } from '../../api/config';
 
 const authenticatedFetch = (url, options = {}) => fetch(url, {
@@ -16,6 +16,28 @@ const authenticatedFetch = (url, options = {}) => fetch(url, {
     ...(options.headers || {}),
   },
 });
+
+const GROUNDED_ANALYSIS_VERSIONS = new Set(['github-evidence-v1', 'portfolio-evidence-v1', 'interview-evidence-v1']);
+
+const getGroundedAnalysis = (candidateOrAnalysis) => {
+  const raw = candidateOrAnalysis?.analysisData ?? candidateOrAnalysis?.portfolioAnalysis ?? candidateOrAnalysis?.analysis ?? candidateOrAnalysis;
+  const parsed = parseAIAnalysisData(raw) || {};
+  const payload = parsed.analysis && typeof parsed.analysis === 'object' ? parsed.analysis : parsed;
+  const evidence = [
+    ...(Array.isArray(payload.evidence) ? payload.evidence : []),
+    ...(Array.isArray(payload.verified_evidence) ? payload.verified_evidence : []),
+    ...(Array.isArray(payload.dimensions) ? payload.dimensions.flatMap(dimension => Array.isArray(dimension?.evidence) ? dimension.evidence : []) : []),
+  ];
+  const groundedEvidence = evidence.filter(item => item && ['verified', 'grounded'].includes(item.verification_state));
+  const isStructured = GROUNDED_ANALYSIS_VERSIONS.has(payload.version);
+  const rawScore = payload.score_calibration?.calibrated_score ?? payload.score ?? parsed.score;
+  const score = Number(rawScore);
+  return {
+    score: isStructured && groundedEvidence.length > 0 && Number.isFinite(score) ? Math.max(0, Math.min(100, Math.round(score))) : null,
+    evidenceCount: groundedEvidence.length,
+    isStructured,
+  };
+};
 
 
 export default function CompanyDashboard() {
@@ -54,7 +76,6 @@ export default function CompanyDashboard() {
   const [currentAiJobCandidateId, setCurrentAiJobCandidateId] = useState(null);
   const [aiAnalysisLoading, setAiAnalysisLoading] = useState(false);
   const [aiAnalysisError, setAiAnalysisError] = useState('');
-  const [portfolioMatchesMap, setPortfolioMatchesMap] = useState({});
   
   // 모달 상태 (팀 버전에서 추가된 기능)
   const [isModalOpen, setModalOpen] = useState(false);
@@ -1168,27 +1189,7 @@ export default function CompanyDashboard() {
     }
   };
 
-  // 후보자 목록이 바뀔 때 candPortfolioId별 매칭 정보 불러오기
-  useEffect(() => {
-    const fetchAllMatches = async () => {
-      const portfolioIds = [...new Set(
-        githubCandidates.map(candidate => candidate.candPortfolioId).filter(Boolean)
-      )];
-      const entries = await Promise.all(portfolioIds.map(async (portfolioId) => {
-        try {
-          const res = await authenticatedFetch(apiUrl(`/api/portfolio-job-matches/portfolio/${portfolioId}`));
-          if (!res.ok) throw new Error(`Match lookup failed: ${res.status}`);
-          return [portfolioId, await res.json()];
-        } catch (e) {
-          console.warn('Portfolio match lookup failed:', portfolioId, e);
-          return [portfolioId, []];
-        }
-      }));
-      const map = Object.fromEntries(entries);
-      setPortfolioMatchesMap(map);
-    };
-    if (githubCandidates.length > 0) fetchAllMatches();
-  }, [githubCandidates]);
+  const currentGroundedAnalysis = getGroundedAnalysis(currentAiAnalysis);
 
   return (
     <div className="company-dashboard" style={{ fontFamily: 'SUIT, Apple SD Gothic Neo, sans-serif', backgroundColor: '#ffffff', minHeight: '100vh' }}>
@@ -2344,14 +2345,10 @@ export default function CompanyDashboard() {
                             {githubCandidates
                               .slice()
                               .sort((a, b) => {
-                                const getScore = c => {
-                                  if (c.aiAnalysis && typeof c.aiAnalysis.analysisScore === 'number') return c.aiAnalysis.analysisScore;
-                                  if (typeof c.analysisScore === 'number') return c.analysisScore;
-                                  return 0;
-                                };
-                                return getScore(b) - getScore(a);
+                                return (getGroundedAnalysis(b.aiAnalysis || b).score ?? -1) - (getGroundedAnalysis(a.aiAnalysis || a).score ?? -1);
                               })
                               .map((candidate, index) => {
+                                const groundedAnalysis = getGroundedAnalysis(candidate.aiAnalysis || candidate);
                                 const candidateId = candidate.candidateId || candidate.githubLogin;
                                 const uniqueKey = `${candidateId}_${selectedPostId}`; // candidateId + selectedPostId 조합으로 고유 키 생성
                                 const isSelected = selectedApplicants.has(uniqueKey);
@@ -2636,27 +2633,15 @@ export default function CompanyDashboard() {
                                       </div>
                                       <div style={{ marginBottom: '0.8rem' }}>
                                         <span style={{
-                                          background: (() => {
-                                            const score = candidate.analysisScore !== undefined && candidate.analysisScore !== null
-                                              ? candidate.analysisScore
-                                              : candidate.candPortfolioId && portfolioMatchesMap[candidate.candPortfolioId] && portfolioMatchesMap[candidate.candPortfolioId].length > 0
-                                                ? portfolioMatchesMap[candidate.candPortfolioId][0].matchingScore
-                                                : 0;
-                                            return score >= 80 ? '#48bb78' : score >= 60 ? '#f6ad55' : '#e53e3e';
-                                          })(),
-                                          color: 'white',
+                                          background: groundedAnalysis.score === null ? '#fffbeb' : groundedAnalysis.score >= 80 ? '#ecfdf5' : groundedAnalysis.score >= 60 ? '#fff7ed' : '#fef2f2',
+                                          color: groundedAnalysis.score === null ? '#92400e' : groundedAnalysis.score >= 80 ? '#047857' : groundedAnalysis.score >= 60 ? '#c2410c' : '#b91c1c',
+                                          border: `1px solid ${groundedAnalysis.score === null ? '#fde68a' : groundedAnalysis.score >= 80 ? '#a7f3d0' : groundedAnalysis.score >= 60 ? '#fed7aa' : '#fecaca'}`,
                                           padding: '0.3rem 0.8rem',
                                           borderRadius: '8px',
                                           fontSize: '0.8rem',
                                           fontWeight: '600'
                                         }}>
-                                      Analysis score: {
-                                            candidate.analysisScore !== undefined && candidate.analysisScore !== null
-                                              ? candidate.analysisScore
-                                              : candidate.candPortfolioId && portfolioMatchesMap[candidate.candPortfolioId] && portfolioMatchesMap[candidate.candPortfolioId].length > 0
-                                                ? portfolioMatchesMap[candidate.candPortfolioId][0].matchingScore
-                                                : 'N/A'
-                                          }
+                                      {groundedAnalysis.score === null ? 'Evidence review needed' : `Evidence-grounded score: ${groundedAnalysis.score}`}
                                         </span>
                                       </div>
                                       <div style={{
@@ -3058,7 +3043,7 @@ export default function CompanyDashboard() {
         {currentAiAnalysis && !aiAnalysisLoading && (
           <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
             {/* 분석 점수 카드 */}
-            {currentAiAnalysis.analysisScore && (
+            {currentGroundedAnalysis.score !== null && (
               <div style={{
                 background: 'linear-gradient(135deg, #9ae6b4 0%, #68d391 50%, #48bb78 100%)',
                 color: 'white',
@@ -3107,7 +3092,7 @@ export default function CompanyDashboard() {
                   zIndex: 1,
                   textShadow: '0 2px 8px rgba(0,0,0,0.2), 0 0 30px rgba(255,255,255,0.5)'
                 }}>
-                  {currentAiAnalysis.analysisScore} points
+                  {currentGroundedAnalysis.score} points
                 </div>
                 <div style={{ 
                   fontSize: '1rem', 
@@ -3151,7 +3136,7 @@ export default function CompanyDashboard() {
               </h3>
               <AIAnalysisSummary
                 analysis={currentAiAnalysis}
-                score={currentAiAnalysis.analysisScore}
+                score={currentGroundedAnalysis.score}
               />
             </div>
             
