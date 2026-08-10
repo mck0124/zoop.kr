@@ -34,6 +34,8 @@ export default function CompanyDashboard() {
   const [directApplicants, setDirectApplicants] = useState([]);
   const [loadingDirectApplicants, setLoadingDirectApplicants] = useState(false);
   const [selectedApplicants, setSelectedApplicants] = useState(new Set());
+  const [applicantActionLoading, setApplicantActionLoading] = useState(false);
+  const [dashboardFeedback, setDashboardFeedback] = useState({ type: '', message: '' });
   const [showPortfolioModal, setShowPortfolioModal] = useState(false);
   const [currentPortfolioUrl, setCurrentPortfolioUrl] = useState('');
   const [portfolioLoading, setPortfolioLoading] = useState(false);
@@ -91,12 +93,12 @@ export default function CompanyDashboard() {
   // 일괄전송 함수
   const handleBulkEmailSend = async () => {
     if (!bulkEmailSubject.trim() || !bulkCustomGreeting.trim() || !bulkCustomMessage.trim()) {
-      alert('Please enter a subject, greeting, and message.');
+      setDashboardFeedback({ type: 'error', message: 'Please enter a subject, greeting, and message.' });
       return;
     }
 
     if (selectedApplicants.size === 0) {
-      alert('Select at least one candidate to contact.');
+      setDashboardFeedback({ type: 'error', message: 'Select at least one candidate to contact.' });
       return;
     }
 
@@ -111,20 +113,26 @@ export default function CompanyDashboard() {
     
     try {
       // 선택된 후보자들의 정보 수집
-      const selectedCandidates = Array.from(selectedApplicants).map(candidateId => {
-        const candidate = githubCandidates.find(c => 
-          (c.candidateId || c.githubLogin) === candidateId
-        );
+      const currentApplicants = showDirectApplicants ? directApplicants : githubCandidates;
+      const selectedCandidates = Array.from(selectedApplicants).map(uniqueKey => {
+        const [selectedCandidateId, selectedPost] = String(uniqueKey).split('_');
+        const candidate = currentApplicants.find(c => {
+          const source = c.candidate || c;
+          const candidateId = source.candidateId || c.githubSearchResultId || c.githubLogin;
+          const postId = source.postId || c.postId || selectedPostId;
+          return String(candidateId) === selectedCandidateId && String(postId) === selectedPost;
+        });
         if (!candidate) return null;
+        const source = candidate.candidate || candidate;
         return {
-          candidateEmail: candidate.candidateEmail || candidate.githubEmail || candidate.email,
-          githubLogin: candidate.githubLogin,
-          candidateId: candidate.candidateId || candidate.githubSearchResultId
+          candidateEmail: source.candidateEmail || source.githubEmail || source.email,
+          githubLogin: source.githubLogin || candidate.githubLogin,
+          candidateId: source.candidateId || candidate.githubSearchResultId
         };
       }).filter(candidate => candidate && candidate.candidateEmail); // null 제거 및 이메일이 있는 후보자만 필터링
 
       if (selectedCandidates.length === 0) {
-        alert('None of the selected candidates has an email address.');
+        setDashboardFeedback({ type: 'error', message: 'None of the selected candidates has an email address.' });
         setBulkEmailSending(false);
         return;
       }
@@ -161,7 +169,7 @@ export default function CompanyDashboard() {
       const result = await response.json();
       
       if (result.success) {
-        alert(`📨 Email sent successfully to ${result.totalCandidates} candidate(s) using the ${templateName} template.`);
+        setDashboardFeedback({ type: 'success', message: `Email sent successfully to ${result.totalCandidates} candidate(s) using the ${templateName} template.` });
         // 모달 닫기 및 상태 초기화
         setShowBulkEmailModal(false);
         setBulkEmailSubject('');
@@ -171,11 +179,11 @@ export default function CompanyDashboard() {
         setBulkSelectedTemplate('professional');
         setSelectedApplicants(new Set());
       } else {
-        alert('Batch email failed: ' + result.message);
+        setDashboardFeedback({ type: 'error', message: 'Batch email failed: ' + result.message });
       }
     } catch (error) {
       console.error('일괄전송 오류:', error);
-      alert('Something went wrong while sending the batch email.');
+      setDashboardFeedback({ type: 'error', message: 'Something went wrong while sending the batch email.' });
     } finally {
       setBulkEmailSending(false);
     }
@@ -819,10 +827,12 @@ export default function CompanyDashboard() {
   const handleAcceptApplicants = async () => {
     
     if (selectedApplicants.size === 0) return;
+    if (applicantActionLoading) return;
 
     const confirmed = window.confirm(`Accept ${selectedApplicants.size} selected applicant(s)?`);
     if (!confirmed) return;
 
+    setApplicantActionLoading(true);
     try {
       // 현재 표시 중인 지원자 목록에 따라 다른 배열 사용
       const currentApplicants = showDirectApplicants ? directApplicants : githubCandidates;
@@ -878,7 +888,7 @@ export default function CompanyDashboard() {
       const result = await response.json();
       
       if (result.success) {
-        alert(`${result.updatedCount} applicant(s) accepted and moved to Responded.`);
+        setDashboardFeedback({ type: 'success', message: `${result.updatedCount} applicant(s) accepted and moved to Responded.` });
         // 선택 해제 및 목록 새로고침
         setSelectedApplicants(new Set());
         if (showDirectApplicants) {
@@ -887,21 +897,25 @@ export default function CompanyDashboard() {
           fetchCandidates(selectedPostId, '추가 지원자');
         }
       } else {
-        alert('Batch accept failed: ' + result.message);
+        setDashboardFeedback({ type: 'error', message: 'Batch accept failed: ' + result.message });
       }
     } catch (error) {
       console.error('수락 처리 오류:', error);
-      alert('Could not complete the accept action.');
+      setDashboardFeedback({ type: 'error', message: 'Could not complete the accept action. Please try again.' });
+    } finally {
+      setApplicantActionLoading(false);
     }
   };
 
   // 지원자 거절 처리
   const handleRejectApplicants = async () => {
     if (selectedApplicants.size === 0) return;
+    if (applicantActionLoading) return;
 
     const confirmed = window.confirm(`Reject ${selectedApplicants.size} selected applicant(s)?`);
     if (!confirmed) return;
 
+    setApplicantActionLoading(true);
     try {
       // 현재 표시 중인 지원자 목록에 따라 다른 배열 사용
       const currentApplicants = showDirectApplicants ? directApplicants : githubCandidates;
@@ -957,7 +971,7 @@ export default function CompanyDashboard() {
       const result = await response.json();
       
       if (result.success) {
-        alert(`${result.updatedCount} applicant(s) rejected.`);
+        setDashboardFeedback({ type: 'success', message: `${result.updatedCount} applicant(s) rejected.` });
         // 선택 해제 및 목록 새로고침
         setSelectedApplicants(new Set());
         if (showDirectApplicants) {
@@ -966,17 +980,20 @@ export default function CompanyDashboard() {
           fetchCandidates(selectedPostId, '추가 지원자');
         }
       } else {
-        alert('Batch rejection failed: ' + result.message);
+        setDashboardFeedback({ type: 'error', message: 'Batch rejection failed: ' + result.message });
       }
     } catch (error) {
       console.error('거절 처리 오류:', error);
-      alert('Could not complete the rejection action.');
+      setDashboardFeedback({ type: 'error', message: 'Could not complete the rejection action. Please try again.' });
+    } finally {
+      setApplicantActionLoading(false);
     }
   };
 
   // 개별 지원자 수락 처리
   // eslint-disable-next-line no-unused-vars
   const handleAcceptSingleApplicant = async (candidate, index) => {
+    if (applicantActionLoading) return;
     // 추가지원자의 경우 candidate 객체 안에서 데이터를 가져옴
     const candidateName = candidate.candidate?.candidateName || candidate.candidateName;
     const candidateId = candidate.candidate?.candidateId || candidate.candidateId;
@@ -985,6 +1002,7 @@ export default function CompanyDashboard() {
     const confirmed = window.confirm(`Accept ${candidateName}?`);
     if (!confirmed) return;
 
+    setApplicantActionLoading(true);
     try {
       const response = await fetch(apiUrl('/api/responder/update-stage'), {
         method: 'PUT',
@@ -1002,7 +1020,7 @@ export default function CompanyDashboard() {
       const result = await response.json();
       
       if (result.success) {
-        alert(`${candidateName} accepted.`);
+        setDashboardFeedback({ type: 'success', message: `${candidateName} accepted.` });
         
         // 선택에서 제거 (uniqueKey로 제거)
         const uniqueKey = `${candidateId}_${postId}`;
@@ -1018,17 +1036,20 @@ export default function CompanyDashboard() {
           fetchAdditionalApplicants();
         }
       } else {
-        alert('Accept failed: ' + result.message);
+        setDashboardFeedback({ type: 'error', message: 'Accept failed: ' + result.message });
       }
     } catch (error) {
       console.error('수락 처리 오류:', error);
-      alert('Could not complete the accept action.');
+      setDashboardFeedback({ type: 'error', message: 'Could not complete the accept action. Please try again.' });
+    } finally {
+      setApplicantActionLoading(false);
     }
   };
 
   // 개별 지원자 거절 처리
   // eslint-disable-next-line no-unused-vars
   const handleRejectSingleApplicant = async (candidate, index) => {
+    if (applicantActionLoading) return;
     // 추가지원자의 경우 candidate 객체 안에서 데이터를 가져옴
     const candidateName = candidate.candidate?.candidateName || candidate.candidateName;
     const candidateId = candidate.candidate?.candidateId || candidate.candidateId;
@@ -1037,6 +1058,7 @@ export default function CompanyDashboard() {
     const confirmed = window.confirm(`Reject ${candidateName}?`);
     if (!confirmed) return;
 
+    setApplicantActionLoading(true);
     try {
       const response = await fetch(apiUrl('/api/responder/update-stage'), {
         method: 'PUT',
@@ -1054,7 +1076,7 @@ export default function CompanyDashboard() {
       const result = await response.json();
       
       if (result.success) {
-        alert(`${candidateName} rejected.`);
+        setDashboardFeedback({ type: 'success', message: `${candidateName} rejected.` });
         
         // 선택에서 제거 (uniqueKey로 제거)
         const uniqueKey = `${candidateId}_${postId}`;
@@ -1070,11 +1092,13 @@ export default function CompanyDashboard() {
           fetchAdditionalApplicants();
         }
       } else {
-        alert('Reject failed: ' + result.message);
+        setDashboardFeedback({ type: 'error', message: 'Reject failed: ' + result.message });
       }
     } catch (error) {
       console.error('거절 처리 오류:', error);
-      alert('Could not complete the rejection action.');
+      setDashboardFeedback({ type: 'error', message: 'Could not complete the rejection action. Please try again.' });
+    } finally {
+      setApplicantActionLoading(false);
     }
   };
 
@@ -1159,6 +1183,36 @@ export default function CompanyDashboard() {
         />
 
         <main style={{ flex: 1, padding: '4rem 3rem', backgroundColor: '#ffffff' }}>
+          {dashboardFeedback.message && (
+            <div
+              role={dashboardFeedback.type === 'error' ? 'alert' : 'status'}
+              aria-live="polite"
+              style={{
+                marginBottom: '1.25rem',
+                padding: '0.85rem 1rem',
+                borderRadius: '10px',
+                border: `1px solid ${dashboardFeedback.type === 'error' ? '#fecaca' : '#bbf7d0'}`,
+                background: dashboardFeedback.type === 'error' ? '#fef2f2' : '#f0fdf4',
+                color: dashboardFeedback.type === 'error' ? '#b91c1c' : '#166534',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '1rem',
+                fontSize: '0.9rem',
+                fontWeight: 600
+              }}
+            >
+              <span>{dashboardFeedback.message}</span>
+              <button
+                type="button"
+                onClick={() => setDashboardFeedback({ type: '', message: '' })}
+                aria-label="Dismiss notification"
+                style={{ border: 'none', background: 'transparent', color: 'inherit', cursor: 'pointer', fontSize: '1.1rem' }}
+              >
+                ×
+              </button>
+            </div>
+          )}
           {showDirectApplicants ? (
             <div style={{ marginTop: '0.5rem', padding: '0 2rem' }}>
               <div style={{ marginBottom: '2rem' }}>
@@ -1197,7 +1251,7 @@ export default function CompanyDashboard() {
                      
                      <div style={{ display: 'flex', gap: '0.8rem' }}>
                        <button
-                         disabled={selectedApplicants.size === 0}
+                         disabled={selectedApplicants.size === 0 || applicantActionLoading}
                          style={{
                            background: selectedApplicants.size === 0 ? '#e2e8f0' : 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)',
                            color: selectedApplicants.size === 0 ? '#a0aec0' : 'white',
@@ -1223,7 +1277,7 @@ export default function CompanyDashboard() {
                        </button>
                        
                        <button
-                         disabled={selectedApplicants.size === 0}
+                         disabled={selectedApplicants.size === 0 || applicantActionLoading}
                          style={{
                            background: selectedApplicants.size === 0 ? '#e2e8f0' : 'linear-gradient(135deg, #e53e3e 0%, #c53030 100%)',
                            color: selectedApplicants.size === 0 ? '#a0aec0' : 'white',
@@ -1825,7 +1879,7 @@ export default function CompanyDashboard() {
                               
                               <div style={{ display: 'flex', gap: '0.8rem' }}>
                                 <button
-                                  disabled={selectedApplicants.size === 0}
+                                  disabled={selectedApplicants.size === 0 || applicantActionLoading}
                                   style={{
                                     background: selectedApplicants.size === 0 ? '#e2e8f0' : 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)',
                                     color: selectedApplicants.size === 0 ? '#a0aec0' : 'white',
@@ -1851,7 +1905,7 @@ export default function CompanyDashboard() {
                                 </button>
                                 
                                 <button
-                                  disabled={selectedApplicants.size === 0}
+                                  disabled={selectedApplicants.size === 0 || applicantActionLoading}
                                   style={{
                                     background: selectedApplicants.size === 0 ? '#e2e8f0' : 'linear-gradient(135deg, #e53e3e 0%, #c53030 100%)',
                                     color: selectedApplicants.size === 0 ? '#a0aec0' : 'white',
