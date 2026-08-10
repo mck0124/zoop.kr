@@ -3,9 +3,9 @@ import { apiUrl } from '../api/config';
 import { useLanguage } from '../context/LanguageContext';
 
 const MODAL_COPY = {
-  en: { title: 'Interview prep questions', subtitle: 'Personalized questions to help you prepare', close: 'Close interview prep questions', loading: 'Generating personalized questions...', wait: 'Please wait a moment.', failed: 'We could not generate questions. No placeholder questions were shown.', empty: 'No questions were generated. Check the position details and submission analysis, then try again.', retry: 'Try again', intro: 'These questions connect the position with evidence that still needs verification. Start with the evidence checks.', cheer: 'You’ve got this!', closeButton: 'Close', fallbackCategory: 'Interview prep' },
-  ko: { title: '면접 예상질문', subtitle: '면접 준비를 위한 맞춤형 질문들', close: '면접 예상질문 닫기', loading: '맞춤형 면접 예상질문을 생성중입니다...', wait: '잠시만 기다려주세요.', failed: '맞춤 질문을 생성하지 못했습니다. 현재 결과를 임의의 질문으로 대체하지 않았습니다.', empty: '생성된 질문이 없습니다. 포지션 정보와 제출물 분석을 확인한 뒤 다시 시도해주세요.', retry: '다시 생성하기', intro: '포지션과 제출물의 확인 필요 지점을 연결한 맞춤형 질문입니다. 근거검증 질문부터 답변을 준비해 보세요.', cheer: '면접 준비 화이팅!', closeButton: '닫기', fallbackCategory: '면접 준비' },
-  zh: { title: '面试准备问题', subtitle: '帮助你准备面试的个性化问题', close: '关闭面试准备问题', loading: '正在生成个性化面试问题……', wait: '请稍候。', failed: '无法生成问题，未使用虚构问题替代。', empty: '尚未生成问题，请检查职位信息和提交材料分析后重试。', retry: '重新生成', intro: '这些问题将职位要求与仍需验证的证据连接起来，请先准备证据验证类问题。', cheer: '祝你面试顺利！', closeButton: '关闭', fallbackCategory: '面试准备' }
+  en: { title: 'Interview prep questions', subtitle: 'Personalized questions to help you prepare', close: 'Close interview prep questions', loading: 'Generating personalized questions...', wait: 'Please wait a moment.', failed: 'We could not generate questions. No placeholder questions were shown.', empty: 'No questions were generated. Check the position details and submission analysis, then try again.', retry: 'Try again', intro: 'These questions connect the position with evidence that still needs verification. Start with the evidence checks.', grounding: 'source-linked checks', openChecks: 'open verification checks', cheer: 'You’ve got this!', closeButton: 'Close', fallbackCategory: 'Interview prep' },
+  ko: { title: '면접 예상질문', subtitle: '면접 준비를 위한 맞춤형 질문들', close: '면접 예상질문 닫기', loading: '맞춤형 면접 예상질문을 생성중입니다...', wait: '잠시만 기다려주세요.', failed: '맞춤 질문을 생성하지 못했습니다. 현재 결과를 임의의 질문으로 대체하지 않았습니다.', empty: '생성된 질문이 없습니다. 포지션 정보와 제출물 분석을 확인한 뒤 다시 시도해주세요.', retry: '다시 생성하기', intro: '포지션과 제출물의 확인 필요 지점을 연결한 맞춤형 질문입니다. 근거검증 질문부터 답변을 준비해 보세요.', grounding: '원문 연결 검증 질문', openChecks: '확인 필요 질문', cheer: '면접 준비 화이팅!', closeButton: '닫기', fallbackCategory: '면접 준비' },
+  zh: { title: '面试准备问题', subtitle: '帮助你准备面试的个性化问题', close: '关闭面试准备问题', loading: '正在生成个性化面试问题……', wait: '请稍候。', failed: '无法生成问题，未使用虚构问题替代。', empty: '尚未生成问题，请检查职位信息和提交材料分析后重试。', retry: '重新生成', intro: '这些问题将职位要求与仍需验证的证据连接起来，请先准备证据验证类问题。', grounding: '条来源关联验证问题', openChecks: '条待确认问题', cheer: '祝你面试顺利！', closeButton: '关闭', fallbackCategory: '面试准备' }
 };
 
 const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => {
@@ -14,6 +14,12 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
   const [error, setError] = useState(null);
   const { language } = useLanguage();
   const copy = useMemo(() => MODAL_COPY[language] || MODAL_COPY.en, [language]);
+  const questionStats = useMemo(() => questions.reduce((stats, question) => {
+    const category = String(question || '').match(/^\s*\[([^\]]+)\]/)?.[1] || '';
+    if (/evidence|근거|证据/i.test(category)) stats.grounded += 1;
+    if (/open|확인|待确认/i.test(category)) stats.open += 1;
+    return stats;
+  }, { grounded: 0, open: 0 }), [questions]);
 
   const parseQuestion = (question) => {
     const match = String(question || '').match(/^\s*\[([^\]]+)\]\s*(.*)$/);
@@ -182,6 +188,10 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
                   <p className="text-yellow-700 text-sm">
                   {copy.intro}
                   </p>
+                </div>
+                <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-600" aria-label="Question grounding summary">
+                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-emerald-700">{questionStats.grounded} {copy.grounding}</span>
+                  <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-violet-700">{questionStats.open} {copy.openChecks}</span>
                 </div>
                 <div className="space-y-3">
                   {questions.map((question, index) => (

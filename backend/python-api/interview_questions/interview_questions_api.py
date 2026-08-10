@@ -149,6 +149,53 @@ def normalize_generated_questions(raw_text: str, minimum: int, maximum: int, req
         raise RuntimeError("AI가 충분한 맞춤 질문을 생성하지 못했습니다.")
     return questions
 
+
+def attach_verification_anchors(questions: List[str], portfolio_analysis: str, language: str = "en") -> List[str]:
+    """Make the evidence-first contract visible in the saved question strings.
+
+    The Java persistence layer intentionally stores questions as strings for
+    backwards compatibility. Stable tags let the UI show which questions are
+    tied to a verified source or an open uncertainty without changing that
+    schema. We never invent an evidence ID: when no ID exists, the tag stays a
+    generic verification prompt.
+    """
+    try:
+        context = json.loads(_verification_context(portfolio_analysis))
+    except (TypeError, ValueError, json.JSONDecodeError):
+        context = {}
+    grounded_ids = [
+        str(item.get("evidence_id")).strip()
+        for item in context.get("evidence", [])
+        if isinstance(item, dict)
+        and item.get("verification_state") in {"verified", "grounded"}
+        and str(item.get("evidence_id", "")).strip()
+    ][:4]
+    open_signals = [
+        str(item.get("missing_signal") or item.get("gap") or "").strip()
+        for item in context.get("counterfactuals", [])
+        if isinstance(item, dict) and str(item.get("missing_signal") or item.get("gap") or "").strip()
+    ]
+    open_signals.extend(str(item).strip() for item in context.get("gaps", []) if str(item).strip())
+
+    category_sets = {
+        "en": ("Evidence", "Open question"),
+        "ko": ("근거검증", "확인 필요"),
+        "zh": ("证据验证", "待确认"),
+    }
+    evidence_label, open_label = category_sets.get(normalize_language(language), category_sets["en"])
+    anchored = []
+    for index, question in enumerate(questions):
+        text = re.sub(r"^\s*\[[^\]]+\]\s*", "", str(question)).strip()
+        if index < len(grounded_ids):
+            tag = f"[{evidence_label} · {grounded_ids[index]}]"
+        elif index == len(grounded_ids) and open_signals:
+            tag = f"[{open_label}]"
+        else:
+            tag = re.match(r"^\s*(\[[^\]]+\])", str(question))
+            tag = tag.group(1) if tag else ""
+        anchored.append(f"{tag} {text}".strip())
+    return anchored
+
 def call_openai_chat(messages, max_tokens=800, temperature=0.3):
     """OpenAI API 호출 함수"""
     try:
@@ -240,7 +287,8 @@ def generate_interview_questions(post_title: str, post_description: str,
         
         questions_text = response.choices[0].message.content.strip()
         
-        return normalize_generated_questions(questions_text, minimum=3, maximum=3, require_tags=True, language=language)
+        questions = normalize_generated_questions(questions_text, minimum=3, maximum=3, require_tags=True, language=language)
+        return attach_verification_anchors(questions, portfolio_analysis, language)
         
     except Exception as e:
         print(f"OpenAI 질문 생성 오류: {e}")
@@ -336,7 +384,8 @@ def generate_preparation_questions(post_title: str, post_description: str,
         
         questions_text = response.choices[0].message.content.strip()
         
-        return normalize_generated_questions(questions_text, minimum=10, maximum=10, require_tags=True, language=language)
+        questions = normalize_generated_questions(questions_text, minimum=10, maximum=10, require_tags=True, language=language)
+        return attach_verification_anchors(questions, portfolio_analysis, language)
         
     except Exception as e:
         print(f"예상질문 생성 오류: {e}")
