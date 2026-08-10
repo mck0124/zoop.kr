@@ -8,6 +8,14 @@ import { PortfolioNavbar } from './Portfolio';
 import './BookmarksPage.css';
 import { apiUrl } from '../../api/config';
 
+const authenticatedFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+    ...(options.headers || {}),
+  },
+});
+
 // Constants for filters
 const LANGUAGES = ['Python', 'Java', 'JavaScript', 'TypeScript', 'C++', 'C#', 'Go', 'Ruby', 'Kotlin'];
 const LOCATIONS = [
@@ -36,7 +44,7 @@ export default function BookmarksPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(apiUrl(`/api/bookmarks/candidate/${candidateId}`));
+      const res = await authenticatedFetch(apiUrl(`/api/bookmarks/candidate/${candidateId}`));
       if (res.ok) {
         const data = await res.json();
         
@@ -76,7 +84,7 @@ export default function BookmarksPage() {
 
   const fetchUserName = useCallback(async () => {
     try {
-      const userResponse = await fetch(apiUrl(`/api/candidates/${candidateId}`));
+      const userResponse = await authenticatedFetch(apiUrl(`/api/candidates/${candidateId}`));
       if (userResponse.ok) {
         const userData = await userResponse.json();
         setUserName(userData.candidateName || 'Candidate');

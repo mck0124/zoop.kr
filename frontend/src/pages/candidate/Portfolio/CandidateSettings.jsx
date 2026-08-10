@@ -4,6 +4,14 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../../../context/AuthContext';
 import { apiUrl } from '../../../api/config';
 
+const authenticatedFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+    ...(options.headers || {}),
+  },
+});
+
 export default function CandidateSettings() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -51,7 +59,7 @@ export default function CandidateSettings() {
       if (!authState.userId) return;
       setLoading(true);
       try {
-        const res = await fetch(apiUrl(`/api/candidates/${authState.userId}`));
+        const res = await authenticatedFetch(apiUrl(`/api/candidates/${authState.userId}`));
         if (res.ok) {
           const data = await res.json();
           setProfileForm({
@@ -99,7 +107,7 @@ export default function CandidateSettings() {
   const handleProfileSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch(apiUrl(`/api/candidates/${authState.userId}/profile`), {
+      const res = await authenticatedFetch(apiUrl(`/api/candidates/${authState.userId}/profile`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ candidateName: profileForm.candidateName, candidateEmail: profileForm.candidateEmail })
@@ -126,7 +134,7 @@ export default function CandidateSettings() {
     }
     setSaving(true);
     try {
-      const res = await fetch(apiUrl(`/api/candidates/${authState.userId}/password`), {
+      const res = await authenticatedFetch(apiUrl(`/api/candidates/${authState.userId}/password`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword: passwordForm.currentPassword, newPassword: passwordForm.newPassword })
