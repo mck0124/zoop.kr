@@ -792,23 +792,23 @@ const DecisionLens = ({ candidates, aiAnalysisResults }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
         <div>
           <div style={{ color: '#86efac', fontSize: 11, fontWeight: 850, letterSpacing: '0.12em' }}>EVIDENCE LEDGER · DECISION LENS</div>
-          <h2 id="decision-lens-title" style={{ color: '#fff', margin: '6px 0 5px', fontSize: '1.35rem' }}>점수보다 먼저, 판단 가능한 근거를 확인하세요</h2>
-          <p style={{ margin: 0, color: '#c7f9df', lineHeight: 1.55, fontSize: 13 }}>상위 점수는 우선순위일 뿐입니다. 근거가 부족한 후보자는 자동 탈락시키지 않고 다음 검증 대상으로 분리합니다.</p>
+          <h2 id="decision-lens-title" style={{ color: '#fff', margin: '6px 0 5px', fontSize: '1.35rem' }}>Review evidence before the score</h2>
+          <p style={{ margin: 0, color: '#c7f9df', lineHeight: 1.55, fontSize: 13 }}>Scores set review priority. Candidates with limited evidence are routed to the next verification step instead of being rejected automatically.</p>
         </div>
-        <span style={{ padding: '7px 11px', borderRadius: 999, background: 'rgba(167,243,208,.13)', border: '1px solid rgba(167,243,208,.3)', color: '#d1fae5', fontSize: 12, fontWeight: 800 }}>AI 보조 판단</span>
+        <span style={{ padding: '7px 11px', borderRadius: 999, background: 'rgba(167,243,208,.13)', border: '1px solid rgba(167,243,208,.3)', color: '#d1fae5', fontSize: 12, fontWeight: 800 }}>AI-assisted decision support</span>
       </div>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
-        {badge('분석 완료', `${scored.length}/${rows.length}`, { background: '#ecfdf5', border: '#a7f3d0', label: '#047857' })}
-        {badge('원문 근거 있음', `${grounded.length}명`, { background: '#eff6ff', border: '#bfdbfe', label: '#1d4ed8' })}
-        {badge('추가 검토 필요', `${needsReview.length}명`, { background: '#fffbeb', border: '#fde68a', label: '#b45309' })}
+        {badge('Analyzed', `${scored.length}/${rows.length}`, { background: '#ecfdf5', border: '#a7f3d0', label: '#047857' })}
+        {badge('Grounded evidence', `${grounded.length}`, { background: '#eff6ff', border: '#bfdbfe', label: '#1d4ed8' })}
+        {badge('Needs review', `${needsReview.length}`, { background: '#fffbeb', border: '#fde68a', label: '#b45309' })}
       </div>
       <div style={{ marginTop: 16, padding: '12px 14px', borderRadius: 14, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)' }}>
-        <div style={{ color: '#bbf7d0', fontSize: 11, fontWeight: 850, letterSpacing: '0.06em', marginBottom: 8 }}>검토 우선순위</div>
+        <div style={{ color: '#bbf7d0', fontSize: 11, fontWeight: 850, letterSpacing: '0.06em', marginBottom: 8 }}>REVIEW PRIORITY</div>
         <div style={{ display: 'grid', gap: 7 }}>
           {ranked.map((row, index) => {
-            const name = row.candidate.githubLogin || row.candidate.login || '이름 미확인';
-            const status = row.coverage === null ? '근거 확인 필요' : row.coverage < 70 ? `커버리지 ${row.coverage}% · 추가 확인` : `근거 커버리지 ${row.coverage}%`;
-            return <div key={`${name}-${index}`} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap', fontSize: 13 }}><span style={{ color: '#fff', fontWeight: 750 }}>{index + 1}. {name}</span><span style={{ color: '#d1fae5' }}>{row.score === null ? '점수 대기' : `${row.score}점`} · {status}</span></div>;
+            const name = row.candidate.githubLogin || row.candidate.login || 'Unknown candidate';
+            const status = row.coverage === null ? 'Evidence check needed' : row.coverage < 70 ? `${row.coverage}% coverage · Verify further` : `${row.coverage}% evidence coverage`;
+            return <div key={`${name}-${index}`} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap', fontSize: 13 }}><span style={{ color: '#fff', fontWeight: 750 }}>{index + 1}. {name}</span><span style={{ color: '#d1fae5' }}>{row.score === null ? 'Score pending' : `${row.score}`} · {status}</span></div>;
           })}
         </div>
       </div>
@@ -832,7 +832,7 @@ const CandidateComparisonModal = ({ candidates, aiAnalysisResults, selectedLogin
   }))].slice(0, 6);
 
   if (!rows.length) return null;
-  const decisionLabel = { strong_match: '근거 충분', review: '검토 권장', not_enough_evidence: '근거 부족' };
+  const decisionLabel = { strong_match: 'Strong match', review: 'Review recommended', not_enough_evidence: 'Insufficient evidence' };
   const getDimension = (row, name) => {
     try {
       const parsed = JSON.parse(row.analysisText || '{}');
@@ -848,26 +848,26 @@ const CandidateComparisonModal = ({ candidates, aiAnalysisResults, selectedLogin
         <ModalCloseBtn onClick={onClose}><FaTimes /></ModalCloseBtn>
         <div style={{ padding: '2rem 2rem 1rem' }}>
           <div style={{ color: '#0f766e', fontSize: 11, fontWeight: 850, letterSpacing: '0.1em' }}>EVIDENCE LEDGER · COMPARISON</div>
-          <h2 style={{ margin: '0.4rem 0 0.35rem', color: '#172033' }}>후보자를 점수가 아닌 근거로 비교합니다</h2>
-          <p style={{ margin: 0, color: '#64748b', lineHeight: 1.55 }}>높은 점수는 우선 검토 순서입니다. 최종 판단 전, 근거 커버리지와 확인해야 할 빈틈을 함께 확인하세요.</p>
+          <h2 style={{ margin: '0.4rem 0 0.35rem', color: '#172033' }}>Compare candidates by evidence, not just score</h2>
+          <p style={{ margin: 0, color: '#64748b', lineHeight: 1.55 }}>Use score to set review order, then inspect evidence coverage and open verification gaps before making a final decision.</p>
         </div>
         <div style={{ padding: '0 2rem 2rem', overflowX: 'auto' }}>
           <div style={{ minWidth: Math.max(720, rows.length * 260) }}>
             <div style={{ display: 'grid', gridTemplateColumns: `180px repeat(${rows.length}, minmax(220px, 1fr))`, gap: 1, background: '#e2e8f0', border: '1px solid #e2e8f0', borderRadius: 16, overflow: 'hidden' }}>
-              <div style={{ padding: 16, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>판단 항목</div>
+              <div style={{ padding: 16, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>Decision lens</div>
               {rows.map(row => <div key={row.candidate.githubLogin || row.candidate.login} style={{ padding: 16, background: '#fff', color: '#172033', fontWeight: 850, fontSize: 16 }}>{row.candidate.githubLogin || row.candidate.login || '이름 미확인'}</div>)}
-              <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>보정 점수</div>
-              {rows.map(row => <div key={`score-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: '#0f766e', fontSize: 25, fontWeight: 900 }}>{row.score === null ? '대기' : `${row.score}/100`}</div>)}
-              <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>판단 상태</div>
-              {rows.map(row => <div key={`decision-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff' }}><span style={{ display: 'inline-block', borderRadius: 999, padding: '5px 9px', background: row.decision === 'strong_match' ? '#dcfce7' : row.decision === 'not_enough_evidence' ? '#fef3c7' : '#dbeafe', color: row.decision === 'strong_match' ? '#166534' : row.decision === 'not_enough_evidence' ? '#92400e' : '#1d4ed8', fontSize: 12, fontWeight: 800 }}>{decisionLabel[row.decision] || '검토 필요'}</span></div>)}
-              <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>근거 커버리지</div>
-              {rows.map(row => <div key={`coverage-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: row.coverage !== null && row.coverage >= 70 ? '#047857' : '#b45309', fontWeight: 800 }}>{row.coverage === null ? '확인 필요' : `${row.coverage}%`} {row.evidenceCount ? `· ${row.evidenceCount}개 근거` : ''}</div>)}
+              <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>Adjusted score</div>
+              {rows.map(row => <div key={`score-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: '#0f766e', fontSize: 25, fontWeight: 900 }}>{row.score === null ? 'Pending' : `${row.score}/100`}</div>)}
+              <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>Decision status</div>
+              {rows.map(row => <div key={`decision-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff' }}><span style={{ display: 'inline-block', borderRadius: 999, padding: '5px 9px', background: row.decision === 'strong_match' ? '#dcfce7' : row.decision === 'not_enough_evidence' ? '#fef3c7' : '#dbeafe', color: row.decision === 'strong_match' ? '#166534' : row.decision === 'not_enough_evidence' ? '#92400e' : '#1d4ed8', fontSize: 12, fontWeight: 800 }}>{decisionLabel[row.decision] || 'Needs review'}</span></div>)}
+              <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>Evidence coverage</div>
+              {rows.map(row => <div key={`coverage-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: row.coverage !== null && row.coverage >= 70 ? '#047857' : '#b45309', fontWeight: 800 }}>{row.coverage === null ? 'Check needed' : `${row.coverage}%`} {row.evidenceCount ? `· ${row.evidenceCount} evidence items` : ''}</div>)}
               {dimensions.map(dimension => <React.Fragment key={dimension}>
                 <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>{dimension}</div>
-                {rows.map(row => { const item = getDimension(row, dimension); return <div key={`${dimension}-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: '#334155', fontSize: 13 }}><strong>{item?.score ?? '—'}</strong>{item?.max ? `/${item.max}` : ''}<div style={{ marginTop: 4, color: '#64748b', lineHeight: 1.45 }}>{item?.evidence?.find(evidence => evidence.verification_state === 'grounded')?.claim || '검증된 근거 없음'}</div></div>; })}
+                {rows.map(row => { const item = getDimension(row, dimension); return <div key={`${dimension}-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: '#334155', fontSize: 13 }}><strong>{item?.score ?? '—'}</strong>{item?.max ? `/${item.max}` : ''}<div style={{ marginTop: 4, color: '#64748b', lineHeight: 1.45 }}>{item?.evidence?.find(evidence => evidence.verification_state === 'grounded')?.claim || 'No grounded evidence'}</div></div>; })}
               </React.Fragment>)}
-              <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>다음 검증</div>
-              {rows.map(row => <div key={`gap-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: '#475569', fontSize: 13, lineHeight: 1.5 }}>{row.gaps.length ? row.gaps.slice(0, 2).join(' · ') : '대표 프로젝트의 실제 기여와 설계 선택을 확인하세요.'}</div>)}
+              <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>Next verification</div>
+              {rows.map(row => <div key={`gap-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: '#475569', fontSize: 13, lineHeight: 1.5 }}>{row.gaps.length ? row.gaps.slice(0, 2).join(' · ') : 'Verify real contribution and design decisions in a representative project.'}</div>)}
             </div>
           </div>
         </div>

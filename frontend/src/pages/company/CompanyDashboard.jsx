@@ -1081,6 +1081,15 @@ export default function CompanyDashboard() {
 
   // 후보자 목록 필터 버튼 부분
   const filterLabels = ['추가 지원자', '매칭', '전체', '미회신자', '회신자', '면접 예정자', '면접 완료자'];
+  const filterDisplayLabels = {
+    '추가 지원자': 'Direct applicants',
+    '매칭': 'Matches',
+    '전체': 'All candidates',
+    '미회신자': 'No response',
+    '회신자': 'Responded',
+    '면접 예정자': 'Upcoming interviews',
+    '면접 완료자': 'Completed interviews',
+  };
 
   // AI 분석 결과 가져오기
   const fetchAiAnalysis = async (jobCandidateId) => {
@@ -1734,7 +1743,7 @@ export default function CompanyDashboard() {
                             disabled={candidateFilter === label}
                           >
                               <span style={{ position: 'relative', zIndex: 4 }}>
-                                {label}
+                                {filterDisplayLabels[label] || label}
                               </span>
                           </motion.button>
                           );
