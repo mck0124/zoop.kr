@@ -108,7 +108,7 @@ def _evidence_id(*parts: Any) -> str:
 
 def _audit_metadata(source_text: str, source_type: str, evidence_count: int) -> Dict[str, Any]:
     """AI 결과가 언제/어떤 입력 계열/정책으로 만들어졌는지 추적 가능한 메타데이터."""
-    integrity = source_integrity_audit(source_text, source_type="portfolio_submission")
+    integrity = source_integrity_audit(source_text, source_type=source_type)
     return {
         "ledger_version": "zoop-evidence-ledger-v1",
         "policy_version": "grounded-hiring-v1",
