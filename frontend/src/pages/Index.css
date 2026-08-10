@@ -293,6 +293,21 @@ html, body {
 .ledger-demo-copy code { display: block; overflow-wrap: anywhere; color: #839890; font-size: .72rem; }
 .ledger-demo-action { margin-top: 1.3rem; border: 0; border-radius: 999px; padding: .75rem 1rem; color: #fff; background: #20b889; font-weight: 800; cursor: pointer; }
 .ledger-demo-action:hover { background: #149d73; }
+.ledger-demo-action:disabled { cursor: not-allowed; opacity: .5; }
+.ledger-playground { margin: 0 2.5rem 2.5rem; padding: 1.5rem; border: 1px solid #dcefe8; border-radius: 1.25rem; background: linear-gradient(135deg, #f8fffc, #f4f9ff); }
+.ledger-playground-heading h3 { margin: .55rem 0 .4rem; font-size: 1.25rem; color: #123f35; }
+.ledger-playground-heading p { max-width: 720px; margin: 0; color: #58736a; line-height: 1.65; font-size: .92rem; }
+.ledger-playground-fields { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1rem; margin-top: 1.1rem; }
+.ledger-playground-fields label { display: flex; flex-direction: column; gap: .45rem; color: #385e53; font-size: .78rem; font-weight: 800; }
+.ledger-playground-fields textarea,
+.ledger-playground-fields input { width: 100%; box-sizing: border-box; border: 1px solid #cfe5dc; border-radius: .75rem; background: #fff; padding: .8rem .9rem; color: #203d35; font: inherit; font-size: .88rem; line-height: 1.5; resize: vertical; }
+.ledger-playground-fields textarea:focus,
+.ledger-playground-fields input:focus { outline: 2px solid #72d5b3; outline-offset: 1px; border-color: #20b889; }
+.ledger-playground-footer { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.ledger-playground-footer small { color: #78938a; font-size: .75rem; }
+.ledger-audit-result { display: flex; align-items: center; gap: .55rem; margin-top: 1rem; padding: .75rem .9rem; border-radius: .75rem; font-size: .85rem; font-weight: 700; }
+.ledger-audit-result.verified { color: #087346; background: #dcfce9; border: 1px solid #a7edc5; }
+.ledger-audit-result.review { color: #9a5b00; background: #fff7db; border: 1px solid #f2d27b; }
 
 @media (max-width: 850px) {
   .evidence-flow { grid-template-columns: 1fr; max-width: 560px; }
@@ -300,6 +315,8 @@ html, body {
   .evidence-flow-card { min-height: 0; }
   .evidence-flow-card p { min-height: 0; }
   .ledger-demo-panel { grid-template-columns: 1fr; gap: 1.5rem; padding: 1.5rem; }
+  .ledger-playground { margin: 0 1.5rem 1.5rem; }
+  .ledger-playground-fields { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 520px) {
@@ -308,6 +325,8 @@ html, body {
   .ledger-demo-section { padding-left: 1rem; padding-right: 1rem; }
   .ledger-demo-tabs { overflow-x: auto; }
   .ledger-demo-tabs button { white-space: nowrap; font-size: .82rem; }
+  .ledger-playground { margin: 0 1rem 1rem; padding: 1rem; }
+  .ledger-playground-footer { align-items: flex-start; flex-direction: column; gap: .55rem; }
 }
 
 @media (max-width: 900px) {
