@@ -4,28 +4,28 @@ import { useNavigate, useParams } from 'react-router-dom';
 import CameraDebug from '../../../components/CameraDebug';
 
 const SENTENCES = [
-  '나는 무엇이든 할 수 있는 사람이다.',
-  '오늘도 최선을 다하겠습니다.',
-  '긍정적인 마음으로 임하겠습니다.',
-  '새로운 도전을 두려워하지 않습니다.',
-  '함께 성장하는 것을 좋아합니다.'
+  'I can handle any challenge.',
+  'I will do my best today.',
+  'I approach challenges with a positive mindset.',
+  'I am not afraid of new challenges.',
+  'I enjoy growing together with my teammates.'
 ];
 
 // Slide data for 2/4, 3/4, 4/4
 const SLIDES = [
   {
     step: 1,
-    title: '영상 과제는 답변을 준비하는 시간과\n녹화하는 시간이 따로 주어져요.',
-    desc: '준비 시간에는 녹화하지 않고, 답변 시간에만 녹화를 진행해요.',
+    title: 'Preparation time and\nrecording time are separate.',
+    desc: 'Your answer is recorded only after preparation time ends.',
     img: process.env.PUBLIC_URL + '/images/talkingopinions.svg',
-    button: '다음',
+    button: 'Next',
   },
   {
     step: 2,
-    title: '준비 시간 동안에는 질문을 확인하고\n답변을 생각해 주세요.',
-    desc: '준비 시간이 끝나면 자동으로 답변 시간이 시작돼요.',
+    title: 'Review the question and\nprepare your answer.',
+    desc: 'Recording starts automatically when preparation time ends.',
     img: process.env.PUBLIC_URL + '/images/People-Working-Illustrations@4x.png',
-    button: '면접 시작하기',
+    button: 'Start interview',
   },
 ];
 
@@ -76,7 +76,7 @@ function InterviewGuideSlides({ onStart }) {
         {/* 탭/진행 표시 */}
         <div style={{ width: '100%', display: 'flex', alignItems: 'center', marginBottom: 32 }}>
           <div style={{ flex: 1, display: 'flex', gap: 24, fontWeight: 600, fontSize: 18 }}>
-            <span style={{ color: '#222' }}>설명 <b>({slide.step}/2)</b></span>
+            <span style={{ color: '#222' }}>Guide <b>({slide.step}/2)</b></span>
           </div>
           <div style={{ background: '#f4f8ff', color: '#30C59B', fontWeight: 700, fontSize: 18, borderRadius: 12, padding: '6px 22px' }}>{formatTime(timeLeft)}</div>
         </div>
@@ -89,7 +89,7 @@ function InterviewGuideSlides({ onStart }) {
         </div>
         {/* 일러스트/이미지 */}
         <div style={{ width: 320, height: 200, background: '#f8f9fa', borderRadius: 18, marginBottom: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #eee' }}>
-          <img src={slide.img} alt="설명 일러스트" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          <img src={slide.img} alt="Interview guide illustration" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         </div>
         {/* 네비게이션 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 32, marginBottom: current === 1 ? 32 : 0 }}>
@@ -149,7 +149,7 @@ function InterviewEnvironmentCheck({ onComplete }) {
         setCameraLoading(true);
         setCameraError(null);
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          throw new Error('이 브라우저는 카메라 접근을 지원하지 않습니다.');
+          throw new Error('This browser does not support camera access.');
         }
         const userStream = await navigator.mediaDevices.getUserMedia({
           video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
@@ -187,13 +187,13 @@ function InterviewEnvironmentCheck({ onComplete }) {
         setFaceSuccess(false);
         
         if (err.name === 'NotAllowedError') {
-          setCameraError('카메라 접근이 거부되었습니다. 브라우저에서 카메라 권한을 허용해주세요.');
+          setCameraError('Camera access was denied. Allow camera permission in your browser settings.');
         } else if (err.name === 'NotFoundError') {
-          setCameraError('카메라를 찾을 수 없습니다. 카메라가 연결되어 있는지 확인해주세요.');
+          setCameraError('No camera was found. Check that a camera is connected.');
         } else if (err.name === 'NotReadableError') {
-          setCameraError('카메라가 다른 프로그램에서 사용 중입니다. 다른 프로그램을 종료하고 다시 시도해주세요.');
+          setCameraError('The camera is being used by another app. Close it and try again.');
         } else {
-          setCameraError(`카메라 접근 중 오류가 발생했습니다: ${err.message}`);
+          setCameraError(`Camera access failed: ${err.message}`);
         }
       }
     }
@@ -287,7 +287,7 @@ function InterviewEnvironmentCheck({ onComplete }) {
       console.error('카메라 재시도 오류:', err);
       setCameraLoading(false);
       setFaceSuccess(false);
-      setCameraError('카메라 재시도에 실패했습니다. 브라우저를 새로고침하거나 다른 브라우저를 사용해주세요.');
+      setCameraError('Camera retry failed. Refresh the page or try another browser.');
     }
   };
   const handleComplete = () => {
@@ -299,18 +299,18 @@ function InterviewEnvironmentCheck({ onComplete }) {
   };
 
   const faceStatus = faceSuccess
-    ? { icon: '🟩', text: '얼굴 인식 성공', color: '#30C59B', bg: '#e6f9f3', desc: '응시 중에도 지금의 위치를 벗어나지 않도록 유의해 주세요.' }
-    : { icon: '🟥', text: '얼굴 인식 실패', color: '#ff4d4f', bg: '#ffeaea', desc: '얼굴이 잘 보이도록 카메라 위치를 조정해 주세요.' };
+    ? { icon: '🟩', text: 'Face detected', color: '#30C59B', bg: '#e6f9f3', desc: 'Keep your face within the camera frame during the interview.' }
+    : { icon: '🟥', text: 'Face not detected', color: '#ff4d4f', bg: '#ffeaea', desc: 'Adjust the camera so your face is clearly visible.' };
   const voiceStatus = voiceSuccess
-    ? { icon: '🟩', text: '음성 인식 성공', color: '#30C59B', bg: '#e6f9f3', desc: '응시 중에도 지금의 목소리 크기를\n유지해 주세요.' }
-    : { icon: '🟥', text: '음성 인식 실패', color: '#ff4d4f', bg: '#ffeaea', desc: '마이크 음량을 조절하거나 조금 더 큰 목소리로 말씀해 주세요.' };
+    ? { icon: '🟩', text: 'Voice detected', color: '#30C59B', bg: '#e6f9f3', desc: 'Keep your voice at a consistent volume.' }
+    : { icon: '🟥', text: 'Voice not detected', color: '#ff4d4f', bg: '#ffeaea', desc: 'Adjust your microphone or speak a little louder.' };
 
   const mainMsg = step === 'result'
-    ? (faceSuccess && voiceSuccess ? '얼굴 인식과 음성 인식이 모두 잘 되고 있어요!' : '음성 인식이 잘 안되고 있어요.')
-    : '아래 문장을 또렷하게 읽어주세요.';
+    ? (faceSuccess && voiceSuccess ? 'Your camera and microphone are ready.' : 'We could not detect your voice clearly.')
+    : 'Read the sentence below clearly.';
   const subMsg = step === 'result'
     ? ''
-    : '마이크와 카메라가 정상적으로 동작하는지 확인합니다.';
+    : 'We are checking that your camera and microphone work properly.';
 
   if (showGuide || step === 'guide') {
     return <InterviewGuideSlides onStart={handleGuideStart} />;
@@ -335,7 +335,7 @@ function InterviewEnvironmentCheck({ onComplete }) {
         }}>
           <div style={{ fontSize: 48, marginBottom: 24 }}>📹</div>
           <h2 style={{ color: '#ff6b6b', marginBottom: 16, fontSize: 24, fontWeight: 700 }}>
-            카메라 접근 오류
+            Camera access error
           </h2>
           <p style={{ color: '#666', marginBottom: 32, lineHeight: 1.6, fontSize: 16 }}>
             {cameraError}
@@ -349,12 +349,12 @@ function InterviewEnvironmentCheck({ onComplete }) {
             fontSize: 14,
             color: '#555'
           }}>
-            <h4 style={{ marginBottom: 12, color: '#333' }}>해결 방법:</h4>
+            <h4 style={{ marginBottom: 12, color: '#333' }}>Try these steps:</h4>
             <ul style={{ margin: 0, paddingLeft: 20 }}>
-              <li>브라우저 주소창 옆의 카메라 아이콘을 클릭하여 권한 허용</li>
-              <li>다른 프로그램에서 카메라를 사용 중이라면 종료</li>
-              <li>브라우저를 새로고침하거나 재시작</li>
-              <li>Chrome, Firefox, Safari 등 최신 브라우저 사용</li>
+              <li>Click the camera icon near the browser address bar and allow access</li>
+              <li>Close other apps that may be using the camera</li>
+              <li>Refresh or restart the browser</li>
+              <li>Use a current version of Chrome, Firefox, or Safari</li>
             </ul>
           </div>
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
@@ -371,7 +371,7 @@ function InterviewEnvironmentCheck({ onComplete }) {
                 fontSize: 16
               }}
             >
-              다시 시도
+              Try again
             </button>
             <button
               onClick={() => setShowDebug(true)}
@@ -386,7 +386,7 @@ function InterviewEnvironmentCheck({ onComplete }) {
                 fontSize: 16
               }}
             >
-              디버그 정보
+              Debug details
             </button>
             <button
               onClick={() => window.location.reload()}
@@ -401,7 +401,7 @@ function InterviewEnvironmentCheck({ onComplete }) {
                 fontSize: 16
               }}
             >
-              페이지 새로고침
+              Refresh page
             </button>
           </div>
         </div>
@@ -455,7 +455,7 @@ function InterviewEnvironmentCheck({ onComplete }) {
             onClick={handleStartTest}
             style={{ width: '100%', padding: '22px 0', borderRadius: 20, border: 'none', background: '#30C59B', color: 'white', fontWeight: 700, fontSize: 22, cursor: 'pointer', marginTop: 12, marginBottom: 12 }}
           >
-            확인
+            Check setup
           </button>
         )}
         {step === 'result' && (
@@ -465,13 +465,13 @@ function InterviewEnvironmentCheck({ onComplete }) {
               disabled={!(faceSuccess && voiceSuccess)}
               style={{ flex: 1, padding: '20px 0', borderRadius: 20, border: 'none', background: '#30C59B', color: 'white', fontWeight: 700, fontSize: 20, cursor: faceSuccess && voiceSuccess ? 'pointer' : 'not-allowed', transition: 'background 0.18s' }}
             >
-              확인 완료
+              Continue
             </button>
             <button
               onClick={handleRetry}
               style={{ flex: 1, padding: '20px 0', borderRadius: 20, border: 'none', background: '#444', color: 'white', fontWeight: 700, fontSize: 20, cursor: 'pointer', transition: 'background 0.18s' }}
             >
-              다시 하기
+              Try again
             </button>
           </div>
         )}
