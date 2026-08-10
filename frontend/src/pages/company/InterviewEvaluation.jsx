@@ -56,6 +56,7 @@ export default function InterviewEvaluation() {
     adminIntrvwSlctStatus: 'pending'
   });
   const [submitting, setSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState({ type: '', message: '' });
 
   useEffect(() => {
     fetchCandidateData();
@@ -155,13 +156,17 @@ export default function InterviewEvaluation() {
     if (!analysisScheduleId || retryingAnalysis) return;
     setRetryingAnalysis(true);
     try {
-      const response = await fetch(apiUrl(`/api/interview-schedules/${analysisScheduleId}/retry-analysis`), { method: 'POST' });
+      const response = await fetch(apiUrl(`/api/interview-schedules/${analysisScheduleId}/retry-analysis`), {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` },
+      });
       if (!response.ok) throw new Error('Could not restart the AI analysis.');
+      setFeedback({ type: 'success', message: 'AI interview analysis has been queued again. This page will refresh its status automatically.' });
       setAnalysisStatus('processing');
       setAnalysisResult(null);
       await fetchAnalysisResult();
     } catch (error) {
-      alert(error.message || 'Could not restart the AI analysis.');
+      setFeedback({ type: 'error', message: error.message || 'Could not restart the AI analysis.' });
     } finally {
       setRetryingAnalysis(false);
     }
@@ -272,7 +277,13 @@ export default function InterviewEvaluation() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const numericScore = Number(evaluation.adminIntrvwScore);
+    if (!Number.isFinite(numericScore) || numericScore < 0 || numericScore > 100) {
+      setFeedback({ type: 'error', message: 'Enter a manual evaluation score between 0 and 100.' });
+      return;
+    }
     setSubmitting(true);
+    setFeedback({ type: '', message: '' });
 
     try {
       const response = await fetch(apiUrl('/api/admin-interview-evaluations'), {
@@ -285,24 +296,24 @@ export default function InterviewEvaluation() {
           jobCandidateId: parseInt(candidateId),
           evaluatedByAdminId: parseInt(localStorage.getItem('userId')),
           adminIntrvwEvaluationDate: new Date().toISOString(),
-          adminIntrvwScore: parseFloat(evaluation.adminIntrvwScore),
+          adminIntrvwScore: numericScore,
           adminIntrvwNotes: evaluation.adminIntrvwNotes,
           adminIntrvwSlctStatus: evaluation.adminIntrvwSlctStatus
         }),
       });
 
       if (response.ok) {
-        alert('Interview evaluation saved successfully.');
+        setFeedback({ type: 'success', message: 'Interview evaluation saved successfully.' });
         // 기존 평가 데이터를 새로고침하여 완료된 평가 표시
         await fetchExistingEvaluation();
         // 후보자 데이터도 새로고침하여 업데이트된 stage 정보 반영
         await fetchCandidateData();
       } else {
-        alert('We could not save the interview evaluation.');
+        setFeedback({ type: 'error', message: 'We could not save the interview evaluation.' });
       }
     } catch (error) {
       console.error('면접 평가 저장 실패:', error);
-      alert('An error occurred while saving the interview evaluation.');
+      setFeedback({ type: 'error', message: 'An error occurred while saving the interview evaluation.' });
     } finally {
       setSubmitting(false);
     }
@@ -332,6 +343,12 @@ export default function InterviewEvaluation() {
           <h1 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '2rem', color: '#2d3748' }}>
             Interview evaluation
           </h1>
+          {feedback.message && (
+            <div role={feedback.type === 'error' ? 'alert' : 'status'} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: '1.5rem', padding: '12px 15px', borderRadius: 12, border: `1px solid ${feedback.type === 'error' ? '#fed7aa' : '#a7f3d0'}`, background: feedback.type === 'error' ? '#fff7ed' : '#ecfdf5', color: feedback.type === 'error' ? '#9a3412' : '#047857', fontSize: 14 }}>
+              <span>{feedback.message}</span>
+              <button type="button" aria-label="Dismiss message" onClick={() => setFeedback({ type: '', message: '' })} style={{ border: 0, background: 'transparent', color: 'inherit', cursor: 'pointer', fontSize: 20 }}>×</button>
+            </div>
+          )}
 
           {candidate && (
             <div style={{ 
