@@ -19,7 +19,7 @@ import yt_dlp
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from common.ai_quality import evidence_quality_report, source_integrity_audit
+from common.ai_quality import evidence_quality_report, fairness_guard_audit, source_integrity_audit
 
 # .env에서 API 키 로드
 load_dotenv()
@@ -481,11 +481,29 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                 else "review" if score >= 50 and grounded_evidence
                 else "not_enough_evidence"
             )
+            fairness_audit = fairness_guard_audit([
+                category.get("reason") for category in normalized_categories
+            ] + [
+                category.get("good_example") for category in normalized_categories
+            ] + [
+                category.get("bad_example") for category in normalized_categories
+            ] + [
+                category.get("improvement") for category in normalized_categories
+            ] + [
+                analysis_data.get("summary"),
+                analysis_data.get("headhunting_point"),
+                analysis_data.get("recommendation"),
+            ])
             analysis_data["fairness_guard"] = {
                 "excluded_attributes": ["이름", "성별", "나이", "사진", "출신 학교", "목소리만으로 추정한 성격"],
                 "evaluated_attributes": ["답변의 직무 전문성", "문제 해결 근거", "의사소통의 명료성", "경험의 구체성"],
-                "status": "pass",
+                "status": fairness_audit["status"],
+                "audit": fairness_audit,
             }
+            if fairness_audit["status"] == "review":
+                analysis_data["risk_flags"] = list(dict.fromkeys(analysis_data["risk_flags"] + ["Potentially job-irrelevant attributes appeared in AI decision text"]))
+                if analysis_data.get("decision") == "strong_match":
+                    analysis_data["decision"] = "review"
             integrity = source_integrity_audit(
                 "\n".join(transcripts),
                 source_type="interview_transcript",

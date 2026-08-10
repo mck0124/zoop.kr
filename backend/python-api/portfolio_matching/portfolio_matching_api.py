@@ -15,7 +15,7 @@ import time
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../github_search')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from common.ai_quality import bounded_confidence, evidence_quality_report, source_integrity_audit
+from common.ai_quality import bounded_confidence, evidence_quality_report, fairness_guard_audit, source_integrity_audit
 
 # .env에서 API 키 로드
 load_dotenv()
@@ -109,6 +109,14 @@ def _evidence_id(*parts: Any) -> str:
 def _audit_metadata(source_text: str, source_type: str, evidence_count: int) -> Dict[str, Any]:
     """AI 결과가 언제/어떤 입력 계열/정책으로 만들어졌는지 추적 가능한 메타데이터."""
     integrity = source_integrity_audit(source_text, source_type="portfolio_submission")
+    fairness_audit = fairness_guard_audit([
+        raw_analysis.get("summary"),
+        *claims,
+        *risks,
+        *gaps,
+        *verification_plan,
+        raw_analysis.get("seniority_signal"),
+    ])
     return {
         "ledger_version": "zoop-evidence-ledger-v1",
         "policy_version": "grounded-hiring-v1",
@@ -201,7 +209,8 @@ def _normalize_portfolio_analysis(raw_analysis: Dict[str, Any], source_text: str
         "fairness_guard": {
             "excluded_attributes": ["이름", "성별", "나이", "사진", "출신 학교", "주소"],
             "evaluated_attributes": ["직무 기술", "프로젝트 근거", "문제 해결 증거", "직무 관련 성장 신호"],
-            "status": "pass",
+            "status": fairness_audit["status"],
+            "audit": fairness_audit,
         },
         "decision_trace": [
             "제출물 원문에 존재하는 주장만 검증 근거로 사용",
@@ -774,12 +783,25 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
             "validation_action": "프로젝트 구조와 본인 기여를 후속 질문으로 확인",
             "expected_score_delta": 0.0,
         }]
+        fairness_audit = fairness_guard_audit([
+            structured.get("summary"),
+            *structured.get("claims", []),
+            *structured.get("gaps", []),
+            *structured.get("risk_flags", []),
+            *structured.get("verification_plan", []),
+            structured.get("seniority_signal"),
+        ])
         fairness_guard = structured.get("fairness_guard") if isinstance(structured.get("fairness_guard"), dict) else {}
         structured["fairness_guard"] = {
             "excluded_attributes": [str(item) for item in fairness_guard.get("excluded_attributes", []) if item] or ["이름", "성별", "나이", "사진", "출신 학교"],
             "evaluated_attributes": [str(item) for item in fairness_guard.get("evaluated_attributes", []) if item] or ["직무 기술", "프로젝트 근거", "경력 수준", "직무 관련 성장 신호"],
-            "status": "pass",
+            "status": fairness_audit["status"],
+            "audit": fairness_audit,
         }
+        if fairness_audit["status"] == "review":
+            structured["risk_flags"] = list(dict.fromkeys(structured["risk_flags"] + ["Potentially job-irrelevant attributes appeared in AI decision text"]))
+            if structured.get("decision") == "strong_match":
+                structured["decision"] = "review"
         evidence_items = [item for dimension in dimensions for item in dimension["evidence"]]
         grounded_items = [item for item in evidence_items if item.get("verification_state") == "grounded" and item.get("source") in candidate_sources and item.get("claim") != "확인된 근거 없음"]
         structured["grounded_evidence_ids"] = [item["evidence_id"] for item in grounded_items if item.get("evidence_id") in evidence_catalog]

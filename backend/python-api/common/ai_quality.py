@@ -25,6 +25,16 @@ _INSTRUCTION_PATTERNS = (
     re.compile(r"(?:ignore|disregard|follow)\s+(?:this|these)\s+(?:instructions?|rules?)", re.I),
 )
 
+_FAIRNESS_PATTERNS = {
+    "name": re.compile(r"\b(?:name|full name)\b|이름|姓名", re.I),
+    "gender": re.compile(r"\b(?:gender|sex|male|female|man|woman)\b|성별|남성|여성|性别|男性|女性", re.I),
+    "age": re.compile(r"\b(?:age|years old)\b|나이|연령|年龄", re.I),
+    "education": re.compile(r"\b(?:school|university|college|degree|alma mater)\b|학교|대학|학력|学校|大学", re.I),
+    "photo_or_appearance": re.compile(r"\b(?:photo|picture|appearance)\b|사진|외모|照片", re.I),
+    "location": re.compile(r"\b(?:location|address|hometown)\b|주소|출신 지역|住址|所在地", re.I),
+    "family_or_marital_status": re.compile(r"\b(?:married|marital|spouse|children|family status)\b|결혼|배우자|자녀|가족관계|婚姻|配偶|子女", re.I),
+}
+
 
 def source_integrity_audit(source_text: str, *, source_type: str) -> Dict[str, Any]:
     """Return a deterministic, non-scoring integrity report for untrusted text."""
@@ -46,6 +56,27 @@ def source_integrity_audit(source_text: str, *, source_type: str) -> Dict[str, A
             else "No known instruction-like injection pattern was detected in the analyzed source."
         ),
         "source_fingerprint": hashlib.sha256(text.encode("utf-8")).hexdigest()[:20],
+    }
+
+
+def fairness_guard_audit(texts: Iterable[Any]) -> Dict[str, Any]:
+    """Audit model decision text for potentially job-irrelevant attributes.
+
+    Source quotes are intentionally excluded by callers. A match is a
+    conservative review signal, never an automatic rejection or score change.
+    """
+
+    joined = "\n".join(str(value or "") for value in texts if value)
+    violations = sorted(name for name, pattern in _FAIRNESS_PATTERNS.items() if pattern.search(joined))
+    return {
+        "version": "fairness-audit-v1",
+        "status": "review" if violations else "pass",
+        "violations": violations,
+        "note": (
+            "Potentially job-irrelevant attributes were mentioned in AI decision text; require human review."
+            if violations
+            else "No protected or job-irrelevant attribute was detected in decision text."
+        ),
     }
 
 

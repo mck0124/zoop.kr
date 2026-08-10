@@ -214,6 +214,17 @@ export default function AIAnalysisSummary({ analysis, score, title }) {
         </div>
       )}
 
+      {fairness && (
+        <div className={`mt-3 rounded-xl border p-3 text-xs ${fairness.status === 'review' ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}`}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="font-semibold">Fairness guard</span>
+            <span className="rounded-full bg-white/70 px-2 py-1 font-semibold">{fairness.status || 'pass'}</span>
+          </div>
+          {fairness.audit?.note && <p className="mt-1">{fairness.audit.note}</p>}
+          {fairness.audit?.violations?.length > 0 && <p className="mt-1 font-medium">Review flags: {fairness.audit.violations.join(', ')}</p>}
+        </div>
+      )}
+
       {summary ? <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-700">{summary}</p> : null}
       {legacyText ? <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-700">{legacyText}</p> : null}
       {!summary && !legacyText && <p className="mt-3 text-sm text-gray-400">{copy.unreadable}</p>}
@@ -279,7 +290,6 @@ export default function AIAnalysisSummary({ analysis, score, title }) {
       {verificationPlan && <div className="mt-4"><div className="mb-1 text-xs font-semibold text-gray-500">{copy.next}</div><List items={verificationPlan} empty={copy.empty} /></div>}
       {counterfactuals && <div className="mt-4 rounded-xl border border-violet-100 bg-violet-50/60 p-3"><div className="mb-1 text-xs font-semibold text-violet-700">{copy.counterfactuals}</div>{asArray(counterfactuals).length ? <div className="space-y-2">{asArray(counterfactuals).slice(0, 4).map((item, index) => <div key={`${index}-${item.missing_signal || item.validation_action}`} className="rounded-lg border border-violet-100 bg-white/70 p-2 text-sm text-gray-700"><div className="font-medium">{item.missing_signal || item.signal || copy.needs}</div>{item.validation_action && <div className="mt-1 text-gray-600">Next check: {item.validation_action}</div>}{item.expected_score_delta !== undefined && <div className="mt-1 text-xs font-semibold text-violet-700">Potential score change: {Number(item.expected_score_delta) > 0 ? '+' : ''}{item.expected_score_delta}</div>}</div>)}</div> : <span className="text-sm text-gray-500">{copy.counterfactualDefault}</span>}</div>}
       <EvidenceBlock evidence={evidence} copy={copy} />
-      {fairness && <div className="mt-4 text-xs text-gray-500"><span className="font-semibold">{copy.fairness}:</span> {typeof fairness === 'string' ? fairness : fairness.summary || fairness.status || copy.fairnessDefault}</div>}
       {trace && <div className="mt-2 text-xs text-gray-500"><span className="font-semibold">{copy.trace}:</span> {Array.isArray(trace) ? trace.join(' → ') : typeof trace === 'string' ? trace : trace.summary || copy.traceDefault}</div>}
       {typeof analysis?.analysisData === 'string' && (
         <details className="mt-4 border-t border-gray-100 pt-3">

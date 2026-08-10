@@ -1,6 +1,6 @@
 import unittest
 
-from ai_quality import evidence_quality_report, source_integrity_audit
+from ai_quality import evidence_quality_report, fairness_guard_audit, source_integrity_audit
 
 
 class EvidenceQualityReportTests(unittest.TestCase):
@@ -33,6 +33,19 @@ class EvidenceQualityReportTests(unittest.TestCase):
         self.assertEqual(report["review_priority"], "low")
         self.assertEqual(report["needs_verification"], 0)
         self.assertEqual(report["unsupported_claim_rate"], 0.0)
+
+    def test_fairness_audit_requires_review_for_protected_attribute(self):
+        audit = fairness_guard_audit(["The candidate's university makes them a stronger fit."])
+
+        self.assertEqual(audit["version"], "fairness-audit-v1")
+        self.assertEqual(audit["status"], "review")
+        self.assertIn("education", audit["violations"])
+
+    def test_fairness_audit_passes_job_relevant_text(self):
+        audit = fairness_guard_audit(["Strong API design evidence; verify ownership and production impact."])
+
+        self.assertEqual(audit["status"], "pass")
+        self.assertEqual(audit["violations"], [])
 
 
 if __name__ == "__main__":

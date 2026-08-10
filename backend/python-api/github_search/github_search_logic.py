@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from PyPDF2 import PdfReader
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from common.ai_quality import evidence_quality_report, source_integrity_audit
+from common.ai_quality import evidence_quality_report, fairness_guard_audit, source_integrity_audit
 
 load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -792,6 +792,28 @@ JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므
                 "source_integrity": integrity,
             },
         })
+        fairness_audit = fairness_guard_audit([
+            result.get("summary"),
+            *result.get("keywords", []),
+            *result.get("strengths", []),
+            *result.get("gaps", []),
+            *result.get("risk_flags", []),
+            *result.get("suitable_roles", []),
+            result.get("growth_signal"),
+            *result.get("verification_plan", []),
+            *[dimension.get("claim") for dimension in dimensions],
+            *[dimension.get("reason") for dimension in dimensions],
+        ])
+        result["fairness_guard"] = {
+            "excluded_attributes": ["이름", "성별", "나이", "사진", "주소", "회사 출신 여부"],
+            "evaluated_attributes": ["공개 코드·프로젝트 근거", "기술적 깊이", "유지보수 신호", "협업 관련 공개 신호"],
+            "status": fairness_audit["status"],
+            "audit": fairness_audit,
+        }
+        if fairness_audit["status"] == "review":
+            result["risk_flags"] = list(dict.fromkeys(result.get("risk_flags", []) + ["Potentially job-irrelevant attributes appeared in AI decision text"]))
+            if result.get("decision") == "strong_match":
+                result["decision"] = "review"
         return json.dumps(result, ensure_ascii=False)
     except Exception as e:
         print(f"[OpenAI structured analysis error] {e}")
