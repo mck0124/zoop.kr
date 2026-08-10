@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { apiUrl } from '../../api/config';
+import AIAnalysisSummary, { parseAIAnalysisData } from '../../components/AIAnalysisSummary';
 
 export default function MatchingDetailPage() {
   const location = useLocation();
@@ -33,6 +34,9 @@ export default function MatchingDetailPage() {
     const evidence = getMatchEvidence();
     return evidence?.[key] ?? fallback;
   };
+
+  const analysisPayload = parseAIAnalysisData(analysis?.analysisData ?? analysis);
+  const analysisScore = analysisPayload?.score ?? analysis?.analysisScore;
 
   useEffect(() => {
     if (!candPortfolioId || !jobCandidateId || !analysisId) {
@@ -94,9 +98,7 @@ export default function MatchingDetailPage() {
         <h2 style={{ color: '#222', fontWeight: 800, fontSize: '1.2rem', marginBottom: 12 }}>2. AI analysis</h2>
         {analysis ? (
           <div style={{ background: '#f8fafd', borderRadius: 10, padding: 18, fontSize: 16 }}>
-            <div><b>Analysis score:</b> <span style={{ color: '#30c59b', fontWeight: 700, fontSize: 20 }}>{analysis.analysisScore ?? '-'}</span></div>
-            <div style={{ marginTop: 10 }}><b>Analysis:</b></div>
-            <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, maxHeight: 200, overflow: 'auto' }}>{typeof analysis.analysisData === 'string' ? analysis.analysisData : JSON.stringify(analysis.analysisData, null, 2)}</pre>
+            <AIAnalysisSummary analysis={analysis} score={analysisScore} title="Portfolio evidence analysis" />
           </div>
         ) : <div style={{ color: '#888' }}>Analysis is unavailable.</div>}
       </section>
@@ -108,6 +110,26 @@ export default function MatchingDetailPage() {
           <div><b>Match score:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{match.matchScore ?? match.matchingScore}</span></div>
           <div style={{ marginTop: 10 }}><b>Rationale:</b></div>
             <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, maxHeight: 200, overflow: 'auto', whiteSpace: 'pre-wrap' }}>{match.matchReason || match.matchingReason || 'No match rationale is available.'}</pre>
+            {Array.isArray(matchEvidence?.dimensions) && matchEvidence.dimensions.length > 0 && (
+              <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
+                <strong style={{ color: '#166534' }}>Match evidence by dimension</strong>
+                {matchEvidence.dimensions.map((dimension, index) => (
+                  <div key={index} style={{ border: '1px solid #d1fae5', background: '#fff', borderRadius: 10, padding: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                      <b>{dimension.name || 'Evaluation dimension'}</b>
+                      <span style={{ color: '#047857', fontWeight: 800 }}>{Number(dimension.score || 0).toFixed(0)}/{dimension.max || 100}</span>
+                    </div>
+                    <div style={{ marginTop: 5, color: '#64748b', fontSize: 12 }}>Evidence support: {Math.round(Number(dimension.evidence_support || 0) * 100)}%</div>
+                    {(dimension.evidence || []).slice(0, 2).map((item, evidenceIndex) => (
+                      <div key={evidenceIndex} style={{ marginTop: 8, color: '#475569', fontSize: 13 }}>
+                        <div>• {item.claim || 'No verified evidence'} <span style={{ color: item.verification_state === 'grounded' ? '#047857' : '#b45309', fontWeight: 700 }}>({item.verification_state || 'needs_verification'})</span></div>
+                        {item.quote && <div style={{ marginTop: 4, padding: '5px 8px', borderLeft: '3px solid #86efac', background: '#f8fafc', color: '#64748b' }}>“{item.quote}”</div>}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
             {matchEvidence && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 14 }}>
                 <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: 12 }}>

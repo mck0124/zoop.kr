@@ -646,7 +646,7 @@ function CandidateDashboard() {
             <select className="dropdown">
               <option>Hide viewed offers</option>
             </select>
-            <select className="dropdown">ㄴ
+            <select className="dropdown" aria-label="Items per page">
               <option>20 per page</option>
             </select>
           </div>
@@ -683,13 +683,13 @@ function CandidateDashboard() {
                   {post.jobCandCurrStage === '1n' && (
                     <button onClick={() => handleGoToSubmitPortfolio(post.postId)}
                       className="submit-portfolio-button">
-                      포트폴리오 제출하기
+                      Submit portfolio
                     </button>
                   )}
                   {post.jobCandCurrStage === '2n' && (
                     <button onClick={() => handleGoToSubmitPortfolio(post.postId)}
                       className="submit-portfolio-button">
-                      포트폴리오 제출하기
+                      Submit portfolio
                     </button>
                   )}
                   {post.jobCandCurrStage === '2y' && (
@@ -716,7 +716,7 @@ function CandidateDashboard() {
                         <circle cx="12" cy="12" r="10" />
                         <polyline points="12 6 12 12 16 14" />
                       </svg>
-                      면접 수락 요청 중
+                      Waiting for interview confirmation
                     </div>
                   )}
                   {post.jobCandCurrStage === '2p' && (
@@ -915,7 +915,7 @@ function CandidateDashboard() {
                   disabled
                   style={{ cursor: 'not-allowed', opacity: 0.7 }}
                 >
-                  결과 취합 중
+                  Results pending
                 </button>
               ) : post.jobCandCurrStage === '2y' ? (
                 <div 
