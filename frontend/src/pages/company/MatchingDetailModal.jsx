@@ -226,7 +226,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                           <strong style={{ color: '#6d28d9' }}>Evidence that could change the decision</strong>
                           <p style={{ margin: '7px 0', color: '#5b21b6', fontSize: 12 }}>Select a verification item to simulate its expected impact.</p>
                           <ul style={{ margin: '8px 0 0 18px', padding: 0, color: '#4c1d95', fontSize: 13 }}>
-                            {(counterfactuals.length ? counterfactuals : [{ missing_signal: '추가 검증 신호 없음', validation_action: '원본 자료 확인' }]).slice(0, 3).map((item, index) => (
+                            {(counterfactuals.length ? counterfactuals : [{ missing_signal: 'No additional verification signal', validation_action: 'Review the original source material' }]).slice(0, 3).map((item, index) => (
                               <li key={index} style={{ marginBottom: 7, listStyle: 'none' }}>
                                 <label style={{ display: 'flex', gap: 7, alignItems: 'flex-start', cursor: counterfactuals.length ? 'pointer' : 'default' }}>
                                   <input

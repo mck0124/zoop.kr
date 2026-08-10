@@ -24,10 +24,10 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
   };
 
   const categoryStyle = (category) => {
-    if (category.includes('근거')) return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-    if (category.includes('기술')) return 'bg-blue-100 text-blue-700 border-blue-200';
-    if (category.includes('문제')) return 'bg-violet-100 text-violet-700 border-violet-200';
-    if (category.includes('협업')) return 'bg-orange-100 text-orange-700 border-orange-200';
+    if (['근거', 'Evidence', '证据'].some(token => category.includes(token))) return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+    if (['기술', 'Technical', '技术'].some(token => category.includes(token))) return 'bg-blue-100 text-blue-700 border-blue-200';
+    if (['문제', 'Problem', '问题'].some(token => category.includes(token))) return 'bg-violet-100 text-violet-700 border-violet-200';
+    if (['협업', 'Collaboration', '协作'].some(token => category.includes(token))) return 'bg-orange-100 text-orange-700 border-orange-200';
     return 'bg-gray-100 text-gray-700 border-gray-200';
   };
 
