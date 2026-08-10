@@ -32,6 +32,52 @@
   letter-spacing: -0.5px !important;
 }
 
+.dashboard-feedback {
+  margin: -8px 0 18px;
+  padding: 12px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fff7f7;
+  color: #991b1b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dashboard-state-card {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 22px;
+  padding: 18px 20px;
+  border: 1px solid #bfdbfe;
+  border-radius: 16px;
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+.dashboard-state-card span {
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dashboard-state-card.error {
+  border-color: #fecaca;
+  background: #fff7f7;
+  color: #991b1b;
+}
+
+.dashboard-state-card.error button {
+  width: fit-content;
+  margin-top: 6px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: #16a34a;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 /* Info Box */
 .info-box {
   background-color: #f0fdf4;

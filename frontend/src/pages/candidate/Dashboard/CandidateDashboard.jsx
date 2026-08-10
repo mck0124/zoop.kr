@@ -20,6 +20,14 @@ import { apiUrl } from '../../../api/config';
 
 import './CandidateDashboard.css';
 
+const authenticatedFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+    ...(options.headers || {}),
+  },
+});
+
 // DB 날짜 포맷을 Date 객체로 변환하는 함수
 function parseDbDate(str) {
   if (!str || typeof str !== 'string') return null;
@@ -96,6 +104,9 @@ function CandidateDashboard() {
 
   // 백엔드에서 가져온 공고 목록 데이터를 저장할 상태
   const [jobPostings, setJobPostings] = useState([]);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState('');
+  const [dashboardFeedback, setDashboardFeedback] = useState({ type: '', message: '' });
 
   // 로그인한 사용자의 ID를 authState에서 가져옵니다.
   // authState.userId 또는 authState.candidateId 등 실제 필드명에 맞게 수정해주세요.
@@ -145,20 +156,26 @@ function CandidateDashboard() {
   // 컴포넌트가 처음 마운트되거나 candidateId가 변경될 때 데이터를 가져오는 useEffect 훅
   useEffect(() => {
     const fetchUserDataAndJobPostings = async () => {
+      if (!candidateId) {
+        setDashboardLoading(false);
+        setDashboardError('We could not identify your candidate profile. Please sign in again.');
+        return;
+      }
+      setDashboardLoading(true);
+      setDashboardError('');
       try {
         // 1. 사용자 정보 가져오기
-        const userResponse = await fetch(apiUrl(`/api/candidates/${candidateId}`));
+        const userResponse = await authenticatedFetch(apiUrl(`/api/candidates/${candidateId}`));
         if (userResponse.ok) {
           const userData = await userResponse.json();
           setUserName(userData.candidateName || 'Candidate');
         }
 
         // 2. 공고 목록 가져오기
-        const postingsResponse = await fetch(apiUrl(`/api/candidates/${candidateId}/job-postings`));
-        if (postingsResponse.ok) {
-          const postingsData = await postingsResponse.json();
-          setJobPostings(postingsData);
-        }
+        const postingsResponse = await authenticatedFetch(apiUrl(`/api/candidates/${candidateId}/job-postings`));
+        if (!postingsResponse.ok) throw new Error(`Unable to load opportunities (${postingsResponse.status})`);
+        const postingsData = await postingsResponse.json();
+        setJobPostings(Array.isArray(postingsData) ? postingsData : []);
 
         // 3. 사용자 설정 불러오기
         await loadPreferencesFromDB();
@@ -168,8 +185,10 @@ function CandidateDashboard() {
         
       } catch (error) {
         console.error('데이터 가져오기 오류:', error);
-        setUserName('Unable to load profile');
-        setJobPostings([]); // 공고 목록 로딩 오류 시 빈 배열로 설정
+        setDashboardError('We could not load your opportunities. Please retry in a moment.');
+        setJobPostings([]);
+      } finally {
+        setDashboardLoading(false);
       }
     };
 
@@ -214,7 +233,7 @@ function CandidateDashboard() {
     
     // 1. 서버에서 최신 데이터를 다시 가져와서 상태 동기화
     try {
-      const response = await fetch(apiUrl(`/api/candidates/${candidateId}/job-postings`));
+      const response = await authenticatedFetch(apiUrl(`/api/candidates/${candidateId}/job-postings`));
       if (response.ok) {
         const updatedJobPostings = await response.json();
         setJobPostings(updatedJobPostings);
@@ -222,7 +241,7 @@ function CandidateDashboard() {
         
         // 2. 면접 일정 정보를 백엔드에서 가져와서 scheduledInterviews에 저장
         try {
-          const interviewResponse = await fetch(apiUrl(`/api/interviews/by-post-candidate?postId=${postId}&candidateId=${candidateId}`));
+          const interviewResponse = await authenticatedFetch(apiUrl(`/api/interviews/by-post-candidate?postId=${postId}&candidateId=${candidateId}`));
           if (interviewResponse.ok) {
             const interviewData = await interviewResponse.json();
             console.log("면접 정보 조회 성공:", interviewData);
@@ -282,7 +301,7 @@ function CandidateDashboard() {
       // 1. 현재 로그인한 사용자의 candidateId 가져오기
       const candidateId = localStorage.getItem('userId');
       if (!candidateId) {
-        alert('We could not find your profile. Please sign in again.');
+        setDashboardFeedback({ type: 'error', message: 'We could not find your profile. Please sign in again.' });
         return;
       }
 
@@ -292,13 +311,13 @@ function CandidateDashboard() {
         const interviewDateTime = new Date(interview.iso);
         const now = new Date();
         if (interviewDateTime > now) {
-          alert('The interview has not started yet.');
+          setDashboardFeedback({ type: 'error', message: 'The interview has not started yet.' });
           return;
         }
       }
 
       // 3. 백엔드 API 호출 URL 수정
-      const response = await fetch(apiUrl(`/api/interviews/by-post-candidate?postId=${postId}&candidateId=${candidateId}`));
+      const response = await authenticatedFetch(apiUrl(`/api/interviews/by-post-candidate?postId=${postId}&candidateId=${candidateId}`));
       if (!response.ok) {
         const errorText = await response.text();
         console.error("API 응답 오류:", response.status, errorText);
@@ -313,11 +332,11 @@ function CandidateDashboard() {
       if (data && data.scheduleId) {
         navigate(`/interview/${data.scheduleId}`);
       } else {
-        alert('No interview schedule was found for this job posting.');
+        setDashboardFeedback({ type: 'error', message: 'No interview schedule was found for this job posting.' });
       }
     } catch (error) {
       console.error('면접 페이지로 이동 중 오류 발생:', error);
-      alert(`We could not open the interview page: ${error.message}`);
+      setDashboardFeedback({ type: 'error', message: `We could not open the interview page: ${error.message}` });
     }
   };
 
@@ -413,7 +432,7 @@ function CandidateDashboard() {
   // 사용자 설정을 DB에 저장하는 함수
   const savePreferencesToDB = async (preferences) => {
     try {
-      const response = await fetch(apiUrl(`/api/candidates/${candidateId}/preferences`), {
+      const response = await authenticatedFetch(apiUrl(`/api/candidates/${candidateId}/preferences`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -437,7 +456,7 @@ function CandidateDashboard() {
   // 사용자 설정을 DB에서 불러오는 함수
   const loadPreferencesFromDB = async () => {
     try {
-      const response = await fetch(apiUrl(`/api/candidates/${candidateId}/preferences`));
+      const response = await authenticatedFetch(apiUrl(`/api/candidates/${candidateId}/preferences`));
       if (response.ok) {
         const preferences = await response.json();
         
@@ -479,7 +498,7 @@ function CandidateDashboard() {
   const loadExistingInterviewSchedules = async () => {
     try {
       // 각 공고별로 면접 일정 정보를 가져오기
-      const jobPostingsResponse = await fetch(apiUrl(`/api/candidates/${candidateId}/job-postings`));
+      const jobPostingsResponse = await authenticatedFetch(apiUrl(`/api/candidates/${candidateId}/job-postings`));
       if (jobPostingsResponse.ok) {
         const jobPostings = await jobPostingsResponse.json();
         
@@ -488,7 +507,7 @@ function CandidateDashboard() {
           .filter(post => post.jobCandCurrStage === '3n')
           .map(async (post) => {
             try {
-              const interviewResponse = await fetch(apiUrl(`/api/interviews/by-post-candidate?postId=${post.postId}&candidateId=${candidateId}`));
+              const interviewResponse = await authenticatedFetch(apiUrl(`/api/interviews/by-post-candidate?postId=${post.postId}&candidateId=${candidateId}`));
               if (interviewResponse.ok) {
                 const interviewData = await interviewResponse.json();
                 return {
@@ -541,6 +560,31 @@ function CandidateDashboard() {
         <PortfolioNavbar userName={userName} />
 
         <h1 className="page-title">Your opportunities</h1>
+
+        {dashboardFeedback.message && (
+          <div
+            role="alert"
+            aria-live="polite"
+            className="dashboard-feedback"
+          >
+            {dashboardFeedback.message}
+          </div>
+        )}
+
+        {dashboardLoading && (
+          <div className="dashboard-state-card" role="status" aria-live="polite">
+            <strong>Loading your opportunities…</strong>
+            <span>We are syncing applications, interview schedules, and preferences.</span>
+          </div>
+        )}
+
+        {dashboardError && !dashboardLoading && (
+          <div className="dashboard-state-card error" role="alert">
+            <strong>We could not load your dashboard</strong>
+            <span>{dashboardError}</span>
+            <button type="button" onClick={() => window.location.reload()}>Try again</button>
+          </div>
+        )}
 
         <div className="info-box company-proposal">
           <p>
