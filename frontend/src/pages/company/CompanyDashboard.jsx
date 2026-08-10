@@ -29,6 +29,7 @@ export default function CompanyDashboard() {
   const [loadingPostDetail, setLoadingPostDetail] = useState(false);
   const [githubCandidates, setGithubCandidates] = useState([]);
   const [loadingCandidates, setLoadingCandidates] = useState(false);
+  const [candidateLoadError, setCandidateLoadError] = useState('');
   const [activeTab, setActiveTab] = useState('details'); // 'details' or 'candidates'
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -374,6 +375,7 @@ export default function CompanyDashboard() {
   // 후보자 목록 불러오기 (상태값 포함 API 사용)
   const fetchCandidates = async (postId, filter = '전체') => {
     setLoadingCandidates(true);
+    setCandidateLoadError('');
     try {
       let endpoint = '';
       switch (filter) {
@@ -422,6 +424,7 @@ export default function CompanyDashboard() {
     } catch (e) {
       console.error('후보자 조회 오류:', e);
       setGithubCandidates([]);
+      setCandidateLoadError('We could not load candidate evidence. Please retry.');
     } finally {
       setLoadingCandidates(false);
     }
@@ -1822,7 +1825,44 @@ export default function CompanyDashboard() {
                     )}
                     {activeTab === 'candidates' && (
                       <AnimatePresence mode="wait">
-                        {candidateFilter === '추가 지원자' && githubCandidates.length === 0 ? (
+                        {candidateLoadError ? (
+                          <motion.div
+                            key="candidate-load-error"
+                            role="alert"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            style={{
+                              padding: '2rem',
+                              background: '#fff7ed',
+                              borderRadius: '12px',
+                              border: '1px solid #fed7aa',
+                              textAlign: 'center',
+                              color: '#9a3412'
+                            }}
+                          >
+                            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚠️</div>
+                            <p style={{ margin: 0, fontWeight: 700 }}>{candidateLoadError}</p>
+                            <p style={{ fontSize: '0.9rem', margin: '0.6rem 0 1.2rem', color: '#c2410c' }}>
+                              Your filters are unchanged. Try again when the service is available.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => fetchCandidates(selectedPostId, candidateFilter)}
+                              style={{
+                                border: 'none',
+                                borderRadius: '999px',
+                                padding: '0.65rem 1.2rem',
+                                background: '#ea580c',
+                                color: '#fff',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Retry
+                            </button>
+                          </motion.div>
+                        ) : candidateFilter === '추가 지원자' && githubCandidates.length === 0 ? (
                           <motion.div
                             key="empty-additional"
                             initial={{ opacity: 0, y: 20 }}
