@@ -749,18 +749,30 @@ const extractScore = (analysisText) => {
   return 0;
 };
 
+// Analysis records are stored in two shapes: direct ledgers and interview
+// envelopes such as { analysis: {...}, score, transcripts }. Resolve both in
+// one place so the decision lens and comparison table never downgrade a valid
+// interview result to "insufficient evidence" just because of storage shape.
+const parseCandidateAnalysis = (analysisText) => {
+  let parsed = analysisText;
+  if (typeof analysisText === 'string') {
+    try {
+      parsed = JSON.parse(analysisText);
+    } catch (_) {
+      return { root: null, envelope: null };
+    }
+  }
+  if (!parsed || typeof parsed !== 'object') return { root: null, envelope: null };
+  const root = parsed.analysis && typeof parsed.analysis === 'object' ? parsed.analysis : parsed;
+  return { root, envelope: parsed };
+};
+
 const getAnalysisPayload = (candidate, analysisResult) => {
   const analysisText = analysisResult?.analysisData || candidate?.portfolioAnalysis || candidate?.analysis || '';
-  let payload = null;
-  try {
-    const parsed = typeof analysisText === 'string' ? JSON.parse(analysisText) : analysisText;
-    if (parsed && typeof parsed === 'object') payload = parsed;
-  } catch (_) {
-    // 구버전 자연어 분석은 아래의 보수적인 기본값으로 표시한다.
-  }
+  const { root: payload, envelope } = parseCandidateAnalysis(analysisText);
   const candidateScore = Number(candidate?.analysisScore ?? candidate?.parsed_score);
   const fallbackScore = Number.isFinite(candidateScore) && candidateScore > 0 ? candidateScore : extractScore(analysisText);
-  const rawScore = payload?.score_calibration?.calibrated_score ?? payload?.score ?? fallbackScore;
+  const rawScore = payload?.score_calibration?.calibrated_score ?? payload?.score ?? envelope?.score ?? fallbackScore;
   const score = Number(rawScore);
   const coverageRaw = payload?.evidence_coverage ?? payload?.evidenceCoverage;
   const coverageNumber = Number(coverageRaw);
@@ -850,23 +862,15 @@ const CandidateComparisonModal = ({ candidates, aiAnalysisResults, selectedLogin
     return { candidate, ...getAnalysisPayload(candidate, analysisResult) };
   });
   const dimensions = [...new Set(rows.flatMap(row => {
-    try {
-      const parsed = JSON.parse(row.analysisText || '{}');
-      return Array.isArray(parsed?.dimensions) ? parsed.dimensions.map(item => item.name).filter(Boolean) : [];
-    } catch (_) {
-      return [];
-    }
+    const { root } = parseCandidateAnalysis(row.analysisText);
+    return Array.isArray(root?.dimensions) ? root.dimensions.map(item => item.name).filter(Boolean) : [];
   }))].slice(0, 6);
 
   if (!rows.length) return null;
   const decisionLabel = { strong_match: 'Strong match', review: 'Review recommended', not_enough_evidence: 'Insufficient evidence' };
   const getDimension = (row, name) => {
-    try {
-      const parsed = JSON.parse(row.analysisText || '{}');
-      return Array.isArray(parsed?.dimensions) ? parsed.dimensions.find(item => item.name === name) : null;
-    } catch (_) {
-      return null;
-    }
+    const { root } = parseCandidateAnalysis(row.analysisText);
+    return Array.isArray(root?.dimensions) ? root.dimensions.find(item => item.name === name) : null;
   };
 
   return (
@@ -3509,3 +3513,5 @@ const GrowthPotentialVisual = ({ growthText, width = 400, height = 150 }) => {
     </div>
   );
 };
+
+export { parseCandidateAnalysis, getAnalysisPayload };
