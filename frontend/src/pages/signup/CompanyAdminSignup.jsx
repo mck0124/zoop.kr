@@ -17,6 +17,7 @@ export default function CompanyAdminSignup() {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [resendTimer, setResendTimer] = useState(300);
   const [passwordStrength, setPasswordStrength] = useState('');
   const [strengthColor, setStrengthColor] = useState('#aaa');
@@ -34,14 +35,15 @@ export default function CompanyAdminSignup() {
       return;
     }
     setIsSendingCode(true);
+    setErrorMessage('');
+    setSuccessMessage('');
     const fullEmail = `${emailLocal}@${emailDomain}`;
     try {
       const res = await fetch(apiUrl(`/api/email/send?email=${encodeURIComponent(fullEmail)}`), {
         method: 'POST',
       });
       if (res.ok) {
-        alert('Verification code sent.');
-        setErrorMessage('');
+        setSuccessMessage('Verification code sent.');
         setCodeSent(true);
         setResendTimer(300);
       } else {
@@ -89,10 +91,11 @@ export default function CompanyAdminSignup() {
       method: 'POST',
     });
     if (res.ok) {
-      alert('Email verified.');
+      setSuccessMessage('Email verified.');
+      setErrorMessage('');
       setIsEmailVerified(true);
     } else {
-      alert('Verification failed. Check the code and try again.');
+      setErrorMessage('Verification failed. Check the code and try again.');
     }
   };
 
@@ -132,10 +135,10 @@ export default function CompanyAdminSignup() {
       if (res.ok) {
         navigate('/auth/company/signup/success');
       } else {
-        alert('Sign-up failed.');
+        setErrorMessage('Sign-up failed. Please review your details and try again.');
       }
     } catch (err) {
-      alert('A server error occurred.');
+      setErrorMessage('A server error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -174,22 +177,23 @@ export default function CompanyAdminSignup() {
                   disabled={idChecked}
                   onClick={async () => {
                     if (loginId.length < 4 || loginId.length > 20) {
-                  alert('Username must be 4–20 characters.');
+                      setErrorMessage('Username must be 4–20 characters.');
                       return;
                     }
                     try {
                       const res = await fetch(apiUrl(`/api/companyadmins/check-id?loginId=${encodeURIComponent(loginId)}`));
                       if (res.ok) {
                         const data = await res.text();
-                        alert(data);
+                        setSuccessMessage(data);
+                        setErrorMessage('');
                         if (data.includes('사용 가능한') || data.toLowerCase().includes('available')) {
                           setIdChecked(true);
                         }
                       } else {
-                        alert('Could not check username availability.');
+                        setErrorMessage('Could not check username availability.');
                       }
                     } catch (err) {
-                      alert('Could not connect to the server.');
+                      setErrorMessage('Could not connect to the server.');
                     }
                   }}
                   style={{
@@ -379,7 +383,8 @@ export default function CompanyAdminSignup() {
                 </div>
               )}
             </div>
-            {errorMessage && <p style={{ color: 'red', marginTop: '0.5rem' }}>{errorMessage}</p>}
+            {errorMessage && <p role="alert" style={{ color: '#b91c1c', marginTop: '0.5rem' }}>{errorMessage}</p>}
+            {successMessage && <p role="status" aria-live="polite" style={{ color: '#166534', marginTop: '0.5rem' }}>{successMessage}</p>}
 
             <button
                 type="submit"

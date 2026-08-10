@@ -33,6 +33,7 @@ const [codeSent, setCodeSent] = useState(false); // 인증 코드가 전송되�
 const [resendTimer, setResendTimer] = useState(300); // 재전송 타이머 (단위: 초, 기본 5분)
 const [isSendingCode, setIsSendingCode] = useState(false); // 인증 코드 전송 중 여부 (버튼 비활성화용)
 const [errorMessage, setErrorMessage] = useState(''); // 에러메시지지
+const [successMessage, setSuccessMessage] = useState('');
 
 // ============ [누락된 상태 변수들 추가] ============
 const [password, setPassword] = useState('');
@@ -147,6 +148,8 @@ const handleSendCode = async () => {
     return;
   }
   setIsSendingCode(true); // 전송 중 상태로 설정
+  setErrorMessage('');
+  setSuccessMessage('');
   const fullEmail = `${emailLocal}@${emailDomain}`; // 전체 이메일 주소 조합
   try {
     const res = await fetch(apiUrl(`/api/email/send?email=${encodeURIComponent(fullEmail)}`), {
@@ -154,8 +157,7 @@ const handleSendCode = async () => {
     });
 
     if (res.ok) {
-      alert('Verification code sent.');
-      setErrorMessage('');
+      setSuccessMessage('Verification code sent.');
       setCodeSent(true); // 코드 전송 성공 시 상태 변경
       setResendTimer(300);
     } else {
@@ -240,7 +242,7 @@ useEffect(() => {
     try {
       const res = await fetch(apiUrl(`/api/email/verify?email=${encodeURIComponent(fullEmail)}&code=${verificationCode}`), { method: 'POST' });
       if (res.ok) {
-        alert('Email verified.');
+        setSuccessMessage('Email verified.');
         setErrorMessage('');
         setIsEmailVerified(true);
       } else {
@@ -404,19 +406,19 @@ useEffect(() => {
         
         if (response.status === 400 || response.status === 500) {
           if (errorData.includes('이미 가입된 GitHub 계정입니다')) {
-            alert('This GitHub account is already registered. Try another account.');
+            setErrorMessage('This GitHub account is already registered. Try another account.');
           } else if (errorData.includes('이미 가입된 이메일 주소입니다')) {
-            alert('This email address is already registered. Try another email.');
+            setErrorMessage('This email address is already registered. Try another email.');
           } else {
-            alert('Something went wrong while creating your account: ' + errorData);
+            setErrorMessage('Something went wrong while creating your account: ' + errorData);
           }
         } else {
-          alert('Account creation failed: ' + errorData);
+          setErrorMessage('Account creation failed: ' + errorData);
         }
       }
     } catch (error) {   // fetch요청 자체가 실패한 경우
       console.error('오류 발생:', error);
-      alert('Network error. Check your connection and try again.');
+      setErrorMessage('Network error. Check your connection and try again.');
     }
   };
 
@@ -623,7 +625,8 @@ useEffect(() => {
         </div>
 
         {/* 에러 메시지 & 제출 버튼 */}
-        {errorMessage && <p className="text-red-600 text-sm font-medium">⚠ {errorMessage}</p>}
+        {errorMessage && <p role="alert" className="text-red-600 text-sm font-medium">⚠ {errorMessage}</p>}
+        {successMessage && <p role="status" aria-live="polite" className="text-emerald-700 text-sm font-medium">✓ {successMessage}</p>}
         <button
           type="submit"
           disabled={!isFormValid}
