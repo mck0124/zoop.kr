@@ -20,17 +20,17 @@ export default function Signup() {
     <>
       {/* SEO 컴포넌트 */}
       <SEO
-        title="회원가입 - ZOOP | AI 기반 채용 플랫폼"
-        description="ZOOP에 회원가입하여 AI 기반 채용 서비스를 시작하세요. 개발자와 기업 모두를 위한 맞춤형 채용 솔루션을 제공합니다."
-        keywords="ZOOP 회원가입, AI채용가입, 개발자회원가입, 기업회원가입, 채용플랫폼가입"
+        title="Sign up - ZOOP | Evidence-first hiring"
+        description="Create a ZOOP account to join an evidence-first recruiting experience for candidates and companies."
+        keywords="ZOOP sign up, AI recruiting, candidate account, company account"
         image="/signup-banner.jpg"
         url="https://zoop.com/auth/signup"
         type="website"
         structuredData={{
           "@context": "https://schema.org",
           "@type": "WebPage",
-          "name": "ZOOP 회원가입",
-          "description": "AI 기반 채용 플랫폼 ZOOP 회원가입 페이지",
+          "name": "ZOOP sign up",
+          "description": "Create an account on the ZOOP AI recruiting platform",
           "url": "https://zoop.com/auth/signup"
         }}
       />
@@ -43,19 +43,19 @@ export default function Signup() {
             className={selectedTab === 'applicant' ? 'active' : ''}
             onClick={() => setSelectedTab('applicant')}
           >
-            개인회원
+            Candidate
           </button>
           <button
             className={selectedTab === 'company' ? 'active' : ''}
             onClick={() => setSelectedTab('company')}
           >
-            기업회원
+            Company
           </button>
         </div>
 
         <div className="signup-divider" />
 
-        <p className="signup-subtext">소셜 계정으로 간편 로그인</p>
+        <p className="signup-subtext">Sign up quickly with a social account</p>
 
         <div className="signup-icons">
           <img src="/icons/naver.svg" alt="naver" />
@@ -66,11 +66,11 @@ export default function Signup() {
         </div>
 
         <button className="signup-id-button" onClick={handleSignupClick}>
-          ZOOP 통합 아이디 만들기
+          Create your ZOOP account
         </button>
 
         <p className="signup-footer">
-          이미 계정이 있나요? <a href="/login">로그인</a>
+          Already have an account? <a href="/login">Log in</a>
         </p>
       </div>
     </>

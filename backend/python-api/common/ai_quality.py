@@ -19,6 +19,9 @@ _INSTRUCTION_PATTERNS = (
     re.compile(r"\b(?:system|developer)\s+(?:prompt|message|instruction)\b", re.I),
     re.compile(r"\b(?:jailbreak|do\s+anything\s+now|prompt\s+injection)\b", re.I),
     re.compile(r"\breturn\s+only\s+(?:the\s+)?(?:secret|system|hidden)\b", re.I),
+    re.compile(r"(?:이전|앞선|위의)\s*(?:지시|명령|프롬프트).{0,12}(?:무시|무시해|따르지)", re.I),
+    re.compile(r"(?:系统|开发者|之前的)\s*(?:提示|指令|消息).{0,12}(?:忽略|无视|不要遵循)", re.I),
+    re.compile(r"(?:ignore|disregard|follow)\s+(?:this|these)\s+(?:instructions?|rules?)", re.I),
 )
 
 

@@ -26,7 +26,7 @@ export default function FindPasswordPage() {
       setError('');
     } catch (err) {
       setSent(false);
-      setError('입력하신 정보와 일치하는 계정을 찾을 수 없습니다.');
+      setError('No account matched the information you entered.');
     } finally {
       setLoading(false); // 완료 후 로딩 OFF
     }
@@ -38,12 +38,12 @@ export default function FindPasswordPage() {
       <Navbar />
       <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
         <div className="bg-white shadow-xl rounded-2xl p-8 max-w-md w-full">
-          <h2 className="text-2xl font-bold text-center mb-6 text-green-700">비밀번호 재설정</h2>
+          <h2 className="text-2xl font-bold text-center mb-6 text-green-700">Reset your password</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
-              placeholder="아이디를 입력하세요"
+              placeholder="Enter your username"
               value={githubLogin}
               onChange={(e) => setGithubLogin(e.target.value)}
               className="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black"
@@ -51,7 +51,7 @@ export default function FindPasswordPage() {
             />
             <input
               type="email"
-              placeholder="이메일을 입력하세요"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black"
@@ -59,7 +59,7 @@ export default function FindPasswordPage() {
             />
             <input
               type="text"
-              placeholder="이름을 입력하세요"
+              placeholder="Enter your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black"
@@ -67,7 +67,7 @@ export default function FindPasswordPage() {
             />
             <input
               type="text"
-              placeholder="휴대폰번호를 입력하세요"
+              placeholder="Enter your phone number"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               className="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black"
@@ -101,10 +101,10 @@ export default function FindPasswordPage() {
                       d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z"
                     ></path>
                   </svg>
-                  링크 전송중...
+                  Sending reset link...
                 </div>
               ) : (
-                '재설정 링크 보내기'
+                'Send reset link'
               )}
             </button>
           </form>
@@ -112,7 +112,7 @@ export default function FindPasswordPage() {
 
           {sent && (
             <p className="mt-6 text-green-700 font-semibold text-center">
-              이메일로 비밀번호 재설정 링크가 전송되었습니다.
+              A password reset link was sent to your email.
             </p>
           )}
 

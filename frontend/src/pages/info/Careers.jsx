@@ -13,10 +13,10 @@ import { useNavigate } from 'react-router-dom';
 import { apiUrl } from '../../api/config';
 
 const LANGUAGES = [
-  'Python', 'JavaScript', 'Java', 'C++', 'Go', 'Ruby', 'Kotlin', 'TypeScript', '기타'
+  'Python', 'JavaScript', 'Java', 'C++', 'Go', 'Ruby', 'Kotlin', 'TypeScript', 'Other'
 ];
 const LOCATIONS = [
-  '서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주', '기타'
+  ['Seoul', '서울'], ['Gyeonggi', '경기'], ['Incheon', '인천'], ['Busan', '부산'], ['Daegu', '대구'], ['Gwangju', '광주'], ['Daejeon', '대전'], ['Ulsan', '울산'], ['Sejong', '세종'], ['Gangwon', '강원'], ['North Chungcheong', '충북'], ['South Chungcheong', '충남'], ['North Jeolla', '전북'], ['South Jeolla', '전남'], ['North Gyeongsang', '경북'], ['South Gyeongsang', '경남'], ['Jeju', '제주'], ['Other', '기타']
 ];
 
 function Careers() {
@@ -87,11 +87,11 @@ function Careers() {
         setPostings(data.map(p => ({ ...p, companyName: p.companyName || 'ZOOP' })));
       } else {
         setPostings([]);
-        setLoadError('채용 공고를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+        setLoadError('We could not load job postings. Please try again shortly.');
       }
     } catch {
       setPostings([]);
-      setLoadError('채용 서버와 연결되지 않았습니다. 네트워크를 확인한 뒤 다시 시도해 주세요.');
+      setLoadError('We could not connect to the jobs service. Check your network and try again.');
     } finally {
       setLoading(false);
     }
@@ -108,10 +108,10 @@ function Careers() {
         setShowSuccessModal(true);
       } else {
         const err = await res.json();
-        alert(`지원 신청 실패: ${err.error || '알 수 없는 오류'}`);
+        alert(`Application failed: ${err.error || 'Unknown error'}`);
       }
     } catch {
-      alert('지원 신청 중 오류가 발생했습니다. 다시 시도해주세요.');
+      alert('Something went wrong while submitting your application. Please try again.');
     }
   };
 
@@ -174,17 +174,17 @@ function Careers() {
     <>
       {/* SEO 컴포넌트 */}
       <SEO
-        title="채용 공고 - ZOOP | 최고의 개발자 채용 기회"
-        description="ZOOP에서 제공하는 최고의 개발자 채용 기회를 확인하세요. AI 기반 매칭으로 최적의 기업과 연결됩니다. React, Java, Python 등 다양한 기술 스택의 채용 공고를 제공합니다."
-        keywords="채용공고, 개발자채용, IT채용, React개발자, Java개발자, Python개발자, AI엔지니어, 프론트엔드개발자, 백엔드개발자"
+        title="Careers - ZOOP | Evidence-first opportunities"
+        description="Explore developer roles and connect with companies through ZOOP's evidence-based hiring platform."
+        keywords="ZOOP careers, developer jobs, AI recruiting, engineering roles"
         image="/careers1.png"
         url="https://zoop.com/careers"
         type="website"
         structuredData={{
           "@context": "https://schema.org",
           "@type": "ItemList",
-          "name": "ZOOP 채용 공고",
-          "description": "AI 기반 채용 플랫폼 ZOOP의 개발자 채용 공고",
+          "name": "ZOOP careers",
+          "description": "Developer opportunities on the ZOOP AI recruiting platform",
           "numberOfItems": postings.length,
           "itemListElement": postings.slice(0, 10).map((post, index) => ({
             "@type": "ListItem",
@@ -232,7 +232,7 @@ function Careers() {
             key="image"
             className={`careers-media ${videoPhase === 1 ? 'active' : 'inactive'} ${isTransitioning ? 'transitioning' : ''}`}
             src="/careers1.png"
-            alt="채용 이미지"
+            alt="Developer opportunities"
             onError={(e) => {
               console.warn('Image loading error:', e);
             }}
@@ -242,8 +242,8 @@ function Careers() {
             {showText && (
               <h1 className="video-title">
                 {videoPhase === 0
-                  ? '최고의 기업들이 당신을 기다리고 있습니다'
-                  : '지금 바로 지원해보세요!'}
+                  ? 'Great teams are looking for their next builder'
+                  : 'Find your next opportunity'}
               </h1>
             )}
           </div>
@@ -253,15 +253,15 @@ function Careers() {
         <section className="careers-filter-bar">
           <div className="filter-group">
             <select value={languageFilter} onChange={e=>setLanguageFilter(e.target.value)} className="filter-select">
-              <option value="">언어 선택</option>
+              <option value="">Filter by language</option>
               {LANGUAGES.map(lang=> <option key={lang} value={lang}>{lang}</option>)}
             </select>
             <select value={locationFilter} onChange={e=>setLocationFilter(e.target.value)} className="filter-select">
-              <option value="">지역 선택</option>
-              {LOCATIONS.map(loc=> <option key={loc} value={loc}>{loc}</option>)}
+              <option value="">Filter by location</option>
+              {LOCATIONS.map(([label, value]) => <option key={value} value={value}>{label}</option>)}
             </select>
             <div className="search-box">
-              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="검색어 입력" />
+              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search jobs or companies" />
               <FaSearch className="search-icon" />
             </div>
           </div>
@@ -273,17 +273,17 @@ function Careers() {
             {loading ? (
               <div className="loading-container">
                 <div className="loading-spinner" />
-                <p>채용 공고를 불러오는 중...</p>
+                <p>Loading job postings...</p>
               </div>
             ) : loadError ? (
               <div className="no-jobs" role="alert" style={{ display: 'grid', gap: 12, justifyItems: 'center' }}>
                 <span>{loadError}</span>
                 <button type="button" onClick={fetchPublicPostings} style={{ border: '1px solid #30c59b', borderRadius: 999, padding: '9px 16px', background: '#ecfdf5', color: '#087f5b', fontWeight: 700, cursor: 'pointer' }}>
-                  다시 불러오기
+                  Try again
                 </button>
               </div>
             ) : currentPosts.length === 0 ? (
-              <div className="no-jobs">조건에 맞는 채용 공고가 없습니다.</div>
+              <div className="no-jobs">No job postings match your filters.</div>
             ) : currentPosts.map(post => (
               <CompactJobCard
                 key={post.postId}

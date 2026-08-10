@@ -189,24 +189,24 @@ export default function CompanySignupProcess() {
           </div>
 
           <div className="form-section">
-            <label>사업자등록번호</label>
+            <label>Business registration number</label>
             <input type="text" value={bizNum} onChange={(e) => setBizNum(e.target.value)} />
           </div>
           <div className="form-section">
-            <label>상호 (법인명)</label>
+            <label>Legal company name</label>
             <input type="text" value={corpName} onChange={(e) => setCorpName(e.target.value)} />
           </div>
           <div className="form-section">
-            <label>성명 (대표자)</label>
+            <label>Representative name</label>
             <input type="text" value={ceoName} onChange={(e) => setCeoName(e.target.value)} />
           </div>
           <div className="form-section">
-            <label>사업장 소재지</label>
+            <label>Business address</label>
             <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} />
           </div>
 
           <button className="submit-button" onClick={handleSubmit}>
-            기업등록 완료
+            Complete company registration
           </button>
         </div>
       </div>

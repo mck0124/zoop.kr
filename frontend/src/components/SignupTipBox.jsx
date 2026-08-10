@@ -7,9 +7,9 @@ export default function SignupTipBox() {
       <h3>⭐️ TIP.</h3>
 
       <div className="tip-section">
-        <strong>1. 사업자등록증명원이 뭐에요?</strong>
+        <strong>1. What is a business registration certificate?</strong>
         <p className="tip-desc">
-            <span>사업자등록증</span>과 달리 <strong>위조 방지용 번호</strong>와 <strong>발급 일자</strong>가 기재되어 있어요!
+            Unlike a basic business license, it includes an <strong>anti-forgery number</strong> and <strong>issue date</strong>.
         </p>
 
 
@@ -19,34 +19,34 @@ export default function SignupTipBox() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <button>사업자등록증명원 발급</button>
+          <button>Issue certificate</button>
         </a>
         <a
           href="https://help.jobis.co/hc/ko/articles/360003271654-%EC%82%AC%EC%97%85%EC%9E%90%EB%93%B1%EB%A1%9D%EC%A6%9D%EB%AA%85-%EB%B0%9C%EA%B8%89%EB%B0%A9%EB%B2%95"
           target="_blank"
           rel="noopener noreferrer"
         >
-          <button>발급 및 다운 방법 안내</button>
+          <button>How to issue and download</button>
         </a>
       </div>
 
       <div className="tip-section">
-        <strong>2. 기업인증은 왜 하나요?</strong>
+        <strong>2. Why verify a company?</strong>
         <p className="tip-desc">
-          안전한 채용문화를 위해<br />
-          <strong>기업 서비스 이용 전</strong> 기업인증이<br />완료되어야 합니다.
+          To support a safer hiring environment,<br />
+          company verification must be<br /><strong>completed before using company tools.</strong>
         </p>
       </div>
 
       <div className="tip-section">
-        <strong>3. 제출 서류</strong>
+        <strong>3. Required documents</strong>
         <div className="tip-file">
-          🏢 일반 기업, 개인, 비영리 단체<br />
-          <strong>사업자등록증명원</strong> (발급 3개월 이내)
+          🏢 Companies, individuals, and nonprofits<br />
+          <strong>Business registration certificate</strong> (issued within 3 months)
         </div>
         <div className="tip-file">
-          🕵️ 헤드헌터 · 파견<br />
-          <strong>사업자등록증명원 + <br />직업소개사업증 or 파견허가증</strong>
+          🕵️ Agencies and staffing firms<br />
+          <strong>Business certificate + <br />recruitment or staffing permit</strong>
         </div>
       </div>
     </div>

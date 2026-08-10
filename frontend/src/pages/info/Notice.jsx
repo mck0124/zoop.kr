@@ -6,58 +6,58 @@ import SEO from '../../components/SEO';
 const noticeList = [
   {
     id: 1,
-    title: '서비스 점검 안내',
+    title: 'Scheduled service maintenance',
     date: '2025-07-01',
-    category: '시스템',
-    summary: '7월 10일(수) 00:00~02:00까지 서비스 점검이 예정되어 있습니다.',
+    category: 'System',
+    summary: 'Scheduled maintenance will take place on July 10 from 00:00 to 02:00.',
     detail: (
       <ul style={{ textAlign: "left", marginTop: 10, marginBottom: 0 }}>
-        <li>서비스 점검 시간: 2024년 7월 10일(수) 00:00~02:00</li>
-        <li>점검 중 일부 기능이 제한될 수 있습니다.</li>
-        <li>더 나은 서비스 제공을 위한 점검이니 양해 부탁드립니다.</li>
+        <li>Maintenance window: July 10, 2024, 00:00–02:00</li>
+        <li>Some features may be temporarily unavailable.</li>
+        <li>We appreciate your patience while we improve the service.</li>
       </ul>
     ),
   },
   {
     id: 2,
-    title: '신규 기능 오픈 안내',
+    title: 'New personalized alerts are live',
     date: '2025-07-05',
-    category: '새로운 기능',
-    summary: '구직자 맞춤 알림 기능이 추가되었습니다. 많은 이용 바랍니다.',
+    category: 'New feature',
+    summary: 'Candidates can now receive alerts based on their preferred conditions.',
     detail: (
       <ul style={{ textAlign: "left", marginTop: 10, marginBottom: 0 }}>
-        <li>구직자 맞춤 알림: 희망 조건 등록 시 채용공고 알림을 받을 수 있습니다.</li>
-        <li>설정 방법: 내 정보 &gt; 알림 설정에서 원하는 조건을 추가하세요.</li>
-        <li>추가 문의는 고객센터로 연락해 주세요.</li>
+        <li>Personalized alerts: save your preferences to receive relevant job updates.</li>
+        <li>Setup: open Profile &gt; Notification settings and add your conditions.</li>
+        <li>Contact support if you need help.</li>
       </ul>
     )
   },
   {
     id: 3,
-    title: '챗봇 기능 안내',
+    title: 'ZOOP support assistant update',
     date: '2025-07-10',
-    category: '서비스 개선',
-    summary: '챗봇 기능이 업데이트 되었습니다. 많은 이용 바랍니다.',
+    category: 'Service improvement',
+    summary: 'The support assistant now provides faster, guide-grounded answers.',
     detail: (
       <ul style={{ textAlign: "left", marginTop: 10, marginBottom: 0 }}>
-        <li>상담 챗봇: 24시간 빠른 상담이 가능합니다.</li>
-        <li>주요 기능: 자주 묻는 질문 안내, 1:1 문의 접수, 실시간 답변 제공</li>
-        <li>고객센터 메뉴에서 챗봇을 이용해 보세요.</li>
+        <li>Support assistant: get help around the clock.</li>
+        <li>Key features: FAQ guidance, support intake, and grounded answers.</li>
+        <li>Open the assistant from the Support menu.</li>
       </ul>
     )
   },
   {
     id: 4,
-    title: '[ZOOP] 고객센터 채팅상담 서비스 일시중단 안내',
+    title: '[ZOOP] Temporary support chat interruption',
     date: '2025-07-15',
-    category: '시스템',
-    summary: '고객센터 채팅상담 서비스가 일시적으로 중단됩니다.',
+    category: 'System',
+    summary: 'Support chat will be temporarily unavailable during maintenance.',
     detail: (
       <ul style={{ textAlign: "left", marginTop: 10, marginBottom: 0 }}>
-        <li>중단 일정: 2025년 7월 22일(월) 02:00~03:00</li>
-        <li>사유: 시스템 안정화 작업</li>
-        <li>작업 시간 동안 채팅 상담이 일시적으로 중단됩니다.</li>
-        <li>불편을 드려 죄송합니다.</li>
+        <li>Window: July 22, 2025, 02:00–03:00</li>
+        <li>Reason: platform stability work.</li>
+        <li>Chat support will be unavailable during the window.</li>
+        <li>We apologize for the inconvenience.</li>
       </ul>
     )
   }
@@ -74,24 +74,24 @@ function isNew(dateStr) {
 // 카테고리별 아이콘
 function CategoryIcon({ category, size = 20 }) {
   const icons = {
-    '시스템': (
+    'System': (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     ),
-    '새로운 기능': (
+    'New feature': (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     ),
-    '서비스 개선': (
+    'Service improvement': (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
         <path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     )
   };
   
-  return icons[category] || icons['시스템'];
+  return icons[category] || icons.System;
 }
 
 function Notice() {
@@ -117,17 +117,17 @@ function Notice() {
   return (
     <>
       <SEO
-        title="공지사항 - ZOOP | 최신 소식 및 업데이트"
-        description="ZOOP의 최신 공지사항과 업데이트 소식을 확인하세요. 서비스 개선, 새로운 기능, 이벤트 등 다양한 소식을 제공합니다."
-        keywords="ZOOP 공지사항, 업데이트, 서비스소식, 새로운기능, 이벤트, AI채용소식"
+        title="Notices - ZOOP | Product updates"
+        description="Read the latest ZOOP product notices, service improvements, and new features."
+        keywords="ZOOP notices, product updates, AI recruiting, hiring platform"
         image="/notice-banner.jpg"
         url="https://zoop.com/notice"
         type="website"
         structuredData={{
           "@context": "https://schema.org",
           "@type": "ItemList",
-          "name": "ZOOP 공지사항",
-          "description": "ZOOP의 최신 공지사항과 업데이트",
+          "name": "ZOOP notices",
+          "description": "The latest ZOOP notices and product updates",
           "numberOfItems": noticeList.length,
           "itemListElement": noticeList.map((notice, index) => ({
             "@type": "ListItem",
@@ -146,10 +146,10 @@ function Notice() {
       {/* 히어로 섹션 */}
       <section className="notice-hero">
         <div className="notice-hero-content">
-          <h1 className="notice-hero-title">공지사항</h1>
+          <h1 className="notice-hero-title">Notices</h1>
           <p className="notice-hero-desc">
-            ZOOP의 최신 소식과 업데이트를 한눈에 확인하세요.<br />
-            서비스 개선, 새로운 기능, 이벤트 등 다양한 소식을 제공합니다.
+            Stay up to date with the latest from ZOOP.<br />
+            Find product improvements, new features, and service updates in one place.
           </p>
         </div>
       </section>
@@ -164,7 +164,7 @@ function Notice() {
                 className={`filter-btn ${filter === category ? 'active' : ''}`}
                 onClick={() => setFilter(category)}
               >
-                {category === 'all' ? '전체' : category}
+                {category === 'all' ? 'All' : category}
               </button>
             ))}
           </div>
@@ -232,7 +232,7 @@ function Notice() {
                   <path d="M24 16v8M24 28h.01" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </div>
-              <p className="notice-empty-text">해당 카테고리의 공지사항이 없습니다.</p>
+              <p className="notice-empty-text">There are no notices in this category.</p>
             </div>
           )}
         </div>

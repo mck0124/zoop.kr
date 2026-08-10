@@ -403,17 +403,17 @@ useEffect(() => {
       <Navbar />
       <div className="min-h-screen bg-gray-50 pt-20 pb-8 px-4">
         <div className="max-w-lg mx-auto bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">ZOOP 통합 개인회원 가입</h2>
+          <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">Create your ZOOP candidate account</h2>
           {isLoading ? (
             <div className="text-center py-8">
-              <p className="text-gray-600">초대 정보를 불러오는 중...</p>
+              <p className="text-gray-600">Loading invitation details...</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
 
         {/* 아이디 입력 */}
         <div>
-          <label className="block mb-2 font-semibold">아이디</label>
+          <label className="block mb-2 font-semibold">Username</label>
           <div className="flex gap-2">
             <input
               type="text"
@@ -437,7 +437,7 @@ useEffect(() => {
                 onClick={checkDuplicateId}
                 className="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600"
               >
-                중복확인
+                Check availability
               </button>
             )}
           </div>
@@ -449,7 +449,7 @@ useEffect(() => {
 
         {/* 비밀번호 */}
         <div>
-          <label htmlFor="password" className="block mb-2 font-semibold">비밀번호</label>
+          <label htmlFor="password" className="block mb-2 font-semibold">Password</label>
           <input
             id="password"
             type="password"
@@ -466,13 +466,13 @@ useEffect(() => {
         </div>
         {/* [추가] 비밀번호 확인 */}
         <div>
-          <label htmlFor="passwordConfirm" className="block mb-2 font-semibold">비밀번호 확인</label>
+          <label htmlFor="passwordConfirm" className="block mb-2 font-semibold">Confirm password</label>
           <input
             id="passwordConfirm"
             type="password"
             value={passwordConfirm}
             onChange={handlePasswordConfirmChange}
-            placeholder="비밀번호를 한 번 더 입력해주세요"
+            placeholder="Enter your password again"
             className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:border-sky-400 focus:ring-sky-200 transition-colors"
           />
           {passwordConfirmMessage && (
@@ -484,22 +484,22 @@ useEffect(() => {
 
         {/* 이름 */}
         <div>
-          <label htmlFor="candidate_name" className="block mb-2 font-semibold">이름</label>
+          <label htmlFor="candidate_name" className="block mb-2 font-semibold">Name</label>
           <input
             id="candidate_name"
             type="text"
-            placeholder="이름을 입력해주세요"
+            placeholder="Enter your name"
             className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:border-sky-400 focus:ring-sky-200 transition-colors"
           />
         </div>
 
         {/* 휴대폰 */}
         <div>
-          <label htmlFor="phone" className="block mb-2 font-semibold">휴대폰</label>
+          <label htmlFor="phone" className="block mb-2 font-semibold">Phone number</label>
           <input
             id="phone"
             type="text"
-            placeholder="하이픈(-) 제외"
+            placeholder="Numbers only, without hyphens"
             className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:border-sky-400 focus:ring-sky-200 transition-colors"
           />
         </div>
@@ -507,7 +507,7 @@ useEffect(() => {
         {/* 이메일 입력 */}
         {!fromInvite && (
           <div>
-            <label className="block mb-2 font-semibold">이메일</label>
+            <label className="block mb-2 font-semibold">Email</label>
             <div className="flex items-center gap-2">
               <input
                 type="text"
@@ -532,11 +532,11 @@ useEffect(() => {
                   disabled={isEmailVerified}
                   className="flex-1 border border-gray-300 px-4 py-2 rounded-lg bg-white text-base focus:outline-none focus:border-sky-400 focus:ring-sky-200 transition-colors"
                 >
-                  <option value="">선택</option>
+                  <option value="">Select a domain</option>
                   <option value="naver.com">naver.com</option>
                   <option value="gmail.com">gmail.com</option>
                   <option value="daum.net">daum.net</option>
-                  <option value="custom">직접 입력</option>
+                  <option value="custom">Enter manually</option>
                 </select>
               )}
             </div>
@@ -547,13 +547,13 @@ useEffect(() => {
         {/* 인증코드 */}
         {!fromInvite && (
           <div>
-            <label className="block mb-2 font-semibold">인증코드 입력</label>
+            <label className="block mb-2 font-semibold">Verification code</label>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={verificationCode}
                 onChange={e => setVerificationCode(e.target.value)}
-                placeholder="6자리 인증코드"
+                placeholder="Enter the 6-digit code"
                 disabled={!codeSent || isEmailVerified}
                 className="flex-1 border border-gray-300 px-4 py-2 rounded-lg bg-white focus:outline-none focus:border-sky-400 focus:ring-sky-200 transition-colors"
               />
@@ -563,14 +563,14 @@ useEffect(() => {
                 disabled={isSendingCode}
                 className="bg-emerald-500 text-white w-32 py-2 rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSendingCode ? '전송 중...' : codeSent ? '확인' : '인증코드 받기'}
+                {isSendingCode ? 'Sending...' : codeSent ? 'Verify' : 'Send code'}
               </button>
             </div>
             {codeSent && !isEmailVerified && (
               <div className="text-sm text-gray-600 mt-2">
-                남은 시간: {Math.floor(resendTimer / 60)}:{String(resendTimer % 60).padStart(2, '0')}
+                Time remaining: {Math.floor(resendTimer / 60)}:{String(resendTimer % 60).padStart(2, '0')}
                 {resendTimer === 0 && (
-                  <button type="button" onClick={handleResend} className="ml-2 text-green-600 underline">다시 보내기</button>
+                  <button type="button" onClick={handleResend} className="ml-2 text-green-600 underline">Send again</button>
                 )}
               </div>
             )}
@@ -581,19 +581,19 @@ useEffect(() => {
         <div className="border border-gray-200 p-4 rounded-xl bg-gray-50 mt-8">
           <label className="block font-semibold">
             <input type="checkbox" checked={allAgree} onChange={handleAllAgreeChange} className="mr-2" />
-            전체 동의
+            Agree to all
           </label>
-          <p className="text-sm text-gray-500">(필수) 약관 및 개인정보 수집 동의를 포함합니다.</p>
+          <p className="text-sm text-gray-500">(Required) Includes the terms and privacy consent.</p>
           <div className="mt-3 space-y-2">
             {Object.entries(individualAgree).map(([key, value]) => (
               <label key={key} className="block text-sm">
                 <input type="checkbox" name={key} checked={value} onChange={handleIndividualAgreeChange} className="mr-2" />
                 {(key === 'terms' || key === 'privacy') ? '(필수)' : '(선택)'} {
-                  key === 'terms' ? '개인회원 약관' :
-                  key === 'privacy' ? '개인정보 수집 및 이용' :
-                  key === 'location' ? '위치기반서비스 이용약관' :
-                  key === 'emailMarketing' ? '마케팅 정보 수신 - 이메일' :
-                  '마케팅 정보 수신 - SMS/MMS'
+                  key === 'terms' ? 'Candidate terms' :
+                  key === 'privacy' ? 'Privacy collection and use' :
+                  key === 'location' ? 'Location-based service terms' :
+                  key === 'emailMarketing' ? 'Marketing emails' :
+                  'Marketing SMS/MMS'
                 }
               </label>
             ))}
@@ -612,7 +612,7 @@ useEffect(() => {
               : 'bg-emerald-500 opacity-50 text-white cursor-not-allowed'}
           `}
         >
-          가입하기
+          Create account
         </button>
       </form>
         )}

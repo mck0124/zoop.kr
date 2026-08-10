@@ -33,34 +33,34 @@ function SupportMascot({ size = 96 }) {
 
 // LLM이 자동 생성한 FAQ 예시 (카테고리 포함)
 const autoFaqExamples = [
-  { q: '회원가입은 어떻게 하나요?', category: '회원가입/로그인' },
-  { q: '비밀번호를 잊어버렸어요.', category: '회원가입/로그인' },
-  { q: '지원 현황은 어디서 확인하나요?', category: '서비스 이용' },
-  { q: '이력서/포트폴리오 등록 방법이 궁금해요.', category: '서비스 이용' },
-  { q: '면접 일정은 어떻게 확인하나요?', category: '서비스 이용' }
+  { q: 'How do I create an account?', category: 'Account and login' },
+  { q: 'I forgot my password.', category: 'Account and login' },
+  { q: 'Where can I check my applications?', category: 'Using ZOOP' },
+  { q: 'How do I add a resume or portfolio?', category: 'Using ZOOP' },
+  { q: 'Where can I find my interview schedule?', category: 'Using ZOOP' }
 ];
 
 const supportCategories = [
-  '회원가입/로그인',
-  '이력서 작성',
-  '채용 공고 지원',
-  '면접 일정/결과',
-  '포인트/마일리지',
-  '기업회원 문의',
+  'Account and login',
+  'Resume and portfolio',
+  'Job applications',
+  'Interview schedule and results',
+  'Credits and rewards',
+  'Company accounts',
 ];
 
 // FAQ 데이터 (FaqPage.jsx와 동일하게 복사)
 const faqData = [
-  { category: '회원가입/로그인', question: '회원가입은 어떻게 하나요?(개인/기업별 안내)', answer: "홈페이지 우측 상단의 '회원가입' 버튼을 클릭 후, 이메일 또는 소셜 계정으로 가입할 수 있습니다." },
-  { category: '회원가입/로그인', question: '비밀번호를 잊어버렸어요.', answer: "로그인 페이지에서 '비밀번호 찾기'를 클릭하면, 이메일을 통해 재설정할 수 있습니다." },
-  { category: '서비스 이용', question: '[개인회원] 프로필/이력서는 어떻게 작성하나요?', answer: '고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' },
-  { category: '서비스 이용', question: '[개인회원] 구인 공고는 어떻게 확인하고 지원하나요?', answer: '고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' },
-  { category: '서비스 이용', question: '[기업회원] 채용 공고는 어떻게 등록하나요?', answer: '고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' },
-  { category: '서비스 이용', question: '[기업회원] 후보자 정보는 어떻게 검색하고 열람하나요?', answer: '고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' },
-  { category: '서비스 이용', question: '서비스 이용 중 오류가 발생했어요.', answer: '고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' },
-  { category: '기술관련', question: '어떤 브라우저를 지원하나요?', answer: '앱이나 웹사이트 오류 발생 시, 고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' },
-  { category: '기술관련', question: '모바일 환경에서 이용 가능한가요?', answer: '앱이나 웹사이트 오류 발생 시, 고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' },
-  { category: '기술관련', question: '사이트 속도가 느려요.', answer: '앱이나 웹사이트 오류 발생 시, 고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' }
+  { category: 'Account and login', question: 'How do I create an account?', answer: "Select Sign up in the top navigation and choose candidate or company. You can use email or a supported social account." },
+  { category: 'Account and login', question: 'I forgot my password.', answer: "Select Forgot password on the login page and follow the email verification steps." },
+  { category: 'Using ZOOP', question: 'How do I build my profile or resume?', answer: 'Open your candidate dashboard and complete the profile, resume, and portfolio sections. Contact support if a file fails to upload.' },
+  { category: 'Using ZOOP', question: 'How do I find and apply to jobs?', answer: 'Browse Careers, open a job posting, review the role details, and submit the requested portfolio or application materials.' },
+  { category: 'Using ZOOP', question: 'How do I create a job post?', answer: 'Company users can create a post from the company dashboard, then define the role, evidence to look for, and interview flow.' },
+  { category: 'Using ZOOP', question: 'How do I search candidates?', answer: 'Company users can review candidates from the dashboard and open the evidence ledger for each analysis.' },
+  { category: 'Using ZOOP', question: 'Something went wrong.', answer: 'Try refreshing the page first. If the issue continues, include the page, time, and a screenshot when contacting support.' },
+  { category: 'Technical support', question: 'Which browsers are supported?', answer: 'Use a current version of Chrome, Safari, Firefox, or Edge. If an issue persists, contact support with your browser version.' },
+  { category: 'Technical support', question: 'Can I use ZOOP on mobile?', answer: 'Most candidate flows are mobile-friendly. For video interviews and uploads, a desktop browser may provide a more reliable experience.' },
+  { category: 'Technical support', question: 'The site feels slow.', answer: 'Check your connection, refresh the page, and retry the action. Send support the affected page and approximate time if it continues.' }
 ];
 
 function Support() {
@@ -94,10 +94,10 @@ function Support() {
         body: JSON.stringify({ question: query })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'AI 답변 요청 실패');
-      setAiAnswer(data.answer || "관련 도움말을 찾지 못했습니다.");
+      if (!res.ok) throw new Error(data.error || 'The AI support request failed.');
+      setAiAnswer(data.answer || "No matching help article was found.");
     } catch (e) {
-      setAiError("AI 답변 요청에 실패했습니다.");
+      setAiError("We could not get an AI support answer.");
     } finally {
       setAiLoading(false);
     }
@@ -134,12 +134,12 @@ function Support() {
   }
 
   const categoryKeywordMap = [
-    { category: '회원가입/로그인', keywords: ['회원', '로그인', '가입'] },
-    { category: '이력서 작성', keywords: ['이력서', '프로필'] },
-    { category: '채용 공고 지원', keywords: ['지원', '공고'] },
-    { category: '면접 일정/결과', keywords: ['면접'] },
-    { category: '포인트/마일리지', keywords: ['포인트', '마일리지'] },
-    { category: '기업회원 문의', keywords: ['기업'] },
+    { category: 'Account and login', keywords: ['account', 'login', 'sign up', 'password'] },
+    { category: 'Resume and portfolio', keywords: ['resume', 'profile', 'portfolio'] },
+    { category: 'Job applications', keywords: ['apply', 'application', 'job'] },
+    { category: 'Interview schedule and results', keywords: ['interview'] },
+    { category: 'Credits and rewards', keywords: ['credit', 'reward'] },
+    { category: 'Company accounts', keywords: ['company', 'employer'] },
   ];
 
   const getCategoryBySearch = (value) => {
@@ -164,17 +164,17 @@ function Support() {
   return (
     <>
       <SEO
-        title="고객센터 - ZOOP | 1:1 문의 및 지원"
-        description="ZOOP 고객센터에서 1:1 문의, 기술 지원, 서비스 이용 안내를 받으세요. 빠르고 정확한 답변으로 도움을 드립니다."
-        keywords="ZOOP 고객센터, 1:1문의, 기술지원, 서비스이용안내, 문의하기, 도움말"
+        title="Support - ZOOP | Help and AI guidance"
+        description="Get guide-grounded support, product help, and AI answers from ZOOP."
+        keywords="ZOOP support, AI help, recruiting platform help, product guide"
         image="/support-banner.jpg"
         url="https://zoop.com/support"
         type="website"
         structuredData={{
           "@context": "https://schema.org",
           "@type": "ContactPage",
-          "name": "ZOOP 고객센터",
-          "description": "ZOOP 서비스 이용에 대한 문의 및 지원",
+          "name": "ZOOP support",
+          "description": "Help and support for using ZOOP",
           "contactPoint": {
             "@type": "ContactPoint",
             "contactType": "customer service",
@@ -195,10 +195,10 @@ function Support() {
         marginBottom: 40
       }}>
         <SupportMascot size={96} />
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: 0, letterSpacing: '-1.5px' }}>고객센터</h1>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: 0, letterSpacing: '-1.5px' }}>Support</h1>
         <p style={{ fontSize: '1.18rem', margin: '1.2rem 0 0.5rem 0', fontWeight: 500, opacity: 0.97 }}>
-          ZOOP 서비스 이용 중 궁금한 점이나 불편한 사항이 있으신가요?<br />
-          언제든 문의해주시면 빠르게 답변드리겠습니다.
+          Have a question or something not working as expected?<br />
+          Search the guide or ask ZOOP AI for a grounded answer.
         </p>
         {/* 검색창 및 추천 태그 (사용자 요청 UI) */}
         <div className="search-section mt-4">
@@ -207,19 +207,19 @@ function Support() {
               <input
                 ref={inputRef}
                 type="search"
-                placeholder="🔍 궁금한 점을 검색해보세요."
+                placeholder="🔍 Search for a question or feature"
                 className="search-input"
                 value={searchValue}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                aria-label="고객센터 질문 검색"
+                aria-label="Search support questions"
               />
               <button type="button" onClick={handleAISearch} disabled={!searchValue.trim() || aiLoading}>
-                {aiLoading ? '답변 중…' : 'AI에게 질문'}
+                {aiLoading ? 'Thinking…' : 'Ask ZOOP AI'}
               </button>
             </div>
             {showSuggestions && suggestions.length > 0 && (
-              <div className="support-suggestions" role="listbox" aria-label="추천 질문">
+              <div className="support-suggestions" role="listbox" aria-label="Suggested questions">
                 {suggestions.map(suggestion => (
                   <button key={suggestion} type="button" onClick={() => handleSuggestionClick(suggestion)}>
                     {suggestion}
@@ -229,26 +229,26 @@ function Support() {
             )}
           </div>
           <div className="suggestion-tags">
-            <Link className="tag-button" to="/faq#signup-login">비밀번호를 잊어버렸어요.</Link>
-            <Link className="tag-button" to="/faq#signup-login">회원가입은 어떻게 하나요?</Link>
-            <Link className="tag-button" to="/faq#service-usage">프로필은 어떻게 작성하나요?</Link>
-            <Link className="tag-button" to="/faq#service-usage">채용공고는 어떻게 등록하나요?</Link>
+            <Link className="tag-button" to="/faq#signup-login">I forgot my password</Link>
+            <Link className="tag-button" to="/faq#signup-login">How do I create an account?</Link>
+            <Link className="tag-button" to="/faq#service-usage">How do I build my profile?</Link>
+            <Link className="tag-button" to="/faq#service-usage">How do I create a job post?</Link>
             <br />
-            <Link className="tag-button" to="/faq#service-usage">구인공고는 어떻게 확인하고 지원하나요?</Link>
-            <Link className="tag-button" to="/faq#service-usage">후보자 정보 검색</Link>
+            <Link className="tag-button" to="/faq#service-usage">How do I find and apply to jobs?</Link>
+            <Link className="tag-button" to="/faq#service-usage">How do I search candidates?</Link>
           </div>
         </div>
         {/* AI 답변 결과 */}
         {aiAnswer && (
           <div style={{ marginTop: 18, background: '#e6fcf6', border: '1.5px solid #30C59B', borderRadius: 14, padding: '22px 20px', color: '#17806d', fontWeight: 500, fontSize: '1.13rem', boxShadow: '0 2px 12px rgba(48,197,155,0.08)' }}>
-            <div style={{ fontWeight: 700, color: '#30C59B', marginBottom: 8, fontSize: '1.08rem' }}>AI 답변</div>
+            <div style={{ fontWeight: 700, color: '#30C59B', marginBottom: 8, fontSize: '1.08rem' }}>AI answer</div>
             {aiAnswer}
           </div>
         )}
         {/* FAQ 예상 답변 항상 노출 */}
         {matchedCategory && (
           <div style={{ marginTop: 18, background: '#fff', border: '1.5px solid #30C59B', borderRadius: 14, padding: '22px 20px', color: '#17806d', fontWeight: 500, fontSize: '1.13rem', boxShadow: '0 2px 12px rgba(48,197,155,0.08)' }}>
-            <div style={{ fontWeight: 700, color: '#30C59B', marginBottom: 8, fontSize: '1.08rem' }}>예상 답변 ({matchedCategory})</div>
+            <div style={{ fontWeight: 700, color: '#30C59B', marginBottom: 8, fontSize: '1.08rem' }}>Suggested answer ({matchedCategory})</div>
             <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
               {faqData.filter(faq => faq.category === matchedCategory).map((item, idx) => (
                 <li key={idx} style={{ marginBottom: 18 }}>
@@ -335,20 +335,20 @@ function Support() {
           gap: 18,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <img src="/icons/mail.svg" alt="이메일" width={ICON_SIZE} height={ICON_SIZE} />
-            <span style={{ fontWeight: 700, fontSize: '1.18rem', color: '#22c55e' }}>이메일</span>
+            <img src="/icons/mail.svg" alt="Email" width={ICON_SIZE} height={ICON_SIZE} />
+            <span style={{ fontWeight: 700, fontSize: '1.18rem', color: '#22c55e' }}>Email</span>
           </div>
           <a href="mailto:support@zoop.com" style={{ color: '#16a34a', fontWeight: 600, fontSize: '1.08rem', textDecoration: 'none' }}>support@zoop.com</a>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <img src="/icons/bell.svg" alt="전화" width={ICON_SIZE} height={ICON_SIZE} />
-            <span style={{ fontWeight: 700, fontSize: '1.18rem', color: '#22c55e' }}>전화</span>
+            <img src="/icons/bell.svg" alt="Phone" width={ICON_SIZE} height={ICON_SIZE} />
+            <span style={{ fontWeight: 700, fontSize: '1.18rem', color: '#22c55e' }}>Phone</span>
           </div>
           <a href="tel:1588-1234" style={{ color: '#16a34a', fontWeight: 600, fontSize: '1.08rem', textDecoration: 'none' }}>1588-1234</a>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <img src="/icons/sparkle.svg" alt="운영시간" width={ICON_SIZE} height={ICON_SIZE} />
-            <span style={{ fontWeight: 700, fontSize: '1.18rem', color: '#22c55e' }}>운영 시간</span>
+            <img src="/icons/sparkle.svg" alt="Hours" width={ICON_SIZE} height={ICON_SIZE} />
+            <span style={{ fontWeight: 700, fontSize: '1.18rem', color: '#22c55e' }}>Hours</span>
           </div>
-          <span style={{ color: '#64748b', fontWeight: 500, fontSize: '1.05rem' }}>평일 10:00 ~ 18:00<br />(점심시간 12:30 ~ 13:30)</span>
+          <span style={{ color: '#64748b', fontWeight: 500, fontSize: '1.05rem' }}>Weekdays 10:00–18:00<br />(Lunch 12:30–13:30)</span>
         </div>
         {/* FAQ Card */}
         <div style={{
@@ -365,10 +365,10 @@ function Support() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <img src="/icons/message-circle.svg" alt="FAQ" width={ICON_SIZE} height={ICON_SIZE} />
-            <span style={{ fontWeight: 700, fontSize: '1.18rem', color: '#22c55e' }}>자주 묻는 질문</span>
+            <span style={{ fontWeight: 700, fontSize: '1.18rem', color: '#22c55e' }}>Frequently asked questions</span>
           </div>
           <div style={{ color: '#4d7c0f', fontWeight: 500, fontSize: '1.05rem', marginBottom: 8 }}>
-            궁금한 점은 FAQ 페이지도 참고해 주세요.
+            Browse the FAQ page for common questions.
           </div>
           <a href="/faq" target="_blank" rel="noopener noreferrer" style={{
             background: 'linear-gradient(90deg, #22c55e 70%, #a3e635 100%)',
@@ -382,7 +382,7 @@ function Support() {
             marginTop: 6,
             display: 'inline-block',
             transition: 'background 0.2s',
-          }}>FAQ 바로가기</a>
+          }}>Open FAQ</a>
         </div>
       </div>
     </>

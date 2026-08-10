@@ -6,28 +6,28 @@ import '../info/Notice.css';
 import { useLocation } from 'react-router-dom';
 
 const faqData = [
-  { category: '회원가입/로그인', question: '회원가입은 어떻게 하나요?(개인/기업별 안내)', answer: "홈페이지 우측 상단의 '회원가입' 버튼을 클릭 후, 이메일 또는 소셜 계정으로 가입할 수 있습니다." },
-  { category: '회원가입/로그인', question: '비밀번호를 잊어버렸어요.', answer: "로그인 페이지에서 '비밀번호 찾기'를 클릭하면, 이메일을 통해 재설정할 수 있습니다." },
-  { category: '서비스 이용', question: '[개인회원] 프로필/이력서는 어떻게 작성하나요?', answer: '고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' },
-  { category: '서비스 이용', question: '[개인회원] 구인 공고는 어떻게 확인하고 지원하나요?', answer: '고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' },
-  { category: '서비스 이용', question: '[기업회원] 채용 공고는 어떻게 등록하나요?', answer: '고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' },
-  { category: '서비스 이용', question: '[기업회원] 후보자 정보는 어떻게 검색하고 열람하나요?', answer: '고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' },
-  { category: '서비스 이용', question: '서비스 이용 중 오류가 발생했어요.', answer: '고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' },
-  { category: '기술관련', question: '어떤 브라우저를 지원하나요?', answer: '앱이나 웹사이트 오류 발생 시, 고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' },
-  { category: '기술관련', question: '모바일 환경에서 이용 가능한가요?', answer: '앱이나 웹사이트 오류 발생 시, 고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' },
-  { category: '기술관련', question: '사이트 속도가 느려요.', answer: '앱이나 웹사이트 오류 발생 시, 고객센터에 문의해 주세요. 오류 화면을 캡처하면 더 빠른 처리가 가능합니다.' }
+  { category: 'Account and login', question: 'How do I create an account?', answer: 'Select Sign up in the top navigation and choose candidate or company. You can use email or a supported social account.' },
+  { category: 'Account and login', question: 'I forgot my password.', answer: 'Select Forgot password on the login page and follow the email verification steps.' },
+  { category: 'Using ZOOP', question: 'How do I build my profile or resume?', answer: 'Open your candidate dashboard and complete the profile, resume, and portfolio sections.' },
+  { category: 'Using ZOOP', question: 'How do I find and apply to jobs?', answer: 'Browse Careers, open a job posting, review the role details, and submit the requested materials.' },
+  { category: 'Using ZOOP', question: 'How do I create a job post?', answer: 'Company users can create a post from the company dashboard and define the role and hiring flow.' },
+  { category: 'Using ZOOP', question: 'How do I search candidates?', answer: 'Company users can review candidates from the dashboard and open the evidence ledger for each analysis.' },
+  { category: 'Using ZOOP', question: 'Something went wrong.', answer: 'Refresh the page first. If the issue continues, include the page, time, and a screenshot when contacting support.' },
+  { category: 'Technical support', question: 'Which browsers are supported?', answer: 'Use a current version of Chrome, Safari, Firefox, or Edge.' },
+  { category: 'Technical support', question: 'Can I use ZOOP on mobile?', answer: 'Most candidate flows are mobile-friendly. Desktop is recommended for video interviews and uploads.' },
+  { category: 'Technical support', question: 'The site feels slow.', answer: 'Check your connection, refresh the page, and retry. Contact support if the issue continues.' }
 ];
 
 // 사이드바 카테고리 목록
 const categories = [
-  '회원가입/로그인',
-  '서비스 이용',
-  '기술관련',
-  '기타',
-  '1:1문의/문의하기',
-  '이용약관 및 개인정보처리방침',
-  '사용가이드/매뉴얼',
-  '연락처 정보'
+  'Account and login',
+  'Using ZOOP',
+  'Technical support',
+  'Other',
+  'Contact support',
+  'Terms and privacy',
+  'User guide',
+  'Contact details'
 ];
 
 // SVG 아이콘 컴포넌트 (단색, 미니멀)
@@ -49,7 +49,7 @@ const ArrowIcon = ({open, size=22, color='#888', activeColor='#22c55e'}) => (
 function FaqPage() {
   const location = useLocation();
   const [openIdx, setOpenIdx] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState('회원가입/로그인');
+  const [selectedCategory, setSelectedCategory] = useState('Account and login');
 
   // 쿼리 파라미터로 카테고리 선택
   useEffect(() => {
@@ -58,7 +58,7 @@ function FaqPage() {
     if (cat && categories.includes(cat)) {
       setSelectedCategory(cat);
     } else {
-      setSelectedCategory('회원가입/로그인');
+      setSelectedCategory('Account and login');
     }
   }, [location.search]);
 
@@ -68,9 +68,9 @@ function FaqPage() {
   return (
     <>
       <SEO
-        title="자주 묻는 질문 - ZOOP | FAQ"
-        description="ZOOP 서비스 이용에 대한 자주 묻는 질문과 답변을 확인하세요. AI 채용, GitHub 분석, 면접 프로세스 등에 대한 상세한 정보를 제공합니다."
-        keywords="ZOOP FAQ, 자주묻는질문, AI채용질문, GitHub분석질문, AI면접질문, 채용플랫폼질문, IT채용질문"
+        title="FAQ - ZOOP | Frequently asked questions"
+        description="Find answers about ZOOP accounts, evidence-based AI recruiting, GitHub analysis, and interviews."
+        keywords="ZOOP FAQ, AI recruiting, GitHub analysis, interview platform"
         image="/faq-banner.jpg"
         url="https://zoop.com/faq"
         type="website"
@@ -102,10 +102,10 @@ function FaqPage() {
         }}
       >
         <div className="notice-hero-content">
-          <h1 className="notice-hero-title">자주 묻는 질문</h1>
+          <h1 className="notice-hero-title">Frequently asked questions</h1>
           <p className="notice-hero-desc">
-            서비스 이용 중 궁금한 점을 빠르게 확인하세요.<br />
-            회원가입, 이용 방법, 기술 지원 등 자주 묻는 질문을 안내합니다.
+            Find answers about using ZOOP quickly.<br />
+            Browse account, product, and technical support questions.
           </p>
         </div>
       </section>
@@ -155,7 +155,7 @@ function FaqPage() {
               color: '#30C59B',
               marginBottom: 16,
               fontSize: '1.1rem'
-            }}>카테고리</div>
+            }}>Categories</div>
             {categories.map(category => (
               <button
                 key={category}
@@ -255,7 +255,7 @@ function FaqPage() {
                 border: '1.5px solid #30C59B',
                 textAlign: 'center'
               }}>
-                해당 카테고리의 FAQ가 없습니다.
+                There are no FAQs in this category.
               </div>
             )}
           </main>

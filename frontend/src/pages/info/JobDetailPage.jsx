@@ -54,7 +54,7 @@ function JobDetailPage() {
       setError(null);
       try {
         const res = await fetch(apiUrl(`/api/postings/info/${postId}`));
-        if (!res.ok) throw new Error('공고 정보를 불러올 수 없습니다.');
+        if (!res.ok) throw new Error('We could not load this job posting.');
         const postData = await res.json();
         setPost(postData);
 
@@ -87,7 +87,7 @@ function JobDetailPage() {
 
         }
       } catch (e) {
-        console.error("기업 정보 fetch 에러:", e);
+      console.warn("Job posting fetch warning:", e);
         setError(e.message);
       } finally {
         setLoading(false);
@@ -369,8 +369,8 @@ function JobDetailPage() {
   }, [fromMatchingTab, matchingPortfolioId, matchingAnalysisId]);
 
   if (loading) return <div style={{ padding: '2rem' }}>불러오는 중...</div>;
-  if (error)   return <div style={{ padding: '2rem', color: 'red' }}>오류: {error}</div>;
-  if (!post)  return <div style={{ padding: '2rem' }}>공고 정보를 찾을 수 없습니다.</div>;
+  if (error)   return <div style={{ padding: '2rem', color: 'red' }}>Error: {error}</div>;
+  if (!post)  return <div style={{ padding: '2rem' }}>This job posting could not be found.</div>;
 
   return (
     <>

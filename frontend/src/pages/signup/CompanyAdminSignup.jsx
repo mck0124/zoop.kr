@@ -143,7 +143,7 @@ export default function CompanyAdminSignup() {
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="4~20자리 / 영문, 숫자, 특수문자 '_' 사용가능"
+                  placeholder="4–20 letters, numbers, or underscores"
                   value={loginId}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -200,7 +200,7 @@ export default function CompanyAdminSignup() {
               <input
                 type="password"
                 className="form-input"
-                placeholder="8~16자리 / 영문 대소문자, 숫자, 특수문자 조합"
+                placeholder="8–16 characters with at least 3 character types"
                 value={password}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -216,13 +216,13 @@ export default function CompanyAdminSignup() {
                     const passed = rules.filter(Boolean).length;
 
                     if (val.length < 8 || val.length > 16 || passed < 3) {
-                      setPasswordStrength('약함');
+                      setPasswordStrength('Weak');
                       setStrengthColor('#d33');
                     } else if (passed === 3) {
-                      setPasswordStrength('보통');
+                      setPasswordStrength('Fair');
                       setStrengthColor('#f90');
                     } else {
-                      setPasswordStrength('강함');
+                      setPasswordStrength('Strong');
                       setStrengthColor('#2dc997');
                     }
 
@@ -232,15 +232,15 @@ export default function CompanyAdminSignup() {
                 required
               />
               <p style={{ fontSize: '0.75rem', color: '#777', marginTop: '0.3rem' }}>
-                8~16자리 영문 대소문자, 숫자, 특수문자 중 3가지 이상 조합으로 만들어주세요.
+                Use 8–16 characters with at least 3 of uppercase, lowercase, numbers, and symbols.
               </p>
               <p style={{ fontSize: '0.75rem', marginTop: '0.2rem', color: password.length === 0 ? '#aaa' : strengthColor }}>
-                비밀번호 강도: {password.length === 0 ? '입력 대기 중' : passwordStrength}
+                Password strength: {password.length === 0 ? 'Not entered' : passwordStrength}
               </p>
             </div>
 
             <div className="form-section">
-              <label>비밀번호 확인</label>
+              <label>Confirm password</label>
               <input
                 type="password"
                 className="form-input"
@@ -257,23 +257,23 @@ export default function CompanyAdminSignup() {
                   marginTop: '0.3rem',
                   color: passwordMatch ? '#2dc997' : '#d33'
                 }}>
-                  {passwordMatch ? '비밀번호가 일치합니다.' : '비밀번호가 일치하지 않습니다.'}
+                  {passwordMatch ? 'Passwords match.' : 'Passwords do not match.'}
                 </p>
               )}
             </div>
 
             <div className="form-section">
-              <label>관리자 이름</label>
+              <label>Administrator name</label>
               <input type="text" className="form-input" value={adminName} onChange={(e) => setAdminName(e.target.value)} required />
             </div>
 
             <div className="form-section">
-              <label>이메일</label>
+              <label>Email</label>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="이메일 아이디"
+                  placeholder="Email username"
                   value={emailLocal}
                   onChange={(e) => setEmailLocal(e.target.value)}
                   disabled={isEmailVerified}
@@ -288,7 +288,7 @@ export default function CompanyAdminSignup() {
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="도메인 입력"
+                    placeholder="Enter domain"
                     value={emailDomain}
                     onChange={(e) => setEmailDomain(e.target.value)}
                     disabled={isEmailVerified}
@@ -310,25 +310,25 @@ export default function CompanyAdminSignup() {
                       color: '#333'
                     }}
                   >
-                    <option value="">선택</option>
+                    <option value="">Select a domain</option>
                     <option value="naver.com">naver.com</option>
                     <option value="gmail.com">gmail.com</option>
                     <option value="daum.net">daum.net</option>
-                    <option value="custom">직접 입력</option>
+                    <option value="custom">Enter manually</option>
                   </select>
                 )}
               </div>
             </div>
 
             <div className="form-section">
-              <label>인증코드 입력</label>
+              <label>Verification code</label>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <input
                   type="text"
                   className="form-input"
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value)}
-                  placeholder="6자리 인증코드"
+                  placeholder="Enter the 6-digit code"
                   disabled={!codeSent || isEmailVerified}
                   style={{
                     width: '100%',
@@ -349,19 +349,19 @@ export default function CompanyAdminSignup() {
                     cursor: 'pointer'
                 }}
                 >
-                {isSendingCode ? '전송 중...' : codeSent ? '확인' : '인증코드 받기'}
+                {isSendingCode ? 'Sending...' : codeSent ? 'Verify' : 'Send code'}
                 </button>
               </div>
               {codeSent && !isEmailVerified && (
                 <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#777' }}>
-                  남은 시간: {Math.floor(resendTimer / 60)}:{String(resendTimer % 60).padStart(2, '0')}
+                  Time remaining: {Math.floor(resendTimer / 60)}:{String(resendTimer % 60).padStart(2, '0')}
                   {resendTimer === 0 && (
                     <button
                       onClick={handleResend}
                       type="button"
                       style={{ marginLeft: '1rem', border: 'none', background: 'none', color: '#2dc997', cursor: 'pointer', textDecoration: 'underline' }}
                     >
-                      다시 보내기
+                      Send again
                     </button>
                   )}
                 </div>
@@ -378,7 +378,7 @@ export default function CompanyAdminSignup() {
                     !password ||
                     password.length < 8 ||
                     password.length > 16 ||
-                    passwordStrength === '약함' ||
+                    passwordStrength === 'Weak' ||
                     !confirmPassword ||
                     !passwordMatch ||
                     !adminName ||
@@ -395,7 +395,7 @@ export default function CompanyAdminSignup() {
                     !password ||
                     password.length < 8 ||
                     password.length > 16 ||
-                    passwordStrength === '약함' ||
+                    passwordStrength === 'Weak' ||
                     !confirmPassword ||
                     !passwordMatch ||
                     !adminName ||
@@ -411,7 +411,7 @@ export default function CompanyAdminSignup() {
                     !password ||
                     password.length < 8 ||
                     password.length > 16 ||
-                    passwordStrength === '약함' ||
+                    passwordStrength === 'Weak' ||
                     !confirmPassword ||
                     !passwordMatch ||
                     !adminName ||
@@ -423,7 +423,7 @@ export default function CompanyAdminSignup() {
                         : 'pointer'
                 }}
                 >
-                {isSubmitting ? '회원가입 중...' : '회원가입 완료'}
+                {isSubmitting ? 'Creating account...' : 'Create account'}
                 </button>
           </form>
         </div>
