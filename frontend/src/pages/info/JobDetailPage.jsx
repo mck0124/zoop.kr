@@ -21,6 +21,7 @@ function JobDetailPage() {
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [otherPosts, setOtherPosts] = useState([]);
   const [showPortfolioPopup, setShowPortfolioPopup] = useState(false);
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
   // 북마크 관련 상태
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   // 기존 포트폴리오 관련 상태
@@ -177,6 +178,7 @@ function JobDetailPage() {
     }
     setUploading(true);
     setUploadError(null);
+    setSubmissionSuccess(false);
     try {
       const candidateId = authState.userId;
       if (!candidateId) throw new Error('Your login session is unavailable.');
@@ -253,45 +255,7 @@ function JobDetailPage() {
       setSelectedFile(null);
       setUseExistingPortfolio(false);
       setShowPortfolioPopup(false);
-      // 지원 완료 메시지를 더 나은 방식으로 표시
-      const successMessage = document.createElement('div');
-      successMessage.innerHTML = `
-        <div style="
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          background: white;
-          padding: 2rem;
-          border-radius: 12px;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-          z-index: 10000;
-          text-align: center;
-          min-width: 300px;
-        ">
-          <div style="
-            color: #30c59b;
-            font-size: 2rem;
-            margin-bottom: 1rem;
-          ">✓</div>
-          <div style="
-            color: #333;
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-          ">Application submitted!</div>
-          <div style="
-            color: #666;
-            font-size: 0.9rem;
-          ">Your application was submitted successfully.</div>
-        </div>
-      `;
-      document.body.appendChild(successMessage);
-      
-      // 3초 후 메시지 제거
-      setTimeout(() => {
-        document.body.removeChild(successMessage);
-      }, 3000);
+      setSubmissionSuccess(true);
     } catch (e) {
       // 네트워크 연결 오류 처리
       let errorMessage = e.message;
@@ -1337,6 +1301,26 @@ function JobDetailPage() {
           <div className="modal-content" style={{ background:'#fff', borderRadius: '16px', padding:'2.5rem 3.5rem', boxShadow:'0 8px 32px rgba(0,0,0,0.15)', textAlign:'center', fontSize:'1.2rem', fontWeight:600, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
             <div className="loading-spinner" style={{ marginBottom:'1.5rem', width:'48px', height:'48px', border:'6px solid #e2e8f0', borderTop:'6px solid #38a169', borderRadius:'50%', animation:'spin 1s linear infinite' }} />
             <div>Analyzing your submission. Please wait...</div>
+          </div>
+        </div>
+      )}
+      {submissionSuccess && (
+        <div
+          role="presentation"
+          onClick={() => setSubmissionSuccess(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.42)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="application-success-title"
+            onClick={event => event.stopPropagation()}
+            style={{ background: '#fff', borderRadius: 20, padding: '2rem', boxShadow: '0 20px 60px rgba(15, 23, 42, 0.24)', textAlign: 'center', width: 'min(100%, 380px)' }}
+          >
+            <div aria-hidden="true" style={{ color: '#30c59b', fontSize: '2.5rem', lineHeight: 1, marginBottom: '1rem' }}>✓</div>
+            <h2 id="application-success-title" style={{ color: '#0f172a', fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>Application submitted!</h2>
+            <p style={{ color: '#64748b', fontSize: '0.95rem', lineHeight: 1.5, marginBottom: '1.25rem' }}>Your portfolio was sent to the hiring team successfully.</p>
+            <button type="button" onClick={() => setSubmissionSuccess(false)} style={{ background: '#30c59b', color: '#fff', border: 0, borderRadius: 10, padding: '0.7rem 1.5rem', fontWeight: 700, cursor: 'pointer' }}>Done</button>
           </div>
         </div>
       )}
