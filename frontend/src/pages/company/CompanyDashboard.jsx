@@ -51,6 +51,7 @@ export default function CompanyDashboard() {
   const [portfolioError, setPortfolioError] = useState('');
   const [showAiAnalysisModal, setShowAiAnalysisModal] = useState(false);
   const [currentAiAnalysis, setCurrentAiAnalysis] = useState(null);
+  const [currentAiJobCandidateId, setCurrentAiJobCandidateId] = useState(null);
   const [aiAnalysisLoading, setAiAnalysisLoading] = useState(false);
   const [aiAnalysisError, setAiAnalysisError] = useState('');
   const [portfolioMatchesMap, setPortfolioMatchesMap] = useState({});
@@ -158,7 +159,7 @@ export default function CompanyDashboard() {
         bulkCustomMessage
       );
 
-      const response = await fetch(apiUrl('/api/invitations/send-bulk'), {
+      const response = await authenticatedFetch(apiUrl('/api/invitations/send-bulk'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -315,7 +316,7 @@ export default function CompanyDashboard() {
       return;
     }
     
-      fetch(apiUrl('/api/postings/company'), {
+      authenticatedFetch(apiUrl('/api/postings/company'), {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
@@ -348,7 +349,7 @@ export default function CompanyDashboard() {
   useEffect(() => {
     if (selectedPostId) {
       setLoadingPostDetail(true);
-      fetch(apiUrl(`/api/postings/info/${selectedPostId}`), {
+      authenticatedFetch(apiUrl(`/api/postings/info/${selectedPostId}`), {
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
@@ -520,7 +521,7 @@ export default function CompanyDashboard() {
   const handleEditSave = async () => {
     setEditLoading(true);
     try {
-      const res = await fetch(apiUrl(`/api/postings/${selectedPostId}`), {
+      const res = await authenticatedFetch(apiUrl(`/api/postings/${selectedPostId}`), {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -531,11 +532,14 @@ export default function CompanyDashboard() {
       if (res.ok) {
         setShowEditModal(false);
         // 상세 정보 갱신
-      const detailRes = await fetch(apiUrl(`/api/postings/info/${selectedPostId}`));
+      const detailRes = await authenticatedFetch(apiUrl(`/api/postings/info/${selectedPostId}`));
         setSelectedPostDetail(await detailRes.json());
       } else {
-        alert('Could not update the job posting.');
+        setDashboardFeedback({ type: 'error', message: 'Could not update the job posting.' });
       }
+    } catch (error) {
+      console.error('Job posting update failed:', error);
+      setDashboardFeedback({ type: 'error', message: 'Could not update the job posting. Please try again.' });
     } finally {
       setEditLoading(false);
     }
@@ -545,7 +549,7 @@ export default function CompanyDashboard() {
   const handleDelete = async () => {
     setDeleteLoading(true);
     try {
-      const res = await fetch(apiUrl(`/api/postings/${selectedPostId}`), {
+      const res = await authenticatedFetch(apiUrl(`/api/postings/${selectedPostId}`), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
@@ -555,15 +559,18 @@ export default function CompanyDashboard() {
         setShowDeleteModal(false);
         setSelectedPostId(null);
         // 목록 갱신
-      const listRes = await fetch(apiUrl('/api/postings/company'), {
+      const listRes = await authenticatedFetch(apiUrl('/api/postings/company'), {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
           },
         });
         setPostings(await listRes.json());
       } else {
-        alert('Could not delete the job posting.');
+        setDashboardFeedback({ type: 'error', message: 'Could not delete the job posting.' });
       }
+    } catch (error) {
+      console.error('Job posting deletion failed:', error);
+      setDashboardFeedback({ type: 'error', message: 'Could not delete the job posting. Please try again.' });
     } finally {
       setDeleteLoading(false);
     }
@@ -885,7 +892,7 @@ export default function CompanyDashboard() {
       }).filter(Boolean);
       
       
-      const response = await fetch(apiUrl('/api/progress/update-stage-multiple'), {
+      const response = await authenticatedFetch(apiUrl('/api/progress/update-stage-multiple'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -968,7 +975,7 @@ export default function CompanyDashboard() {
       }).filter(Boolean);
       
       
-      const response = await fetch(apiUrl('/api/progress/update-stage-multiple'), {
+      const response = await authenticatedFetch(apiUrl('/api/progress/update-stage-multiple'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1016,7 +1023,7 @@ export default function CompanyDashboard() {
 
     setApplicantActionLoading(true);
     try {
-      const response = await fetch(apiUrl('/api/responder/update-stage'), {
+      const response = await authenticatedFetch(apiUrl('/api/responder/update-stage'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1072,7 +1079,7 @@ export default function CompanyDashboard() {
 
     setApplicantActionLoading(true);
     try {
-      const response = await fetch(apiUrl('/api/responder/update-stage'), {
+      const response = await authenticatedFetch(apiUrl('/api/responder/update-stage'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1130,6 +1137,7 @@ export default function CompanyDashboard() {
 
   // AI 분석 결과 가져오기
   const fetchAiAnalysis = async (jobCandidateId) => {
+    setCurrentAiJobCandidateId(jobCandidateId || null);
     setShowAiAnalysisModal(true);
     setCurrentAiAnalysis(null);
     setAiAnalysisError('');
@@ -1140,7 +1148,7 @@ export default function CompanyDashboard() {
       return;
     }
     try {
-      const response = await fetch(apiUrl(`/api/ai-analysis-results/portfolio/${jobCandidateId}`), {
+      const response = await authenticatedFetch(apiUrl(`/api/ai-analysis-results/portfolio/${jobCandidateId}`), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
         },
@@ -2923,6 +2931,7 @@ export default function CompanyDashboard() {
         onClose={() => {
           setShowAiAnalysisModal(false);
           setCurrentAiAnalysis(null);
+          setCurrentAiJobCandidateId(null);
           setAiAnalysisError('');
         }}
         isAiAnalysis={true}
@@ -2976,7 +2985,16 @@ export default function CompanyDashboard() {
 
         {aiAnalysisError && !aiAnalysisLoading && (
           <div role="alert" style={{ margin: '0 0 1.5rem', padding: '14px 16px', borderRadius: 12, border: '1px solid #fed7aa', background: '#fff7ed', color: '#9a3412', fontSize: 14, lineHeight: 1.5 }}>
-            {aiAnalysisError}
+            <div style={{ marginBottom: '0.75rem' }}>{aiAnalysisError}</div>
+            {currentAiJobCandidateId && (
+              <button
+                type="button"
+                onClick={() => fetchAiAnalysis(currentAiJobCandidateId)}
+                style={{ border: 0, borderRadius: 999, padding: '0.55rem 0.9rem', background: '#ea580c', color: '#fff', fontWeight: 800, cursor: 'pointer' }}
+              >
+                Retry analysis
+              </button>
+            )}
           </div>
         )}
         
