@@ -170,7 +170,7 @@ export default function CompanyDashboard() {
         setBulkSelectedTemplate('professional');
         setSelectedApplicants(new Set());
       } else {
-        alert('일괄전송 중 오류가 발생했습니다: ' + result.message);
+        alert('Batch email failed: ' + result.message);
       }
     } catch (error) {
       console.error('일괄전송 오류:', error);
@@ -245,14 +245,14 @@ export default function CompanyDashboard() {
     if (filter) {
       // URL 파라미터의 필터 값을 기존 필터 라벨과 매핑
       const filterMapping = {
-        'additional-applicants': '추가 지원자',
-        'matched': '매칭',
-        'all': '전체',
-        'no-response': '미회신자',
-        'response': '회신자',
-        'interview-scheduled': '면접 예정자',
-        'interview-completed': '면접 완료자',
-        'portfolio-matched': '매칭' // 포트폴리오 매칭도 매칭으로 처리
+        'additional-applicants': 'Additional applicants',
+        'matched': 'Matched',
+        'all': 'All',
+        'no-response': 'No response',
+        'response': 'Responded',
+        'interview-scheduled': 'Interview scheduled',
+        'interview-completed': 'Interview completed',
+        'portfolio-matched': 'Matched'
       };
       
       const mappedFilter = filterMapping[filter] || filter;
@@ -550,16 +550,16 @@ export default function CompanyDashboard() {
 
   // 후보자 상태 라벨 변환 함수 (StatePage 참고)
   const getStageLabel = (code, isMatched) => {
-    if (isMatched && code === '2y') return '매칭';
+    if (isMatched && code === '2y') return 'Matched';
     switch (code) {
-      case '1n': return '필터링';
-      case '2n': return '메일발송';
-      case '2y': return '회신';
-      case '3n': return '면접 예정자';
-      case '3y': return '면접 완료자';
-      case '4n': return '불합격';
-      case '4y': return '합격';
-      default: return '필터링';
+      case '1n': return 'Filtered';
+      case '2n': return 'Contacted';
+      case '2y': return 'Responded';
+      case '3n': return 'Interview scheduled';
+      case '3y': return 'Interview completed';
+      case '4n': return 'Rejected';
+      case '4y': return 'Hired';
+      default: return 'Filtered';
     }
   };
 
@@ -582,27 +582,27 @@ export default function CompanyDashboard() {
   // 이메일 템플릿 정의
   const emailTemplates = {
     professional: {
-      name: "프로페셔널",
-      description: "깔끔하고 전문적인 스타일",
-      preview: "🏢 정중하고 격식있는 톤",
-      defaultGreeting: "안녕하세요",
-      defaultMessage: "저희 회사에서 귀하의 뛰어난 개발 역량을 높이 평가하여 특별히 연락드립니다.",
+      name: "Professional",
+      description: "Clean and polished",
+      preview: "🏢 Formal and focused",
+      defaultGreeting: "Hello",
+      defaultMessage: "We were impressed by your engineering work and would love to explore an opportunity with you.",
       color: "#2563eb",
       bgColor: "#eff6ff"
     },
     friendly: {
-      name: "친근한",
-      description: "따뜻하고 친근한 스타일",
-      preview: "😊 편안하고 친근한 톤",
-      defaultGreeting: "안녕하세요",
-      defaultMessage: "안녕하세요! 귀하의 GitHub 프로필을 보고 정말 인상깊었습니다. 저희와 함께 성장해보지 않으실까요?",
+      name: "Friendly",
+      description: "Warm and approachable",
+      preview: "😊 Relaxed and personal",
+      defaultGreeting: "Hi",
+      defaultMessage: "I came across your GitHub profile and was genuinely impressed. Would you like to grow with our team?",
       color: "#059669",
       bgColor: "#ecfdf5"
     },
     modern: {
-      name: "모던",
-      description: "세련되고 혁신적인 스타일",
-      preview: "🚀 트렌디하고 혁신적인 톤",
+      name: "Modern",
+      description: "Bold and innovative",
+      preview: "🚀 Trendy and future-facing",
       defaultGreeting: "Hello",
       defaultMessage: "We're building the future of technology and would love to have you join our journey. Your skills perfectly match what we're looking for.",
       color: "#7c3aed",
