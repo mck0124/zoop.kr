@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import re
-from typing import Any, Dict, Iterable
+from typing import Any, Dict, Iterable, Optional
 
 
 _INSTRUCTION_PATTERNS = (
@@ -80,3 +80,70 @@ def count_grounded_evidence(items: Iterable[Dict[str, Any]]) -> int:
         and str(item.get("claim", "")).strip()
         and item.get("claim") != "확인된 근거 없음"
     )
+
+
+def evidence_quality_report(
+    items: Iterable[Dict[str, Any]],
+    *,
+    coverage: Optional[Any] = None,
+    source_integrity: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Create one reviewer-facing quality contract for every AI surface.
+
+    Scores are intentionally not changed here. This report makes the reasons
+    for human review explicit and keeps the policy deterministic regardless of
+    which model or AI service produced the draft.
+    """
+
+    values = [item for item in items if isinstance(item, dict)]
+    grounded = [
+        item for item in values
+        if item.get("verification_state") in {"verified", "grounded"}
+        and str(item.get("claim", "")).strip()
+        and item.get("claim") != "확인된 근거 없음"
+    ]
+    needs_review = [
+        item for item in values
+        if item.get("verification_state") in {"needs_verification", "unverified"}
+    ]
+    context_only = [item for item in values if item.get("verification_state") == "context_only"]
+    total = len(values)
+    grounded_count = len(grounded)
+    try:
+        coverage_percent = float(coverage)
+    except (TypeError, ValueError):
+        coverage_percent = grounded_count / max(1, total) * 100
+    coverage_percent = round(max(0.0, min(100.0, coverage_percent)), 1)
+    unsupported_rate = round(len(needs_review) / max(1, total) * 100, 1)
+
+    reasons = []
+    if grounded_count == 0:
+        reasons.append("No source-grounded evidence is available")
+    elif coverage_percent < 50:
+        reasons.append("Evidence coverage is below 50%")
+    if unsupported_rate >= 40:
+        reasons.append("A high share of claims still needs verification")
+    if source_integrity and source_integrity.get("status") == "review":
+        reasons.append("Instruction-like text was detected in the source")
+
+    if reasons:
+        priority = "high" if grounded_count == 0 or (source_integrity and source_integrity.get("status") == "review") else "medium"
+    else:
+        priority = "low"
+
+    return {
+        "version": "evidence-quality-v1",
+        "total_evidence": total,
+        "grounded_evidence": grounded_count,
+        "needs_verification": len(needs_review),
+        "context_only": len(context_only),
+        "coverage_percent": coverage_percent,
+        "unsupported_claim_rate": unsupported_rate,
+        "review_priority": priority,
+        "review_reasons": reasons or ["Evidence coverage is sufficient for a focused human review"],
+        "recommended_action": (
+            "Verify the highest-impact missing signal before making a final decision"
+            if priority != "low"
+            else "Proceed with the recommended verification step and keep the receipt"
+        ),
+    }

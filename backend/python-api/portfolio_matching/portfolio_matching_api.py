@@ -15,7 +15,7 @@ import time
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../github_search')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from common.ai_quality import bounded_confidence, source_integrity_audit
+from common.ai_quality import bounded_confidence, evidence_quality_report, source_integrity_audit
 
 # .env에서 API 키 로드
 load_dotenv()
@@ -109,6 +109,7 @@ def _evidence_id(*parts: Any) -> str:
 def _audit_metadata(source_text: str, source_type: str, evidence_count: int) -> Dict[str, Any]:
     """AI 결과가 언제/어떤 입력 계열/정책으로 만들어졌는지 추적 가능한 메타데이터."""
     integrity = source_integrity_audit(source_text, source_type=source_type)
+    integrity = source_integrity_audit(source_text, source_type="portfolio_submission")
     return {
         "ledger_version": "zoop-evidence-ledger-v1",
         "policy_version": "grounded-hiring-v1",
@@ -209,7 +210,12 @@ def _normalize_portfolio_analysis(raw_analysis: Dict[str, Any], source_text: str
             f"검증 가능한 근거 {verified_count}개, 근거 커버리지 {coverage}%",
         ],
         "audit": _audit_metadata(source_text, "portfolio_submission", verified_count),
-        "source_integrity": source_integrity_audit(source_text, source_type="portfolio_submission"),
+        "source_integrity": integrity,
+        "evidence_quality": evidence_quality_report(
+            evidence,
+            coverage=coverage,
+            source_integrity=integrity,
+        ),
     }
 
 
@@ -697,6 +703,7 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
                     "evidence_id": requested_evidence_id or _evidence_id("match", name, raw_source, item.get("claim", "")),
                     "source": normalized_source,
                     "claim": catalog_item["claim"] if is_grounded else str(item.get("claim", "확인된 근거 없음")),
+                    "quote": catalog_item["quote"] if is_grounded else "",
                     "verification_state": "grounded" if is_grounded else "context_only" if normalized_source == "job" else "needs_verification",
                     "confidence": max(0.0, min(1.0, confidence if is_grounded or normalized_source == "job" else confidence * 0.25)),
                 })

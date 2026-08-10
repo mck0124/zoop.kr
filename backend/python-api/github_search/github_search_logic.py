@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from PyPDF2 import PdfReader
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from common.ai_quality import source_integrity_audit
+from common.ai_quality import evidence_quality_report, source_integrity_audit
 
 load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -697,6 +697,10 @@ JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므
         decision = "strong_match" if score >= 75 and len(grounded) >= 3 else "review" if score >= 50 and grounded else "not_enough_evidence"
         source_types = sorted({item.get("source") for item in grounded if item.get("source")})
         counterfactuals = build_counterfactuals(dimensions, language)
+        integrity = source_integrity_audit(
+            json.dumps(safe_details, ensure_ascii=False, default=str),
+            source_type="public_github_snapshot",
+        )
         result.update({
             "version": "github-evidence-v1",
             "dimensions": dimensions,
@@ -719,6 +723,11 @@ JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므
                 "source_count": len(source_types),
                 "description": "A stronger decision uses independent evidence types rather than repeating one public signal.",
             },
+            "evidence_quality": evidence_quality_report(
+                [item for dimension in dimensions for item in dimension["evidence"]],
+                coverage=round(min(100.0, len(grounded) / max(1, len(dimensions)) * 100), 1),
+                source_integrity=integrity,
+            ),
             "gaps": [str(item) for item in result.get("gaps", []) if item][:6] or ["실제 코드 기여도와 협업 맥락은 GitHub 공개 데이터만으로 확인 불가"],
             "risk_flags": [str(item) for item in result.get("risk_flags", []) if item][:6] or ["공개 활동량을 실력의 직접 증거로 해석하지 않음"],
             "verification_plan": [str(item) for item in result.get("verification_plan", []) if item][:6] or ["대표 저장소의 실제 기여와 설계 선택을 면접에서 확인"],
@@ -733,10 +742,7 @@ JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므
                 "source_fingerprint": hashlib.sha256(json.dumps(safe_details, ensure_ascii=False, default=str, sort_keys=True).encode("utf-8")).hexdigest()[:20],
                 "evidence_count": len(grounded),
                 "generated_at": datetime.now(timezone.utc).isoformat(),
-                "source_integrity": source_integrity_audit(
-                    json.dumps(safe_details, ensure_ascii=False, default=str),
-                    source_type="public_github_snapshot",
-                ),
+                "source_integrity": integrity,
             },
         })
         return json.dumps(result, ensure_ascii=False)

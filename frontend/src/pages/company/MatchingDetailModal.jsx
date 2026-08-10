@@ -125,6 +125,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                 const confidence = reasonPayload?.evidence?.confidence;
                 const audit = reasonPayload?.evidence?.audit;
                 const calibration = reasonPayload?.evidence?.score_calibration;
+                const evidenceQuality = reasonPayload?.evidence?.evidence_quality;
                 const selectedDelta = counterfactuals
                   .filter((_, index) => selectedCounterfactuals.includes(index))
                   .reduce((sum, item) => sum + Number(item.expected_score_delta || 0), 0);
@@ -132,7 +133,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                 return score !== undefined ? (
                   <div style={{ background: '#f8fafd', borderRadius: 10, padding: 18, fontSize: 16 }}>
                     <div style={{ display: 'flex', gap: 16, alignItems: 'baseline', flexWrap: 'wrap' }}>
-                      <span><b>Current match score:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{score}</span></span>
+                          <span><b>Current match score:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{score}</span></span>
                       {selectedCounterfactuals.length > 0 && <span style={{ color: '#6d28d9', fontWeight: 800 }}>Projected after verification: {projectedScore.toFixed(0)} points</span>}
                       <button
                         type="button"
@@ -194,6 +195,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                                     {item.verification_state === 'grounded' ? 'Candidate source verified' : item.verification_state === 'context_only' ? 'Job context' : 'Needs verification'}
                                   </small>
                                 </div>
+                                {item.quote && <div style={{ margin: '4px 0 0 12px', padding: '6px 8px', background: '#f8fafc', borderLeft: '3px solid #86efac', color: '#64748b', fontSize: 12 }}>“{item.quote}”</div>}
                                 {item.evidence_id && <small style={{ display: 'block', marginLeft: 12, marginTop: 2, color: '#9ca3af', fontFamily: 'monospace', fontSize: 10 }}>Evidence ID {item.evidence_id}</small>}
                               </div>
                             ))}
@@ -205,7 +207,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                       <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: 12 }}>
                         <strong style={{ color: '#9a3412' }}>Why verification is pending</strong>
                         <ul style={{ margin: '8px 0 0 18px', padding: 0, color: '#7c2d12', fontSize: 13 }}>
-                          {(gaps.length ? gaps : ['추가 확인이 필요한 정보가 없습니다.']).slice(0, 4).map((item, index) => <li key={index}>{item}</li>)}
+                          {(gaps.length ? gaps : ['No additional information is currently required.']).slice(0, 4).map((item, index) => <li key={index}>{item}</li>)}
                         </ul>
                       </div>
                       <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: 12 }}>
@@ -217,7 +219,22 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                     </div>
                     {riskFlags.length > 0 && (
                       <div style={{ marginTop: 12, color: '#475569', fontSize: 13 }}>
-                        <b>주의 신호:</b> {riskFlags.slice(0, 4).join(' · ')}
+                        <b>Risk flags:</b> {riskFlags.slice(0, 4).join(' · ')}
+                      </div>
+                    )}
+                    {evidenceQuality && (
+                      <div style={{ marginTop: 14, padding: 12, border: `1px solid ${evidenceQuality.review_priority === 'high' ? '#fecdd3' : evidenceQuality.review_priority === 'medium' ? '#fde68a' : '#bbf7d0'}`, background: evidenceQuality.review_priority === 'high' ? '#fff1f2' : evidenceQuality.review_priority === 'medium' ? '#fffbeb' : '#f0fdf4', borderRadius: 10, color: '#334155', fontSize: 13 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                          <strong>Evidence quality gate</strong>
+                          <b>{evidenceQuality.review_priority || 'review'} priority</b>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8, marginTop: 9 }}>
+                          <span>Grounded: <b>{evidenceQuality.grounded_evidence ?? 0}</b></span>
+                          <span>Needs verification: <b>{evidenceQuality.needs_verification ?? 0}</b></span>
+                          <span>Coverage: <b>{evidenceQuality.coverage_percent ?? 0}%</b></span>
+                          <span>Unsupported: <b>{evidenceQuality.unsupported_claim_rate ?? 0}%</b></span>
+                        </div>
+                        <div style={{ marginTop: 8 }}><b>Recommended action:</b> {evidenceQuality.recommended_action}</div>
                       </div>
                     )}
                     {(counterfactuals.length > 0 || fairnessGuard || decisionTrace.length > 0 || audit) && (
@@ -235,7 +252,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                                     disabled={!counterfactuals.length}
                                     onChange={() => setSelectedCounterfactuals(current => current.includes(index) ? current.filter(value => value !== index) : [...current, index])}
                                   />
-                                  <span><b>{item.missing_signal}</b><br /><span>{item.validation_action}</span>{item.expected_score_delta ? ` (${item.expected_score_delta > 0 ? '+' : ''}${item.expected_score_delta}점 가능)` : ''}</span>
+                                  <span><b>{item.missing_signal}</b><br /><span>{item.validation_action}</span>{item.expected_score_delta ? ` (${item.expected_score_delta > 0 ? '+' : ''}${item.expected_score_delta} points possible)` : ''}</span>
                                 </label>
                               </li>
                             ))}

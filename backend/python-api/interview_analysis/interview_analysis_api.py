@@ -19,7 +19,7 @@ import yt_dlp
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from common.ai_quality import source_integrity_audit
+from common.ai_quality import evidence_quality_report, source_integrity_audit
 
 # .env에서 API 키 로드
 load_dotenv()
@@ -419,6 +419,15 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                 "evaluated_attributes": ["답변의 직무 전문성", "문제 해결 근거", "의사소통의 명료성", "경험의 구체성"],
                 "status": "pass",
             }
+            integrity = source_integrity_audit(
+                "\n".join(transcripts),
+                source_type="interview_transcript",
+            )
+            analysis_data["evidence_quality"] = evidence_quality_report(
+                all_evidence,
+                coverage=evidence_coverage,
+                source_integrity=integrity,
+            )
             analysis_data["decision_trace"] = [
                 "답변 원문에 실제로 존재하는 인용만 근거로 인정",
                 f"고정된 100점 루브릭 {len(normalized_categories)}개 항목을 적용",
@@ -435,10 +444,7 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                 ).hexdigest()[:20],
                 "evidence_count": len(grounded_evidence),
                 "generated_at": datetime.now(timezone.utc).isoformat(),
-                "source_integrity": source_integrity_audit(
-                    "\n".join(transcripts),
-                    source_type="interview_transcript",
-                ),
+                "source_integrity": integrity,
             }
         except Exception as e:
             raise RuntimeError("면접 분석 결과를 구조화된 형식으로 검증하지 못했습니다.") from e

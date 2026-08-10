@@ -85,6 +85,26 @@ test('renders evidence diversity as a separate reliability signal', () => {
   expect(screen.getByText('recent_events')).toBeInTheDocument();
 });
 
+test('renders the evidence quality gate and reviewer action', () => {
+  render(renderAnalysis({
+    summary: 'Evidence-backed review',
+    evidence_quality: {
+      grounded_evidence: 2,
+      needs_verification: 3,
+      coverage_percent: 40,
+      unsupported_claim_rate: 60,
+      review_priority: 'high',
+      recommended_action: 'Verify project ownership before deciding.',
+      review_reasons: ['Evidence coverage is below 50%'],
+    },
+  }));
+
+  expect(screen.getByText('Evidence quality gate')).toBeInTheDocument();
+  expect(screen.getByText('high review priority')).toBeInTheDocument();
+  expect(screen.getByText('Verify project ownership before deciding.')).toBeInTheDocument();
+  expect(screen.getByText((content, element) => element?.textContent === 'unsupported claim rate: 60%')).toBeInTheDocument();
+});
+
 test('creates a portable decision receipt with audit-critical fields', () => {
   const receipt = createDecisionReceipt({
     decision: 'review',
