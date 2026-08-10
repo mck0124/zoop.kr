@@ -31,7 +31,7 @@ export default function CompactJobCard({ post, onClick, isBookmarked, onBookmark
           e.stopPropagation();
           if (onBookmarkToggle) onBookmarkToggle(post);
         }}
-        aria-label={isBookmarked ? '스크랩 해제' : '스크랩'}
+        aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark job'}
       >
         {isBookmarked ? <FaBookmark color="#30c59b" size={22} /> : <FaRegBookmark color="#bbb" size={22} />}
       </button>

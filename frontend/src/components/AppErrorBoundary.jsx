@@ -27,7 +27,7 @@ export default class AppErrorBoundary extends React.Component {
           <div style={{ fontSize: 42, marginBottom: 12 }} aria-hidden="true">🛟</div>
           <h1 style={{ margin: '0 0 12px', fontSize: 24 }}>Something went wrong</h1>
           <p style={{ margin: '0 auto 20px', lineHeight: 1.7, color: '#53706a' }}>You can safely recover this screen. Try again or return to the home page.</p>
-          <p style={{ margin: '0 0 20px', fontSize: 12, color: '#8aa39d', fontFamily: 'monospace' }}>오류 ID: {this.state.errorId}</p>
+          <p style={{ margin: '0 0 20px', fontSize: 12, color: '#8aa39d', fontFamily: 'monospace' }}>Error ID: {this.state.errorId}</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
           <button type="button" onClick={() => window.location.reload()} style={{ border: 0, borderRadius: 999, padding: '11px 18px', background: '#30c59b', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Try again</button>
           <button type="button" onClick={() => window.location.assign('/')} style={{ border: '1px solid #b9ded4', borderRadius: 999, padding: '11px 18px', background: '#fff', color: '#237c68', fontWeight: 700, cursor: 'pointer' }}>Go home</button>

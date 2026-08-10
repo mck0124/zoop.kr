@@ -7,9 +7,9 @@ import { apiUrl } from '../api/config';
 import { SUPPORTED_LANGUAGES, useLanguage } from '../context/LanguageContext';
 
 const NAV_COPY = {
-  en: { about: 'About', notice: 'Notices', support: 'Support', faq: 'FAQ', careers: 'Careers', login: 'Log in', mypage: 'My page', settings: 'Settings', logout: 'Log out', notifications: 'Notifications' },
-  ko: { about: '회사 소개', notice: '공지사항', support: '고객센터', faq: '자주 묻는 질문', careers: '채용', login: '로그인', mypage: '마이페이지', settings: '설정', logout: '로그아웃', notifications: '알림' },
-  zh: { about: '关于我们', notice: '公告', support: '客户支持', faq: '常见问题', careers: '招聘', login: '登录', mypage: '我的页面', settings: '设置', logout: '退出登录', notifications: '通知' },
+  en: { about: 'About', notice: 'Notices', support: 'Support', faq: 'FAQ', careers: 'Careers', login: 'Log in', mypage: 'My page', settings: 'Settings', logout: 'Log out', notifications: 'Notifications', notificationHistory: 'Notifications from the last 30 days', markAllRead: 'Mark all as read', loadingNotifications: 'Loading notifications…', pleaseWait: 'Please wait a moment.', todayNotifications: "Today's notifications", emptyNotifications: 'No new notifications', emptyNotificationsBody: "We'll let you know when there is new activity.", expiringTitle: 'Jobs closing soon', expiringSummary: count => `${count} job${count === 1 ? '' : 's'} close within 3 days`, deadline: 'Deadline', tomorrow: 'Closes tomorrow', daysLeft: count => `${count} days left`, recentNotifications: 'Recent notifications', yesterday: 'Yesterday', guest: 'Guest' },
+  ko: { about: '회사 소개', notice: '공지사항', support: '고객센터', faq: '자주 묻는 질문', careers: '채용', login: '로그인', mypage: '마이페이지', settings: '설정', logout: '로그아웃', notifications: '알림', notificationHistory: '최근 30일간의 알림 내역', markAllRead: '모두 읽음', loadingNotifications: '알림을 불러오는 중...', pleaseWait: '잠시만 기다려주세요', todayNotifications: '오늘의 알림', emptyNotifications: '새로운 알림이 없습니다', emptyNotificationsBody: '새로운 활동이 있을 때 알려드릴게요', expiringTitle: '마감일 임박 공고', expiringSummary: count => `${count}개 공고가 3일 이내 마감됩니다`, deadline: '마감일', tomorrow: '내일 마감', daysLeft: count => `${count}일 남음`, recentNotifications: '최근 알림', yesterday: '어제', guest: '게스트' },
+  zh: { about: '关于我们', notice: '公告', support: '客户支持', faq: '常见问题', careers: '招聘', login: '登录', mypage: '我的页面', settings: '设置', logout: '退出登录', notifications: '通知', notificationHistory: '最近30天的通知', markAllRead: '全部标为已读', loadingNotifications: '正在加载通知…', pleaseWait: '请稍候。', todayNotifications: '今日通知', emptyNotifications: '暂无新通知', emptyNotificationsBody: '有新活动时我们会通知你。', expiringTitle: '即将截止的职位', expiringSummary: count => `${count} 个职位将在3天内截止`, deadline: '截止日期', tomorrow: '明天截止', daysLeft: count => `还剩${count}天`, recentNotifications: '最近通知', yesterday: '昨天', guest: '访客' },
 };
 
 const Navbar = ({ onLangChange, hideAuth }) => {
@@ -73,9 +73,9 @@ const Navbar = ({ onLangChange, hideAuth }) => {
     } else if (authState?.userName) {
       setDisplayedUserName(authState.userName);
     } else {
-      setDisplayedUserName('게스트');
+      setDisplayedUserName(navCopy.guest);
     }
-  }, [authState]);
+  }, [authState, navCopy.guest]);
 
   // 드롭다운 외부 클릭 감지
   useEffect(() => {
@@ -583,7 +583,7 @@ const Navbar = ({ onLangChange, hideAuth }) => {
     if (date.toDateString() === today.toDateString()) {
       return date.toLocaleTimeString();
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return '어제 ' + date.toLocaleTimeString();
+      return `${navCopy.yesterday} ${date.toLocaleTimeString()}`;
     } else {
       return date.toLocaleDateString();
     }
@@ -739,7 +739,7 @@ const Navbar = ({ onLangChange, hideAuth }) => {
               
               {/* 모바일 알림 버튼 (기업회원과 개인회원 모두) */}
               <div className="mobile-notification-button" onClick={handleNotificationClick}>
-                <img src="/icons/bell.svg" alt="알림" className="mobile-notification-icon" />
+                <img src="/icons/bell.svg" alt={navCopy.notifications} className="mobile-notification-icon" />
                 {unreadCount > 0 && (
                   <span className="mobile-notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
                 )}
@@ -820,7 +820,7 @@ const Navbar = ({ onLangChange, hideAuth }) => {
             <>
               {/* 알림 버튼 추가 (기업회원과 개인회원 모두) */}
               <div className={`notification-button ${isNotificationOpen ? 'active' : ''}`} onClick={handleNotificationClick} ref={notificationRef}>
-                <img src="/icons/bell.svg" alt="알림" className="notification-icon" />
+                <img src="/icons/bell.svg" alt={navCopy.notifications} className="notification-icon" />
                 {unreadCount > 0 && (
                   <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
                 )}
@@ -835,9 +835,9 @@ const Navbar = ({ onLangChange, hideAuth }) => {
                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
-                          알림
+                          {navCopy.notifications}
                         </h3>
-                        <span className="notification-subtitle">최근 30일간의 알림 내역</span>
+                        <span className="notification-subtitle">{navCopy.notificationHistory}</span>
                       </div>
                       {unreadCount > 0 && (
                         <button 
@@ -847,7 +847,7 @@ const Navbar = ({ onLangChange, hideAuth }) => {
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ marginRight: '0.25rem' }}>
                             <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
-                          모두 읽음
+                          {navCopy.markAllRead}
                         </button>
                       )}
                     </div>
@@ -866,12 +866,12 @@ const Navbar = ({ onLangChange, hideAuth }) => {
                             />
                           </svg>
                         </div>
-                        <p style={{ fontWeight: '600', color: '#374151' }}>알림을 불러오는 중...</p>
-                        <p style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>잠시만 기다려주세요</p>
+                        <p style={{ fontWeight: '600', color: '#374151' }}>{navCopy.loadingNotifications}</p>
+                        <p style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>{navCopy.pleaseWait}</p>
                       </div>
                     ) : notifications.length === 0 ? (
                       <div className="notification-section">
-                        <h4>오늘의 알림</h4>
+                        <h4>{navCopy.todayNotifications}</h4>
                         <div className="notification-empty">
                           <div className="notification-illustration">
                             <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
@@ -885,8 +885,8 @@ const Navbar = ({ onLangChange, hideAuth }) => {
                               </defs>
                             </svg>
                           </div>
-                          <p>새로운 알림이 없습니다</p>
-                          <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', opacity: 0.7 }}>새로운 활동이 있을 때 알려드릴게요</p>
+                          <p>{navCopy.emptyNotifications}</p>
+                          <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', opacity: 0.7 }}>{navCopy.emptyNotificationsBody}</p>
                         </div>
                       </div>
                     ) : (
@@ -926,7 +926,7 @@ const Navbar = ({ onLangChange, hideAuth }) => {
                                   fontWeight: '700',
                                   margin: '0 0 0.25rem 0'
                                 }}>
-                                  마감일 임박 공고
+                                  {navCopy.expiringTitle}
                                 </h4>
                                 <p style={{
                                   color: '#991b1b',
@@ -934,7 +934,7 @@ const Navbar = ({ onLangChange, hideAuth }) => {
                                   margin: 0,
                                   opacity: 0.8
                                 }}>
-                                  {expiringPosts.length}개 공고가 3일 이내 마감됩니다
+                                  {navCopy.expiringSummary(expiringPosts.length)}
                                 </p>
                               </div>
                             </div>
@@ -1024,7 +1024,7 @@ const Navbar = ({ onLangChange, hideAuth }) => {
                                         color: urgencyColor,
                                         fontWeight: '600'
                                       }}>
-                                        마감일: {formatDate(post.postExpiryDate)}
+                                        {navCopy.deadline}: {formatDate(post.postExpiryDate)}
                                       </span>
                                     </div>
                                     
@@ -1043,7 +1043,7 @@ const Navbar = ({ onLangChange, hideAuth }) => {
                                         color: urgencyColor,
                                         fontWeight: '600'
                                       }}>
-                                        {daysLeft === 1 ? '내일 마감' : `${daysLeft}일 남음`}
+                                        {daysLeft === 1 ? navCopy.tomorrow : navCopy.daysLeft(daysLeft)}
                                       </span>
                                     </div>
                                     
@@ -1066,7 +1066,7 @@ const Navbar = ({ onLangChange, hideAuth }) => {
                         )}
                         
                         <div className="notification-section">
-                          <h4>최근 알림</h4>
+                          <h4>{navCopy.recentNotifications}</h4>
                           <div className="notification-list">
                             {notifications
                               .sort((a, b) => {
