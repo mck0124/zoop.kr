@@ -59,7 +59,7 @@ function PortfolioSubmissionPage() {
 
     // 사용자가 로그인하지 않았거나 candidateId가 없으면 로그인 페이지로 리다이렉트
     if (!candidateId) {
-      alert('로그인이 필요합니다.');
+      alert('Please log in to continue.');
       navigate('/login');
       return;
     }
@@ -119,7 +119,7 @@ function PortfolioSubmissionPage() {
     if (workExperiences.length < 5) {
       setWorkExperiences([...workExperiences, { companyName: '', jobTitle: '', startDate: '', endDate: '', currentlyWorking: false }]);
     } else {
-      alert('업무 경험은 최대 5개까지 작성할 수 있습니다.');
+      alert('You can add up to 5 work experiences.');
     }
   };
 
@@ -152,12 +152,12 @@ function PortfolioSubmissionPage() {
     if (!file) return;
     const extension = `.${file.name.split('.').pop().toLowerCase()}`;
     if (file.size > MAX_FILE_SIZE) {
-      alert('파일은 50MB 이하만 첨부할 수 있습니다.');
+      alert('Files must be 50MB or smaller.');
       event.target.value = '';
       return;
     }
     if (allowedExtensions && !allowedExtensions.includes(extension)) {
-      alert(`지원하지 않는 파일 형식입니다. ${allowedExtensions.join(', ')} 파일을 선택해주세요.`);
+      alert(`Unsupported file type. Please select one of: ${allowedExtensions.join(', ')}.`);
       event.target.value = '';
       return;
     }
@@ -169,20 +169,20 @@ function PortfolioSubmissionPage() {
 
     // Validate candidateId
     if (!candidateId) {
-      alert('로그인이 필요합니다.');
+      alert('Please log in to continue.');
       navigate('/login');
       return;
     }
 
     // Validate required agreement
     if (!agreeRequiredPersonal) {
-      alert('필수 개인정보 수집 및 이용에 동의해야 합니다.');
+      alert('You must agree to the required personal data terms.');
       return;
     }
 
     // Validate portfolio file is required
     if (!portfolioFile) {
-      alert('포트폴리오 파일을 선택해주세요.');
+      alert('Please select a portfolio file.');
       return;
     }
 
@@ -236,13 +236,13 @@ function PortfolioSubmissionPage() {
         }
 
         await response.json();
-        alert('지원서가 성공적으로 제출되었습니다.');
+        alert('Your application was submitted successfully.');
         setIsSubmitting(false);
         navigate('/candidate/dashboard');
 
     } catch (error) {
         console.error('지원서 제출 오류:', error);
-        alert(`지원서 제출 중 오류가 발생했습니다: ${error.message}`);
+        alert(`Application submission failed: ${error.message}`);
         setIsSubmitting(false);
     }
   };
@@ -253,7 +253,7 @@ function PortfolioSubmissionPage() {
       <div className="portfolio-submission-container">
         <div className="loading-container">
           <div className="loading-spinner" style={{ marginBottom:'1.5rem', width:'48px', height:'48px', border:'6px solid #e2e8f0', borderTop:'6px solid #38a169', borderRadius:'50%', animation:'spin 1s linear infinite' }}></div>
-          <p>인증 정보를 확인하는 중입니다...</p>
+          <p>Checking authentication...</p>
         </div>
       </div>
     );
@@ -265,7 +265,7 @@ function PortfolioSubmissionPage() {
       <div className="portfolio-submission-container">
         <div className="loading-container">
           <div className="loading-spinner" style={{ marginBottom:'1.5rem', width:'48px', height:'48px', border:'6px solid #e2e8f0', borderTop:'6px solid #38a169', borderRadius:'50%', animation:'spin 1s linear infinite' }}></div>
-          <p>공고 정보를 불러오는 중입니다...</p>
+          <p>Loading job details...</p>
         </div>
       </div>
     );
@@ -279,7 +279,7 @@ function PortfolioSubmissionPage() {
 
   // 3. 데이터가 없을 때
   if (!jobPosting) {
-    return <div>공고 정보를 불러올 수 없습니다.</div>;
+    return <div>Unable to load job details.</div>;
   }
 
   // 4. 정상 UI
@@ -289,12 +289,12 @@ function PortfolioSubmissionPage() {
       <div className="content-row">
         <Sidebar />
         <div className="main-content-area">
-          <h1 className="page-title">포트폴리오 작성</h1>
+          <h1 className="page-title">Submit your portfolio</h1>
           {isSubmitting && (
             <div className="modal-backdrop" style={{ position: 'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.3)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center' }}>
               <div className="modal-content" style={{ background:'#fff', borderRadius: '16px', padding:'2.5rem 3.5rem', boxShadow:'0 8px 32px rgba(0,0,0,0.15)', textAlign:'center', fontSize:'1.2rem', fontWeight:600, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
                 <div className="loading-spinner" style={{ marginBottom:'1.5rem', width:'48px', height:'48px', border:'6px solid #e2e8f0', borderTop:'6px solid #38a169', borderRadius:'50%', animation:'spin 1s linear infinite' }} />
-                <div>분석 중입니다. 잠시만 기다려주세요...</div>
+                <div>Preparing your submission. Please wait...</div>
               </div>
             </div>
           )}
@@ -302,61 +302,61 @@ function PortfolioSubmissionPage() {
           <form onSubmit={handleSubmit} className="portfolio-form">
             {/* Long Answer Questions */}
             <div className="form-section">
-              <h3 className="section-title">자기소개서</h3>
+              <h3 className="section-title">Written responses</h3>
               
               <div className="question-group">
                 <label htmlFor="goalStatement" className="question-label">
-                  1. 해당 포지션으로 합류 시 목표하는 점을 자세히 적어주세요.
-                  <span className="char-limit">(500자 내외)</span>
+                  1. What would you aim to accomplish in this role?
+                  <span className="char-limit">(around 500 characters)</span>
                 </label>
                 <textarea
                   id="goalStatement"
                   value={goalStatement}
                   onChange={(e) => setGoalStatement(e.target.value)}
                   maxLength="700"
-                  placeholder="(최대 700자, 공백 포함)"
+                  placeholder="Up to 700 characters, including spaces"
                   className="question-textarea"
                   required
                 />
                 <div className="char-counter">
-                  {goalStatement.length}/700자
+                  {goalStatement.length}/700 characters
                 </div>
               </div>
 
               <div className="question-group">
                 <label htmlFor="suitabilityStatement" className="question-label">
-                  2. 해당 포지션에 본인이 적합하다고 생각하는 이유를 상세히 적어주세요.
-                  <span className="char-limit">(500자 내외)</span>
+                  2. Why are you a strong fit for this role?
+                  <span className="char-limit">(around 500 characters)</span>
                 </label>
                 <textarea
                   id="suitabilityStatement"
                   value={suitabilityStatement}
                   onChange={(e) => setSuitabilityStatement(e.target.value)}
                   maxLength="700"
-                  placeholder="(최대 700자, 공백 포함)"
+                  placeholder="Up to 700 characters, including spaces"
                   className="question-textarea"
                   required
                 />
                 <div className="char-counter">
-                  {suitabilityStatement.length}/700자
+                  {suitabilityStatement.length}/700 characters
                 </div>
               </div>
             </div>
 
             {/* File Uploads */}
             <div className="form-section">
-              <h3 className="section-title">첨부파일</h3>
+              <h3 className="section-title">Attachments</h3>
               
               <div className="file-upload-group">
                 <label className="file-upload-label">
                   <div className="file-upload-content">
                     <div className="file-icon">📁</div>
                     <div className="file-info">
-                      <span className="file-title">포트폴리오</span>
-                      <span className="file-subtitle">* 필수</span>
+                      <span className="file-title">Portfolio</span>
+                      <span className="file-subtitle">* Required</span>
                     </div>
                     <div className="file-name">
-                      {portfolioFile ? portfolioFile.name : '파일 첨부 (최대 50MB)'}
+                      {portfolioFile ? portfolioFile.name : 'Attach file (max 50MB)'}
                     </div>
                   </div>
                   <input
@@ -374,11 +374,11 @@ function PortfolioSubmissionPage() {
                   <div className="file-upload-content">
                     <div className="file-icon">📄</div>
                     <div className="file-info">
-                      <span className="file-title">이력서 및 경력기술서</span>
-                      <span className="file-subtitle">선택</span>
+                      <span className="file-title">Resume and career summary</span>
+                      <span className="file-subtitle">Optional</span>
                     </div>
                     <div className="file-name">
-                      {resumeFile ? resumeFile.name : '파일 첨부 (최대 50MB)'}
+                      {resumeFile ? resumeFile.name : 'Attach file (max 50MB)'}
                     </div>
                   </div>
                   <input
@@ -395,10 +395,10 @@ function PortfolioSubmissionPage() {
                   <div className="file-upload-content">
                     <div className="file-icon">🪪</div>
                     <div className="file-info">
-                      <span className="file-title">국가보훈대상자 증빙 서류</span>
+                      <span className="file-title">Veteran status document</span>
                     </div>
                     <div className="file-name">
-                      {veteranProofFile ? veteranProofFile.name : '파일 첨부 (최대 50MB)'}
+                      {veteranProofFile ? veteranProofFile.name : 'Attach file (max 50MB)'}
                     </div>
                   </div>
                   <input
@@ -409,14 +409,14 @@ function PortfolioSubmissionPage() {
                   />
                 </label>
                 <div style={{ color: '#2574c7', fontSize: 14, marginTop: 4 }}>
-                  국가보훈대상자는 관련 법률에 의거 우대합니다. 해당하실 경우, 증빙 서류를 첨부해 주세요.
+                  Eligible veteran applicants may receive preference under applicable law. Attach supporting documentation if applicable.
                 </div>
               </div>
             </div>
 
             {/* Career Section */}
             <div className="form-section">
-              <h3 className="section-title">경력 정보</h3>
+              <h3 className="section-title">Experience</h3>
               
               <div className="career-type-selector">
                 <label className="radio-option">
@@ -428,7 +428,7 @@ function PortfolioSubmissionPage() {
                     className="radio-input"
                   />
                   <span className="radio-custom"></span>
-                  <span className="radio-label">경력</span>
+                  <span className="radio-label">Experienced</span>
                 </label>
                 <label className="radio-option">
                   <input
@@ -439,14 +439,14 @@ function PortfolioSubmissionPage() {
                     className="radio-input"
                   />
                   <span className="radio-custom"></span>
-                  <span className="radio-label">신입 (경력 없음)</span>
+                  <span className="radio-label">Entry level (no experience)</span>
                 </label>
               </div>
 
               {isExperienced && (
                 <div className="experience-years">
                   <label htmlFor="totalYearsOfExperience" className="experience-label">
-                    총 경력 기간 <span className="required">*</span>
+                    Total years of experience <span className="required">*</span>
                   </label>
                   <div className="years-input-group">
                     <input
@@ -458,7 +458,7 @@ function PortfolioSubmissionPage() {
                       required={isExperienced}
                       className="years-input"
                     />
-                    <span className="years-unit">년</span>
+                    <span className="years-unit">years</span>
                   </div>
                 </div>
               )}
@@ -466,8 +466,8 @@ function PortfolioSubmissionPage() {
 
             {isExperienced && (
               <div className="form-section">
-                <h3 className="section-title">업무 경험</h3>
-                <p className="section-description">최근 재직 기준으로 5개까지 작성할 수 있어요.</p>
+                <h3 className="section-title">Work experience</h3>
+                <p className="section-description">Add up to five of your most recent roles.</p>
                 
                 {workExperiences.map((experience, index) => (
                   <div key={index} className="experience-card">
@@ -484,21 +484,21 @@ function PortfolioSubmissionPage() {
                       <div className="form-row">
                         <div className="form-field">
                           <label htmlFor={`companyName-${index}`} className="field-label">
-                            회사명 <span className="required">*</span>
+                            Company <span className="required">*</span>
                           </label>
                           <input
                             type="text"
                             id={`companyName-${index}`}
                             value={experience.companyName}
                             onChange={(e) => handleWorkExperienceChange(index, 'companyName', e.target.value)}
-                            placeholder="회사명을 검색해주세요."
+                            placeholder="Search for a company"
                             required
                             className="form-input"
                           />
                         </div>
                         <div className="form-field">
                           <label htmlFor={`jobTitle-${index}`} className="field-label">
-                            담당 직무명 <span className="required">*</span>
+                            Job title <span className="required">*</span>
                           </label>
                           <input
                             type="text"
@@ -514,13 +514,13 @@ function PortfolioSubmissionPage() {
                       <div className="form-row">
                         <div className="form-field" style={{ width: '100%' }}>
                           <label className="field-label">
-                            재직 기간 <span className="required">*</span>
+                            Employment period <span className="required">*</span>
                           </label>
                           {/* Always show the single-line period above the pickers */}
                           <div style={{ marginBottom: '0.5rem', fontWeight: 500, color: '#2c3e50', minHeight: '1.5em' }}>
                             {experience.startDate
-                              ? `${experience.startDate} ~ ${experience.currentlyWorking ? '재직중' : (experience.endDate ? experience.endDate : '')}`
-                              : '재직 기간을 입력해 주세요.'}
+                              ? `${experience.startDate} ~ ${experience.currentlyWorking ? 'Present' : (experience.endDate ? experience.endDate : '')}`
+                              : 'Enter your employment period.'}
                           </div>
                           <div className="date-range" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'nowrap' }}>
                             <input
@@ -550,7 +550,7 @@ function PortfolioSubmissionPage() {
                                 className="checkbox-input"
                               />
                               <span className="checkbox-custom"></span>
-                              재직중
+                              Currently working
                             </label>
                           </div>
                         </div>
@@ -565,7 +565,7 @@ function PortfolioSubmissionPage() {
                     onClick={handleAddWorkExperience} 
                     className="add-experience-btn"
                   >
-                    + 업무 경험 추가
+                    + Add work experience
                   </button>
                 )}
               </div>
@@ -573,7 +573,7 @@ function PortfolioSubmissionPage() {
 
             {/* Agreement Section */}
             <div className="form-section agreement-section">
-              <h3 className="section-title">개인정보 수집 및 이용 동의</h3>
+              <h3 className="section-title">Privacy and consent</h3>
               
               <div className="agreement-all">
                 <label className="agreement-all-label">
@@ -585,8 +585,8 @@ function PortfolioSubmissionPage() {
                     className="checkbox-input large"
                   />
                   <span className="checkbox-custom large"></span>
-                  <span className="agreement-all-text">전체 동의</span>
-                  <span className="agreement-all-subtext">아래의 필수와 선택의 항목에 모두 동의할게요.</span>
+                  <span className="agreement-all-text">Agree to all</span>
+                  <span className="agreement-all-subtext">Agree to all required and optional items below.</span>
                 </label>
               </div>
 
@@ -603,9 +603,9 @@ function PortfolioSubmissionPage() {
                       className="checkbox-input"
                     />
                     <span className="checkbox-custom"></span>
-                    <span className="agreement-text">필수 개인정보 수집 및 이용 동의</span>
+                    <span className="agreement-text">Required personal data collection and use</span>
                   </label>
-                  <button type="button" className="agreement-link" onClick={() => setActiveAgreement('필수 개인정보 수집 및 이용 동의')}>보기</button>
+                  <button type="button" className="agreement-link" onClick={() => setActiveAgreement('Required personal data collection and use')}>View</button>
                 </div>
 
                 <div className="agreement-item">
@@ -618,9 +618,9 @@ function PortfolioSubmissionPage() {
                       className="checkbox-input"
                     />
                     <span className="checkbox-custom"></span>
-                    <span className="agreement-text">선택 개인정보 수집 및 이용 동의</span>
+                    <span className="agreement-text">Optional personal data collection and use</span>
                   </label>
-                  <button type="button" className="agreement-link" onClick={() => setActiveAgreement('선택 개인정보 수집 및 이용 동의')}>보기</button>
+                  <button type="button" className="agreement-link" onClick={() => setActiveAgreement('Optional personal data collection and use')}>View</button>
                 </div>
 
                 <div className="agreement-item">
@@ -633,11 +633,11 @@ function PortfolioSubmissionPage() {
                       className="checkbox-input"
                     />
                     <span className="checkbox-custom"></span>
-                    <span className="agreement-text">선택 추후 적합한 포지션 제안을 위한 개인정보 수집 및 이용에 동의합니다</span>
+                    <span className="agreement-text">Optional: use my data for future role recommendations</span>
                   </label>
-                  <button type="button" className="agreement-link" onClick={() => setActiveAgreement('추후 포지션 제안을 위한 개인정보 수집 및 이용 동의')}>보기</button>
+                  <button type="button" className="agreement-link" onClick={() => setActiveAgreement('Future role recommendations')}>View</button>
                 </div>
-                <p className="agreement-note">제안에 동의해주셔야 추후 더 적합한 포지션을 채용담당자로부터 제안 받을 수 있어요.</p>
+                <p className="agreement-note">This consent allows recruiters to send you more relevant opportunities later.</p>
 
                 <div className="agreement-item">
                   <label className="agreement-item-label">
@@ -649,19 +649,19 @@ function PortfolioSubmissionPage() {
                       className="checkbox-input"
                     />
                     <span className="checkbox-custom"></span>
-                    <span className="agreement-text">선택 추후 공개채용 등이 오픈되었을 때 채용정보를 수신하는 것에 동의합니다</span>
+                    <span className="agreement-text">Optional: receive notifications about future recruiting opportunities</span>
                   </label>
-                  <button type="button" className="agreement-link" onClick={() => setActiveAgreement('채용정보 수신 동의')}>보기</button>
+                  <button type="button" className="agreement-link" onClick={() => setActiveAgreement('Future recruiting notifications')}>View</button>
                 </div>
               </div>
 
               <p className="agreement-warning">
-                * 이 사항에 해당할 경우, 채용 전형의 진행이 중지되거나 채용이 취소될 수 있습니다.
+                * If this information is relevant, the hiring process may be paused or canceled.
               </p>
             </div>
 
             <button type="submit" className="submit-button">
-              지원서 제출하기
+              Submit application
             </button>
           </form>
         </div>
@@ -671,11 +671,11 @@ function PortfolioSubmissionPage() {
           <div className="agreement-modal" role="dialog" aria-modal="true" aria-labelledby="agreement-modal-title" onClick={event => event.stopPropagation()}>
             <div className="agreement-modal-header">
               <h2 id="agreement-modal-title">{activeAgreement}</h2>
-              <button type="button" aria-label="동의 내용 닫기" onClick={() => setActiveAgreement(null)}>×</button>
+              <button type="button" aria-label="Close consent details" onClick={() => setActiveAgreement(null)}>×</button>
             </div>
-            <p>ZOOP은 지원서 검토와 적합한 채용 기회 안내를 위해 필요한 범위에서 개인정보를 처리합니다.</p>
-            <p className="agreement-modal-note">필수 동의는 지원서 제출에 필요하며, 선택 동의는 언제든지 철회할 수 있습니다. 실제 처리 범위는 서비스의 개인정보 처리방침을 따릅니다.</p>
-            <button type="button" className="submit-button agreement-modal-close" onClick={() => setActiveAgreement(null)}>확인</button>
+            <p>ZOOP processes personal data only as needed to review your application and share relevant opportunities.</p>
+            <p className="agreement-modal-note">Required consent is needed to submit your application. Optional consent can be withdrawn at any time. Processing follows our privacy policy.</p>
+            <button type="button" className="submit-button agreement-modal-close" onClick={() => setActiveAgreement(null)}>Done</button>
           </div>
         </div>
       )}

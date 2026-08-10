@@ -43,7 +43,7 @@ function parseDbDate(str) {
 // Date 객체를 KST(로컬)로 변환해서 표시하는 함수
 function formatUtcToKst(dateObj) {
   if (!dateObj || !(dateObj instanceof Date) || isNaN(dateObj.getTime())) return '';
-  return dateObj.toLocaleString('ko-KR', { hour12: false });
+  return dateObj.toLocaleString('en-US', { hour12: false });
 }
 
 // 남은 시간을 계산하는 함수
@@ -53,18 +53,18 @@ function calculateRemainingTime(deadlineDate) {
   const now = new Date();
   const diffMs = deadlineDate - now;
   
-  if (diffMs <= 0) return '면접이 종료되었습니다.';
+  if (diffMs <= 0) return 'Interview ended.';
   
   const diffMin = Math.floor(diffMs / 60000);
   const hours = Math.floor(diffMin / 60);
   const minutes = diffMin % 60;
   
   if (diffMin < 1) {
-    return '곧 종료됩니다!';
+    return 'Ending soon!';
   } else if (hours > 0) {
-    return `면접 종료까지 ${hours}시간 ${minutes}분 남았습니다.`;
+    return `${hours}h ${minutes}m remaining`;
   } else {
-    return `면접 종료까지 ${minutes}분 남았습니다.`;
+    return `${minutes}m remaining`;
   }
 }
 
@@ -80,9 +80,9 @@ const getStageColor = (code) => {
 // 스테이지별 라벨 함수 추가
 const getStageLabel = (code) => {
   switch (code) {
-    case '4n': return '불합격';
-    case '4y': return '합격';
-    default: return '진행중';
+    case '4n': return 'Not selected';
+    case '4y': return 'Selected';
+    default: return 'In progress';
   }
 };
 
@@ -91,7 +91,7 @@ function CandidateDashboard() {
   // authState 객체에 로그인 정보 (예: userId, userType, token)가 담겨 있다고 가정합니다.
   const { authState } = useAuth();
 
-  const [userName, setUserName] = useState('게스트');
+  const [userName, setUserName] = useState('Guest');
   const [activeTab, setActiveTab] = useState('all');
 
   // 백엔드에서 가져온 공고 목록 데이터를 저장할 상태
@@ -107,23 +107,23 @@ function CandidateDashboard() {
 
   // 직무 선택 모달 상태 (localStorage 연동)
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
-  const [selectedJob, setSelectedJob] = useState('입력해주세요');
+  const [selectedJob, setSelectedJob] = useState('Select a preference');
 
   // 지역 선택 모달 상태 (localStorage 연동)
   const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
-  const [selectedRegion, setSelectedRegion] = useState('입력해주세요');
+  const [selectedRegion, setSelectedRegion] = useState('Select a preference');
 
   // 연봉 선택 모달 상태 (localStorage 연동)
   const [isSalaryModalOpen, setIsSalaryModalOpen] = useState(false);
-  const [selectedSalary, setSelectedSalary] = useState('입력해주세요');
+  const [selectedSalary, setSelectedSalary] = useState('Select a preference');
 
   // 기업규모 선택 모달 상태 (새로 추가, localStorage 연동)
   const [isCompanySizeModalOpen, setIsCompanySizeModalOpen] = useState(false);
-  const [selectedCompanySize, setSelectedCompanySize] = useState('입력해주세요');
+  const [selectedCompanySize, setSelectedCompanySize] = useState('Select a preference');
 
   // 출근소요시간 선택 모달 상태 (새로 추가, localStorage 연동)
   const [isCommuteTimeModalOpen, setIsCommuteTimeModalOpen] = useState(false);
-  const [selectedCommuteTime, setSelectedCommuteTime] = useState('입력해주세요');
+  const [selectedCommuteTime, setSelectedCommuteTime] = useState('Select a preference');
 
   // 나머지 입력값 상태 (현재 모달이 없으므로 '입력해주세요'로 고정)
   const [selectedBenefits, setSelectedBenefits] = useState([]);
@@ -533,34 +533,34 @@ function CandidateDashboard() {
 
   return (
     <div className="candidate-dashboard-wrapper dashboard-page">
-      <SEO title="개인 대시보드" description="개인 대시보드에서 나의 포지션 제안, 면접 일정, 결과를 확인할 수 있습니다." />
+      <SEO title="Candidate dashboard" description="Track job opportunities, interview schedules, and hiring results in ZOOP." />
       <Sidebar />
 
       <div className="main-content-area">
         {/* Header 컴포넌트에 userName 전달 */}
         <PortfolioNavbar userName={userName} />
 
-        <h1 className="page-title">포지션 제안 현황</h1>
+        <h1 className="page-title">Your opportunities</h1>
 
         <div className="info-box company-proposal">
           <p>
             <span className="icon">
               <img src="../../icons/sparkle.svg" alt="sparkle" />
-            </span> 기업에게 포지션 제안을 받는 중입니다.
+        </span> Companies are reviewing your profile for new opportunities.
           </p>
           <button className="highlight-button">
-            이력서 하이라이트 신청하기 <span className="arrow-right">›</span>
+            Request resume highlighting <span className="arrow-right">›</span>
           </button>
         </div>
 
         {/* Search/Filter Section */}
         <div className="filter-section">
           <div className="filter-row">
-            <span className="label">희망 근무 조건</span>
+            <span className="label">Work preferences</span>
             <div className="tags">
               {/* 직무 관련 그룹 */}
               <div className="tag-group">
-                <span className="tag static-tag">직무</span>
+                <span className="tag static-tag">Role</span>
                 <span className="tag blue interactive-tag" onClick={openJobModal}>
                   {selectedJob}
                 </span>
@@ -568,7 +568,7 @@ function CandidateDashboard() {
               
               {/* 지역 관련 그룹 */}
               <div className="tag-group">
-                <span className="tag static-tag">지역</span>
+                <span className="tag static-tag">Location</span>
                 <span className="tag blue interactive-tag" onClick={openRegionModal}>
                   {selectedRegion}
                 </span>
@@ -576,7 +576,7 @@ function CandidateDashboard() {
               
               {/* 조건 관련 그룹 */}
               <div className="tag-group">
-                <span className="tag static-tag">연봉</span>
+                <span className="tag static-tag">Salary</span>
                 <span className="tag blue interactive-tag" onClick={openSalaryModal}>
                   {selectedSalary}
                 </span>
@@ -584,15 +584,15 @@ function CandidateDashboard() {
               
               {/* 복리후생 그룹 */}
               <div className="tag-group">
-                <span className="tag static-tag">복리후생</span>
+                <span className="tag static-tag">Benefits</span>
                 <span className="tag blue interactive-tag" onClick={openBenefitModal}>
-                  {selectedBenefits.length > 0 ? selectedBenefits.join(', ') : '입력해주세요'}
+                  {selectedBenefits.length > 0 ? selectedBenefits.join(', ') : 'Select a preference'}
                 </span>
               </div>
               
               {/* 기업 관련 그룹 */}
               <div className="tag-group">
-                <span className="tag static-tag">기업규모</span>
+                <span className="tag static-tag">Company size</span>
                 <span className="tag blue interactive-tag" onClick={openCompanySizeModal}>
                   {selectedCompanySize}
                 </span>
@@ -600,7 +600,7 @@ function CandidateDashboard() {
               
               {/* 출근 관련 그룹 */}
               <div className="tag-group">
-                <span className="tag static-tag">출근소요시간</span>
+                <span className="tag static-tag">Commute</span>
                 <span className="tag blue interactive-tag" onClick={openCommuteTimeModal}>
                   {selectedCommuteTime}
                 </span>
@@ -617,37 +617,37 @@ function CandidateDashboard() {
               className={`tab-button ${activeTab === 'all' ? 'active' : ''}`}
               onClick={() => handleTabClick('all')}
             >
-              전체
+              All
             </button>
             <button
               className={`tab-button ${activeTab === 'positionOffer' ? 'active' : ''}`}
               onClick={() => handleTabClick('positionOffer')}
             >
-              포지션 제안
+              Job offers
             </button>
             <button
               className={`tab-button ${activeTab === 'interviewOffer' ? 'active' : ''}`}
               onClick={() => handleTabClick('interviewOffer')}
             >
-              면접
+              Interviews
             </button>
             <button
               className={`tab-button ${activeTab === 'resultAnnouncement' ? 'active' : ''}`}
               onClick={() => handleTabClick('resultAnnouncement')}
             >
-              결과
+              Results
             </button>
           </div>
 
           <div className="filter-options">
             <select className="dropdown">
-              <option>지난 1년</option>
+              <option>Past year</option>
             </select>
             <select className="dropdown">
-              <option>확인안한 제안 제외</option>
+              <option>Hide viewed offers</option>
             </select>
             <select className="dropdown">ㄴ
-              <option>20개씩</option>
+              <option>20 per page</option>
             </select>
           </div>
         </div>
@@ -674,8 +674,8 @@ function CandidateDashboard() {
                     </p>
                   </div>
                   <div className="job-posting-dates">
-                    <p>등록일: {post.postPostedDate}</p>
-                    <p>마감일: {post.postExpiryDate}</p>
+                    <p>Posted: {post.postPostedDate}</p>
+                    <p>Deadline: {post.postExpiryDate}</p>
                   </div>
                 </div>
                 <div className="job-posting-action-col">
@@ -723,7 +723,7 @@ function CandidateDashboard() {
                     <button 
                       onClick={() => openInterviewSchedulerModal(post.postId)}
                       className="action-button interview-scheduler-button">
-                      면접 일정 정하기
+                      Schedule interview
                     </button>
                   )}
                   {post.jobCandCurrStage === '3n' && (() => {
@@ -773,7 +773,7 @@ function CandidateDashboard() {
                               <path d="M10 22h4" />
                               <path d="M12 2a7 7 0 0 0-4 12c.3.3.5.7.5 1.1V17a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1v-1.9c0-.4.2-.8.5-1.1A7 7 0 0 0 12 2z" />
                             </svg>
-                            <span style={{ fontWeight: 700, fontSize: 15, letterSpacing: '-0.5px' }}>면접 예상질문</span>
+                            <span style={{ fontWeight: 700, fontSize: 15, letterSpacing: '-0.5px' }}>Practice questions</span>
                           </button>
                         </div>
                         <div className="button-group">
@@ -787,9 +787,9 @@ function CandidateDashboard() {
                             disabled={!isInterviewStarted}>
                           {interview && interview.date
                             ? isInterviewStarted 
-                              ? remainingTime || '면접 보러가기'
-                              : `${interview.date} (시작 대기중)`
-                            : '면접 일정'}
+                              ? remainingTime || 'Start interview'
+                              : `${interview.date} (Not started)`
+                            : 'Interview schedule'}
                         </button>
                       </div>
                     </>
@@ -802,7 +802,7 @@ function CandidateDashboard() {
                       disabled
                       style={{ cursor: 'not-allowed', opacity: 0.7 }}
                     >
-                      결과 취합 중
+                      Results pending
                     </button>
                   )}
                   {(post.jobCandCurrStage === '4n' || post.jobCandCurrStage === '4y') && (
@@ -839,7 +839,7 @@ function CandidateDashboard() {
         </ul>
       ) : (
         // jobPostings 배열이 비어있을 때 표시할 내용
-        <p>표시할 공고가 없습니다.</p>
+        <p>No job postings to display.</p>
       )}
     </div>
   )}
@@ -862,14 +862,14 @@ function CandidateDashboard() {
                     </p>
                   </div>
                   <div className="job-posting-dates">
-                    <p>등록일: {post.postPostedDate}</p>
-                    <p>마감일: {post.postExpiryDate}</p>
+                    <p>Posted: {post.postPostedDate}</p>
+                    <p>Deadline: {post.postExpiryDate}</p>
                   </div>
                 </div>
                 <div className="job-posting-action-col">
                   <button onClick={() => handleGoToSubmitPortfolio(post.postId)}
                     className="submit-portfolio-button">
-                  포트폴리오 제출하기
+                  Submit portfolio
                 </button>
               </div>
             </div>
@@ -877,7 +877,7 @@ function CandidateDashboard() {
         ))}
       </ul>
     ) : (
-      <p>표시할 포지션 제안이 없습니다.</p>
+      <p>No job offers to display.</p>
     )}
   </div>
 )}
@@ -902,8 +902,8 @@ function CandidateDashboard() {
                 </p>
               </div>
               <div className="job-posting-dates">
-                <p>등록일: {post.postPostedDate}</p>
-                <p>마감일: {post.postExpiryDate}</p>
+                <p>Posted: {post.postPostedDate}</p>
+                <p>Deadline: {post.postExpiryDate}</p>
               </div>
             </div>
             <div className="job-posting-action-col">
@@ -937,13 +937,13 @@ function CandidateDashboard() {
                   }}
                 >
                   <img src={process.env.PUBLIC_URL + '/icons/interview.svg'} alt="interview" style={{ width: 20, height: 20, verticalAlign: 'middle' }} />
-                  면접 수락 요청 중
+                Waiting for interview confirmation
                 </div>
               ) : post.jobCandCurrStage === '2p' ? (
                 <button 
                   onClick={() => openInterviewSchedulerModal(post.postId)}
                   className="action-button interview-scheduler-button">
-                면접 일정 정하기
+                Schedule interview
               </button>
             ) : post.jobCandCurrStage === '3n' ? (
               (() => {
@@ -957,7 +957,7 @@ function CandidateDashboard() {
                     <button 
                       onClick={() => openInterviewPreparationModal(post.postId)}
                       className="action-button preparation-button">
-                      면접 예상질문
+                      Practice questions
                     </button>
                     <button 
                       onClick={() => navigateToInterview(post.postId)}
@@ -965,9 +965,9 @@ function CandidateDashboard() {
                       disabled={!isInterviewStarted}>
                     {interview && interview.date
                       ? isInterviewStarted 
-                        ? remainingTime || '면접 보러가기'
-                        : `${interview.date} (시작 대기중)`
-                      : '면접 일정'}
+                        ? remainingTime || 'Start interview'
+                        : `${interview.date} (Not started)`
+                      : 'Interview schedule'}
                   </button>
                 </div>
               );
@@ -979,7 +979,7 @@ function CandidateDashboard() {
   ))}
 </ul>
 ) : (
-  <p>표시할 면접 제안이 없습니다.</p>
+  <p>No interview offers to display.</p>
 )}
 </div>
 </div>
@@ -1008,8 +1008,8 @@ function CandidateDashboard() {
                 </p>
               </div>
               <div className="job-posting-dates">
-                <p>등록일: {post.postPostedDate}</p>
-                <p>마감일: {post.postExpiryDate}</p>
+                <p>Posted: {post.postPostedDate}</p>
+                <p>Deadline: {post.postExpiryDate}</p>
               </div>
             </div>
             <div className="job-posting-action-col">
@@ -1044,7 +1044,7 @@ function CandidateDashboard() {
       ))}
     </ul>
   ) : (
-    <p>표시할 결과 발표가 없습니다.</p>
+    <p>No results to display.</p>
   )}
 </div>
 </div>
