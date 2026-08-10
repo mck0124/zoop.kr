@@ -85,9 +85,10 @@ html, body {
 .subtitle-section {
   padding: 5rem 1rem 6rem;
   background-color: white;
-  opacity: 0; /* 기본적으로 숨김 */
-  transform: translateY(40px); /* 아래쪽에서 시작 */
-  transition: all 1s ease;
+  /* Keep essential copy visible even before the scroll observer runs. */
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 1s ease, transform 1s ease;
   text-align: center;
 }
 .subtitle-section.visible {
@@ -302,6 +303,8 @@ html, body {
 }
 
 @media (max-width: 520px) {
+  .subtitle-section { padding: 3rem 1rem 3.5rem; }
+  .subtitle-content p { font-size: 1.25rem; line-height: 1.6; }
   .ledger-demo-section { padding-left: 1rem; padding-right: 1rem; }
   .ledger-demo-tabs { overflow-x: auto; }
   .ledger-demo-tabs button { white-space: nowrap; font-size: .82rem; }
