@@ -109,7 +109,9 @@ export default function MatchingDetailPage() {
           <div style={{ background: '#f8fafd', borderRadius: 10, padding: 18, fontSize: 16 }}>
           <div><b>Match score:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{match.matchScore ?? match.matchingScore}</span></div>
           <div style={{ marginTop: 10 }}><b>Rationale:</b></div>
-            <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, maxHeight: 200, overflow: 'auto', whiteSpace: 'pre-wrap' }}>{match.matchReason || match.matchingReason || 'No match rationale is available.'}</pre>
+            <div style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, color: '#475569', lineHeight: 1.6 }}>
+              {matchEvidence?.summary || matchEvidence?.recommendation || match.matchReason || match.matchingReason || 'No match rationale is available.'}
+            </div>
             {Array.isArray(matchEvidence?.dimensions) && matchEvidence.dimensions.length > 0 && (
               <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
                 <strong style={{ color: '#166534' }}>Match evidence by dimension</strong>

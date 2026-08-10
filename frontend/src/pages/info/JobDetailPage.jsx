@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import CompanyInfoCard from './CompanyInfoCard';
+import AIAnalysisSummary from '../../components/AIAnalysisSummary';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import { apiUrl, MATCHING_API_URL } from '../../api/config';
@@ -1373,7 +1374,11 @@ function JobDetailPage() {
               <div style={{ marginBottom: '1.2rem' }}>
                 <strong>Analysis result:</strong><br />
                 {matchingAnalysis && matchingAnalysis.analysisData ? (
-                  <pre style={{ background: '#fff', padding: '1rem', borderRadius: 8, fontSize: '1rem', maxHeight: 200, overflow: 'auto' }}>{typeof matchingAnalysis.analysisData === 'string' ? matchingAnalysis.analysisData : JSON.stringify(matchingAnalysis.analysisData, null, 2)}</pre>
+                  <AIAnalysisSummary
+                    analysis={matchingAnalysis}
+                    score={matchingAnalysis.analysisScore}
+                    title="Portfolio evidence analysis"
+                  />
                 ) : (
                   <span>No analysis result available</span>
                 )}
