@@ -9,6 +9,7 @@ export default function CompanySettings() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState({ type: '', message: '' });
   const [companyInfo, setCompanyInfo] = useState(null);
   const [adminInfo, setAdminInfo] = useState(null);
   const [activeTab, setActiveTab] = useState('company');
@@ -169,15 +170,15 @@ export default function CompanySettings() {
       });
 
       if (response.ok) {
-        alert('Company information updated successfully.');
+        setFeedback({ type: 'success', message: 'Company information updated successfully.' });
         fetchCompanyData(); // 데이터 새로고침
       } else {
         const errorData = await response.text();
-        alert(errorData || 'Could not update company information.');
+        setFeedback({ type: 'error', message: errorData || 'Could not update company information.' });
       }
     } catch (error) {
       console.error('회사 정보 수정 오류:', error);
-      alert('An error occurred while updating company information.');
+      setFeedback({ type: 'error', message: 'An error occurred while updating company information.' });
     } finally {
       setSaving(false);
     }
@@ -200,15 +201,15 @@ export default function CompanySettings() {
       });
 
       if (response.ok) {
-        alert('Administrator information updated successfully.');
+        setFeedback({ type: 'success', message: 'Administrator information updated successfully.' });
         fetchCompanyData(); // 데이터 새로고침
       } else {
         const errorData = await response.text();
-        alert(errorData || 'Could not update administrator information.');
+        setFeedback({ type: 'error', message: errorData || 'Could not update administrator information.' });
       }
     } catch (error) {
       console.error('관리자 정보 수정 오류:', error);
-      alert('An error occurred while updating administrator information.');
+      setFeedback({ type: 'error', message: 'An error occurred while updating administrator information.' });
     } finally {
       setSaving(false);
     }
@@ -216,12 +217,12 @@ export default function CompanySettings() {
 
   const handlePasswordChange = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      alert('The new passwords do not match.');
+      setFeedback({ type: 'error', message: 'The new passwords do not match.' });
       return;
     }
 
     if (passwordForm.newPassword.length < 8) {
-      alert('The new password must be at least 8 characters.');
+      setFeedback({ type: 'error', message: 'The new password must be at least 8 characters.' });
       return;
     }
 
@@ -241,7 +242,7 @@ export default function CompanySettings() {
       });
 
       if (response.ok) {
-        alert('Password changed successfully.');
+        setFeedback({ type: 'success', message: 'Password changed successfully.' });
         setShowPasswordModal(false);
         setPasswordForm({
           currentPassword: '',
@@ -250,11 +251,11 @@ export default function CompanySettings() {
         });
       } else {
         const errorData = await response.text();
-        alert(errorData || 'Could not change the password.');
+        setFeedback({ type: 'error', message: errorData || 'Could not change the password.' });
       }
     } catch (error) {
       console.error('비밀번호 변경 오류:', error);
-      alert('An error occurred while changing the password.');
+      setFeedback({ type: 'error', message: 'An error occurred while changing the password.' });
     } finally {
       setSaving(false);
     }
@@ -278,15 +279,15 @@ export default function CompanySettings() {
       });
 
       if (response.ok) {
-        alert('Account deleted successfully.');
+        setFeedback({ type: 'success', message: 'Account deleted successfully.' });
         localStorage.clear();
         navigate('/');
       } else {
-        alert('Could not delete the account.');
+        setFeedback({ type: 'error', message: 'Could not delete the account.' });
       }
     } catch (error) {
       console.error('계정 삭제 오류:', error);
-      alert('An error occurred while deleting the account.');
+      setFeedback({ type: 'error', message: 'An error occurred while deleting the account.' });
     } finally {
       setSaving(false);
     }
@@ -306,14 +307,14 @@ export default function CompanySettings() {
       });
 
       if (response.ok) {
-        alert('Notification settings saved successfully.');
+        setFeedback({ type: 'success', message: 'Notification settings saved successfully.' });
       } else {
         const errorData = await response.text();
-        alert(errorData || 'Could not save notification settings.');
+        setFeedback({ type: 'error', message: errorData || 'Could not save notification settings.' });
       }
     } catch (error) {
       console.error('알림 설정 저장 오류:', error);
-      alert('An error occurred while saving notification settings.');
+      setFeedback({ type: 'error', message: 'An error occurred while saving notification settings.' });
     } finally {
       setSaving(false);
     }
@@ -509,6 +510,25 @@ export default function CompanySettings() {
           }}>
             Manage your company account, security, and notification preferences.
           </p>
+          {feedback.message && (
+            <div
+              role={feedback.type === 'error' ? 'alert' : 'status'}
+              aria-live="polite"
+              style={{
+                maxWidth: '720px',
+                margin: '1rem auto 0',
+                padding: '0.8rem 1rem',
+                borderRadius: '10px',
+                border: `1px solid ${feedback.type === 'error' ? '#fecaca' : '#bbf7d0'}`,
+                background: feedback.type === 'error' ? '#fff7f7' : '#effcf7',
+                color: feedback.type === 'error' ? '#991b1b' : '#166534',
+                fontSize: '0.9rem',
+                fontWeight: 700
+              }}
+            >
+              {feedback.message}
+            </div>
+          )}
         </div>
 
         <div style={{
