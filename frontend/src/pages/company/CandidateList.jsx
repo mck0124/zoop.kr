@@ -7,6 +7,14 @@ import SEO from '../../components/SEO';
 import { apiUrl } from '../../api/config';
 import AIAnalysisSummary from '../../components/AIAnalysisSummary';
 
+const authenticatedFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+    ...(options.headers || {}),
+  },
+});
+
 // =========== Styled Components ===========
 
 const fadeIn = keyframes`
@@ -1255,7 +1263,7 @@ export default function CandidateList({ activeTab = 'all' }) {
         bulkCustomGreeting,
         bulkCustomMessage
       );
-      const res = await fetch(apiUrl('/api/invitations/send-bulk'), {
+      const res = await authenticatedFetch(apiUrl('/api/invitations/send-bulk'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1289,7 +1297,7 @@ export default function CandidateList({ activeTab = 'all' }) {
   useEffect(() => {
     setLoadError('');
     // 공고 정보 조회
-    fetch(apiUrl(`/api/postings/info/${postId}`))
+    authenticatedFetch(apiUrl(`/api/postings/info/${postId}`))
       .then(res => {
         if (!res.ok) throw new Error('공고 정보 조회 실패');
         return res.json();
@@ -1300,12 +1308,12 @@ export default function CandidateList({ activeTab = 'all' }) {
     // 후보자 데이터 조회 (DB에서)
     const fetchCandidates = async () => {
       try {
-        const response = await fetch(apiUrl(`/api/github-search/by-post/${postId}`));
+        const response = await authenticatedFetch(apiUrl(`/api/github-search/by-post/${postId}`));
         if (!response.ok) throw new Error('후보자 데이터 조회 실패');
         const candidatesData = await response.json();
 
         // AI 분석 결과도 함께 조회
-        const aiResponse = await fetch(apiUrl(`/api/ai-analysis-results/post/${postId}`));
+        const aiResponse = await authenticatedFetch(apiUrl(`/api/ai-analysis-results/post/${postId}`));
         let aiAnalysisData = [];
         if (aiResponse.ok) aiAnalysisData = await aiResponse.json();
         setAiAnalysisResults(aiAnalysisData);
