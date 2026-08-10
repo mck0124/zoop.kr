@@ -5,6 +5,7 @@ const CameraDebug = ({ onClose }) => {
   const [permissionStatus, setPermissionStatus] = useState(null);
   const [browserInfo, setBrowserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
     const gatherInfo = async () => {
@@ -67,6 +68,7 @@ const CameraDebug = ({ onClose }) => {
   }, []);
 
   const testCamera = async () => {
+    setFeedback(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
@@ -77,23 +79,24 @@ const CameraDebug = ({ onClose }) => {
         audio: true 
       });
       
-      alert('카메라 테스트 성공! 카메라가 정상적으로 작동합니다.');
+      setFeedback({ type: 'success', message: 'Camera test passed. Your camera and microphone are working.' });
       
       // 스트림 정리
       stream.getTracks().forEach(track => track.stop());
     } catch (err) {
-      alert(`카메라 테스트 실패: ${err.message}`);
+      setFeedback({ type: 'error', message: `Camera test failed: ${err.message}` });
     }
   };
 
   const requestPermissions = async () => {
+    setFeedback(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      alert('권한 요청 성공!');
+      setFeedback({ type: 'success', message: 'Permission granted. Devices are ready to use.' });
       stream.getTracks().forEach(track => track.stop());
       window.location.reload(); // 페이지 새로고침하여 상태 업데이트
     } catch (err) {
-      alert(`권한 요청 실패: ${err.message}`);
+      setFeedback({ type: 'error', message: `Permission request failed: ${err.message}` });
     }
   };
 
@@ -142,6 +145,11 @@ const CameraDebug = ({ onClose }) => {
             ×
           </button>
         </div>
+        {feedback && (
+          <div role={feedback.type === 'error' ? 'alert' : 'status'} style={{ marginBottom: 16, padding: '10px 12px', borderRadius: 8, color: feedback.type === 'error' ? '#9b1c1c' : '#087f5b', background: feedback.type === 'error' ? '#fff1f2' : '#ecfdf5' }}>
+            {feedback.message}
+          </div>
+        )}
 
         {/* 브라우저 정보 */}
         <div style={{ marginBottom: 20 }}>
@@ -264,4 +272,4 @@ const CameraDebug = ({ onClose }) => {
   );
 };
 
-export default CameraDebug; 
+export default CameraDebug;

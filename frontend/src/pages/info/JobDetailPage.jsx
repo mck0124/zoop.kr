@@ -324,7 +324,7 @@ function JobDetailPage() {
       setExistingPortfolio(null);
       setUseExistingPortfolio(false);
     } catch (e) {
-      alert('삭제 중 오류: ' + e.message);
+      setUploadError('We could not delete the existing portfolio: ' + e.message);
     }
   };
 
