@@ -8,6 +8,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
   const [jobCandidateId, setJobCandidateId] = useState(null);
   const [inviting, setInviting] = useState(false);
   const [selectedCounterfactuals, setSelectedCounterfactuals] = useState([]);
+  const [feedback, setFeedback] = useState({ type: '', message: '' });
 
   useEffect(() => {
     if (!open) return;
@@ -19,6 +20,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
     setLoading(true);
     setError('');
     setMatch(null);
+    setFeedback({ type: '', message: '' });
     // 후보자를 바꿔 열 때 이전 후보자의 초대 ID가 남지 않도록 초기화한다.
     setJobCandidateId(null);
     setSelectedCounterfactuals([]);
@@ -59,7 +61,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
   // 면접초대 함수
   const handleInterviewInvitation = async () => {
     if (!jobCandidateId) {
-      alert('Candidate information is unavailable.');
+      setFeedback({ type: 'error', message: 'Candidate information is unavailable.' });
       return;
     }
 
@@ -73,15 +75,15 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
       });
 
       if (response.ok) {
-        alert('Interview invitation sent.');
+        setFeedback({ type: 'success', message: 'Interview invitation sent.' });
         onClose(); // 모달 닫기
       } else {
         const errorData = await response.text();
-        alert(`Interview invitation failed: ${errorData}`);
+        setFeedback({ type: 'error', message: `Interview invitation failed: ${errorData}` });
       }
     } catch (error) {
       console.error('면접초대 전송 중 오류:', error);
-      alert('An error occurred while sending the interview invitation.');
+      setFeedback({ type: 'error', message: 'An error occurred while sending the interview invitation.' });
     } finally {
       setInviting(false);
     }
@@ -94,6 +96,12 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
       <div role="dialog" aria-modal="true" aria-labelledby="matching-detail-title" style={{ maxWidth: 800, width: '95vw', maxHeight: 'calc(100vh - 24px)', overflowY: 'auto', background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(48,197,155,0.10)', padding: '2.5rem 2.5rem 2rem 2.5rem', position:'relative' }} onClick={e => e.stopPropagation()}>
         <button type="button" aria-label="Close match details" onClick={onClose} style={{ position:'absolute', top:18, right:18, background:'none', border:'none', fontSize:28, color:'#aaa', cursor:'pointer', fontWeight:700 }}>&times;</button>
         <h1 id="matching-detail-title" style={{ color: '#30c59b', fontWeight: 900, fontSize: '2rem', marginBottom: 32 }}>Match details</h1>
+        {feedback.message && (
+          <div role={feedback.type === 'error' ? 'alert' : 'status'} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 16, padding: '11px 13px', borderRadius: 10, border: `1px solid ${feedback.type === 'error' ? '#fed7aa' : '#a7f3d0'}`, background: feedback.type === 'error' ? '#fff7ed' : '#ecfdf5', color: feedback.type === 'error' ? '#9a3412' : '#047857', fontSize: 13 }}>
+            <span>{feedback.message}</span>
+            <button type="button" aria-label="Dismiss message" onClick={() => setFeedback({ type: '', message: '' })} style={{ border: 0, background: 'transparent', color: 'inherit', cursor: 'pointer', fontSize: 18 }}>×</button>
+          </div>
+        )}
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center' }}>Loading match details...</div>
         ) : error ? (
@@ -126,6 +134,8 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                 const audit = reasonPayload?.evidence?.audit;
                 const calibration = reasonPayload?.evidence?.score_calibration;
                 const evidenceQuality = reasonPayload?.evidence?.evidence_quality;
+                const decisionGate = reasonPayload?.evidence?.decision_gate || null;
+                const sourceIntegrity = reasonPayload?.evidence?.source_integrity || reasonPayload?.evidence?.audit?.source_integrity || null;
                 const selectedDelta = counterfactuals
                   .filter((_, index) => selectedCounterfactuals.includes(index))
                   .reduce((sum, item) => sum + Number(item.expected_score_delta || 0), 0);
@@ -167,6 +177,18 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                     </div>
                     <div style={{ marginTop: 10 }}><b>Rationale:</b></div>
                     <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, whiteSpace: 'pre-wrap', maxHeight: 240, overflow: 'auto' }}>{summary}</pre>
+                    {decisionGate && (
+                      <div style={{ marginTop: 12, padding: 12, border: `1px solid ${decisionGate.status === 'downgraded' ? '#fed7aa' : '#a7f3d0'}`, background: decisionGate.status === 'downgraded' ? '#fff7ed' : '#ecfdf5', borderRadius: 10, color: decisionGate.status === 'downgraded' ? '#9a3412' : '#047857', fontSize: 13 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}><strong>Deterministic decision gate</strong><b>{decisionGate.status || 'pass'}</b></div>
+                        <div style={{ marginTop: 5 }}>{decisionGate.note || 'The final decision is bounded by evidence and safety checks.'}</div>
+                        {decisionGate.reasons?.length > 0 && <div style={{ marginTop: 5, fontWeight: 700 }}>Review reasons: {decisionGate.reasons.join(' · ')}</div>}
+                      </div>
+                    )}
+                    {sourceIntegrity && (
+                      <div style={{ marginTop: 10, padding: 10, border: `1px solid ${sourceIntegrity.status === 'review' ? '#fde68a' : '#bfdbfe'}`, background: sourceIntegrity.status === 'review' ? '#fffbeb' : '#eff6ff', borderRadius: 10, color: sourceIntegrity.status === 'review' ? '#92400e' : '#1e3a8a', fontSize: 12 }}>
+                        <strong>Source integrity: {sourceIntegrity.status}</strong> · {sourceIntegrity.note}
+                      </div>
+                    )}
                     {calibration && (
                       <div style={{ marginTop: 12, padding: 12, background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 10, color: '#115e59', fontSize: 13 }}>
                         <strong>Evidence-calibrated score</strong>
