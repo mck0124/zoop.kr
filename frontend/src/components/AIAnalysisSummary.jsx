@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
 const ANALYSIS_COPY = {
-  en: { title: 'AI analysis', empty: 'No additional information.', evidencePart: 'Evidence highlights', verified: 'Candidate source verified', context: 'Job context', needs: 'Needs verification', evidence: 'Evidence', score: 'Score', coverage: 'Evidence coverage', confidence: 'Confidence', strong: 'Well supported', insufficient: 'Insufficient evidence', review: 'Review recommended', structured: 'Structured analysis', ledger: 'This is a traceable verification record, not just a score.', input: 'Input type', source: 'source', evidenceCount: 'verified items', fingerprint: 'Source fingerprint', none: 'none', unreadable: 'No readable analysis is available yet.', calibration: 'Evidence-calibrated score', draft: 'AI draft', calibrated: 'verified', signals: 'Technical and competency signals', gaps: 'Evidence gaps', risks: 'Risk flags', next: 'Next verification steps', fairness: 'Fairness guard', fairnessDefault: 'Non-job-related signals are excluded.', trace: 'Decision trace', traceDefault: 'Collect evidence → summarize signals → identify verification needs', raw: 'View raw JSON', analysisTitle: 'AI analysis result' },
-  ko: { title: 'AI 분석 결과', empty: '추가 정보가 없습니다.', evidencePart: '근거 일부', verified: '후보자 원문 확인', context: '공고 맥락', needs: '확인 필요', evidence: '검증 근거', score: '점수', coverage: '근거 커버리지', confidence: '신뢰도', strong: '근거 충분', insufficient: '근거 부족', review: '검토 권장', structured: '구조화된 분석', ledger: '이 판단은 ‘점수’가 아니라 추적 가능한 검증 기록입니다', input: '입력 계열', source: '원문', evidenceCount: '개', fingerprint: '원문 지문', none: '없음', unreadable: '아직 읽을 수 있는 분석 결과가 없습니다.', calibration: '근거 보정 점수', draft: 'AI 초안', calibrated: '검증 반영', signals: '기술·역량 신호', gaps: '확인할 빈틈', risks: '주의 신호', next: '다음 검증 제안', fairness: '공정성 가드', fairnessDefault: '비업무적 신호를 판단에서 제외하도록 처리됨', trace: '판단 단계', traceDefault: '근거 수집 → 신호 요약 → 검증 필요점 산출', raw: '원문 JSON 보기', analysisTitle: 'AI 분석 결과' },
-  zh: { title: 'AI 分析结果', empty: '没有更多信息。', evidencePart: '证据摘要', verified: '已验证候选人原文', context: '职位背景', needs: '需要验证', evidence: '验证证据', score: '分数', coverage: '证据覆盖率', confidence: '置信度', strong: '证据充分', insufficient: '证据不足', review: '建议复核', structured: '结构化分析', ledger: '这是一份可追溯的验证记录，而不仅是一个分数。', input: '输入类型', source: '原文', evidenceCount: '条已验证证据', fingerprint: '原文指纹', none: '无', unreadable: '暂时没有可读取的分析结果。', calibration: '证据校准分数', draft: 'AI 草案', calibrated: '验证后', signals: '技术与能力信号', gaps: '待确认信息', risks: '风险提示', next: '下一步验证建议', fairness: '公平性保护', fairnessDefault: '已排除与工作无关的信号。', trace: '判断过程', traceDefault: '收集证据 → 总结信号 → 识别验证需求', raw: '查看原始 JSON', analysisTitle: 'AI 分析结果' }
+  en: { title: 'AI analysis', empty: 'No additional information.', evidencePart: 'Evidence highlights', verified: 'Candidate source verified', context: 'Job context', needs: 'Needs verification', evidence: 'Evidence', score: 'Score', coverage: 'Evidence coverage', confidence: 'Confidence', strong: 'Well supported', insufficient: 'Insufficient evidence', review: 'Review recommended', structured: 'Structured analysis', ledger: 'This is a traceable verification record, not just a score.', input: 'Input type', source: 'source', evidenceCount: 'verified items', fingerprint: 'Source fingerprint', none: 'none', unreadable: 'No readable analysis is available yet.', calibration: 'Evidence-calibrated score', draft: 'AI draft', calibrated: 'verified', signals: 'Technical and competency signals', gaps: 'Evidence gaps', risks: 'Risk flags', next: 'Next verification steps', fairness: 'Fairness guard', fairnessDefault: 'Non-job-related signals are excluded.', trace: 'Decision trace', traceDefault: 'Collect evidence → summarize signals → identify verification needs', integrity: 'Source integrity', integrityPass: 'No instruction-like injection detected', integrityReview: 'Review source instructions', raw: 'View raw JSON', analysisTitle: 'AI analysis result' },
+  ko: { title: 'AI 분석 결과', empty: '추가 정보가 없습니다.', evidencePart: '근거 일부', verified: '후보자 원문 확인', context: '공고 맥락', needs: '확인 필요', evidence: '검증 근거', score: '점수', coverage: '근거 커버리지', confidence: '신뢰도', strong: '근거 충분', insufficient: '근거 부족', review: '검토 권장', structured: '구조화된 분석', ledger: '이 판단은 ‘점수’가 아니라 추적 가능한 검증 기록입니다', input: '입력 계열', source: '원문', evidenceCount: '개', fingerprint: '원문 지문', none: '없음', unreadable: '아직 읽을 수 있는 분석 결과가 없습니다.', calibration: '근거 보정 점수', draft: 'AI 초안', calibrated: '검증 반영', signals: '기술·역량 신호', gaps: '확인할 빈틈', risks: '주의 신호', next: '다음 검증 제안', fairness: '공정성 가드', fairnessDefault: '비업무적 신호를 판단에서 제외하도록 처리됨', trace: '판단 단계', traceDefault: '근거 수집 → 신호 요약 → 검증 필요점 산출', integrity: '원문 무결성', integrityPass: '지시문형 주입 패턴 없음', integrityReview: '원문 지시문 검토 필요', raw: '원문 JSON 보기', analysisTitle: 'AI 분석 결과' },
+  zh: { title: 'AI 分析结果', empty: '没有更多信息。', evidencePart: '证据摘要', verified: '已验证候选人原文', context: '职位背景', needs: '需要验证', evidence: '验证证据', score: '分数', coverage: '证据覆盖率', confidence: '置信度', strong: '证据充分', insufficient: '证据不足', review: '建议复核', structured: '结构化分析', ledger: '这是一份可追溯的验证记录，而不仅是一个分数。', input: '输入类型', source: '原文', evidenceCount: '条已验证证据', fingerprint: '原文指纹', none: '无', unreadable: '暂时没有可读取的分析结果。', calibration: '证据校准分数', draft: 'AI 草案', calibrated: '验证后', signals: '技术与能力信号', gaps: '待确认信息', risks: '风险提示', next: '下一步验证建议', fairness: '公平性保护', fairnessDefault: '已排除与工作无关的信号。', trace: '判断过程', traceDefault: '收集证据 → 总结信号 → 识别验证需求', integrity: '来源完整性', integrityPass: '未检测到指令注入模式', integrityReview: '请复核来源中的指令文本', raw: '查看原始 JSON', analysisTitle: 'AI 分析结果' }
 };
 
 const asArray = (value) => (Array.isArray(value) ? value : []);
@@ -68,7 +68,7 @@ function EvidenceBlock({ evidence, copy }) {
                 {typeof item.observed_value === 'string' ? item.observed_value : JSON.stringify(item.observed_value)}
               </div>
             )}
-            {item.evidence_id && <div className="mt-1 font-mono text-[10px] text-gray-400">근거 ID {item.evidence_id}</div>}
+            {item.evidence_id && <div className="mt-1 font-mono text-[10px] text-gray-400">Evidence ID {item.evidence_id}</div>}
           </div>
         ))}
       </div>
@@ -97,6 +97,7 @@ export default function AIAnalysisSummary({ analysis, score, title }) {
   const fairness = payload?.fairness_guard || payload?.fairnessGuard;
   const trace = payload?.decision_trace || payload?.decisionTrace;
   const audit = payload?.audit || payload?.evidence_audit || null;
+  const sourceIntegrity = audit?.source_integrity || payload?.source_integrity || null;
   const calibration = payload?.score_calibration || payload?.scoreCalibration || null;
   const hasStructuredData = Boolean(payload);
   const safeScore = finiteNumber(score);
@@ -130,6 +131,19 @@ export default function AIAnalysisSummary({ analysis, score, title }) {
             <span>{copy.evidence}: <b>{audit.evidence_count ?? 0}{copy.evidenceCount}</b></span>
             <span>{copy.fingerprint}: <b className="font-mono">{audit.source_fingerprint ? `${audit.source_fingerprint.slice(0, 10)}…` : copy.none}</b></span>
           </div>
+        </div>
+      )}
+
+      {sourceIntegrity && (
+        <div className={`mt-3 rounded-xl border p-3 text-xs ${sourceIntegrity.status === 'review' ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}`}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="font-semibold">{copy.integrity}</span>
+            <span className="rounded-full bg-white/70 px-2 py-1 font-semibold">
+              {sourceIntegrity.status === 'review' ? copy.integrityReview : copy.integrityPass}
+            </span>
+          </div>
+          <p className="mt-1">{sourceIntegrity.note}</p>
+          {sourceIntegrity.instruction_signal_count > 0 && <p className="mt-1 font-medium">Signals found: {sourceIntegrity.instruction_signal_count}</p>}
         </div>
       )}
 

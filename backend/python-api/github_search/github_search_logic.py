@@ -6,8 +6,12 @@ from bs4.element import Tag
 import openai
 import mimetypes
 import hashlib
+import sys
 from datetime import datetime, timezone
 from PyPDF2 import PdfReader
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from common.ai_quality import source_integrity_audit
 
 load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -672,6 +676,10 @@ JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므
                 "source_fingerprint": hashlib.sha256(json.dumps(safe_details, ensure_ascii=False, default=str, sort_keys=True).encode("utf-8")).hexdigest()[:20],
                 "evidence_count": len(grounded),
                 "generated_at": datetime.now(timezone.utc).isoformat(),
+                "source_integrity": source_integrity_audit(
+                    json.dumps(safe_details, ensure_ascii=False, default=str),
+                    source_type="public_github_snapshot",
+                ),
             },
         })
         return json.dumps(result, ensure_ascii=False)

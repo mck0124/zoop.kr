@@ -16,6 +16,10 @@ import threading
 import time
 from fastapi.concurrency import run_in_threadpool
 import yt_dlp
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from common.ai_quality import source_integrity_audit
 
 # .env에서 API 키 로드
 load_dotenv()
@@ -431,6 +435,10 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                 ).hexdigest()[:20],
                 "evidence_count": len(grounded_evidence),
                 "generated_at": datetime.now(timezone.utc).isoformat(),
+                "source_integrity": source_integrity_audit(
+                    "\n".join(transcripts),
+                    source_type="interview_transcript",
+                ),
             }
         except Exception as e:
             raise RuntimeError("면접 분석 결과를 구조화된 형식으로 검증하지 못했습니다.") from e

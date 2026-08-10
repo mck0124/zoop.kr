@@ -14,6 +14,8 @@ import threading
 import time
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../github_search')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from common.ai_quality import bounded_confidence, source_integrity_audit
 
 # .env에서 API 키 로드
 load_dotenv()
@@ -106,6 +108,7 @@ def _evidence_id(*parts: Any) -> str:
 
 def _audit_metadata(source_text: str, source_type: str, evidence_count: int) -> Dict[str, Any]:
     """AI 결과가 언제/어떤 입력 계열/정책으로 만들어졌는지 추적 가능한 메타데이터."""
+    integrity = source_integrity_audit(source_text, source_type=source_type)
     return {
         "ledger_version": "zoop-evidence-ledger-v1",
         "policy_version": "grounded-hiring-v1",
@@ -114,6 +117,7 @@ def _audit_metadata(source_text: str, source_type: str, evidence_count: int) -> 
         "source_fingerprint": hashlib.sha256((source_text or "").encode("utf-8")).hexdigest()[:20],
         "evidence_count": evidence_count,
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "source_integrity": integrity,
     }
 
 
@@ -153,10 +157,7 @@ def _normalize_portfolio_analysis(raw_analysis: Dict[str, Any], source_text: str
             continue
         quote = str(item.get("quote", "")).strip()
         verified = _portfolio_quote_is_in_source(quote, source_text)
-        try:
-            confidence = float(item.get("confidence", 0) or 0)
-        except (TypeError, ValueError):
-            confidence = 0.0
+        confidence = bounded_confidence(item.get("confidence", 0))
         evidence.append({
             "evidence_id": _evidence_id("portfolio", item.get("topic", "기타"), item.get("claim", ""), quote),
             "topic": str(item.get("topic", "기타")),
@@ -164,7 +165,7 @@ def _normalize_portfolio_analysis(raw_analysis: Dict[str, Any], source_text: str
             "quote": quote if verified else "",
             "source": "portfolio" if verified else "unverified",
             "verification_state": "verified" if verified else "unverified",
-            "confidence": round(max(0.0, min(1.0, confidence if verified else confidence * 0.35)), 2),
+            "confidence": bounded_confidence(confidence if verified else confidence * 0.35),
         })
 
     verified_count = sum(1 for item in evidence if item["source"] == "portfolio")
@@ -208,6 +209,7 @@ def _normalize_portfolio_analysis(raw_analysis: Dict[str, Any], source_text: str
             f"검증 가능한 근거 {verified_count}개, 근거 커버리지 {coverage}%",
         ],
         "audit": _audit_metadata(source_text, "portfolio_submission", verified_count),
+        "source_integrity": source_integrity_audit(source_text, source_type="portfolio_submission"),
     }
 
 

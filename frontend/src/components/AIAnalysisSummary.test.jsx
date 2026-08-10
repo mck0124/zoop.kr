@@ -27,6 +27,11 @@ test('renders the evidence ledger with verification metadata', () => {
       source_type: 'portfolio_submission',
       source_fingerprint: 'abcdef1234567890',
       evidence_count: 1,
+      source_integrity: {
+        status: 'pass',
+        instruction_signal_count: 0,
+        note: 'No known instruction-like injection pattern was detected in the analyzed source.',
+      },
     },
   });
 
@@ -37,7 +42,8 @@ test('renders the evidence ledger with verification metadata', () => {
   expect(screen.getByText('근거 충분')).toBeInTheDocument();
   expect(screen.getByText('제출물에서 확인된 API 설계 경험입니다.')).toBeInTheDocument();
   expect(screen.getByText('후보자 원문 확인')).toBeInTheDocument();
-  expect(screen.getByText(/근거 ID evidence-1234/)).toBeInTheDocument();
+  expect(screen.getByText(/Evidence ID evidence-1234/)).toBeInTheDocument();
+  expect(screen.getByText('지시문형 주입 패턴 없음')).toBeInTheDocument();
   expect(screen.getByText('근거 커버리지 100%')).toBeInTheDocument();
   window.localStorage.removeItem('zoopLanguage');
 });

@@ -385,10 +385,10 @@ export default function Index() {
           </div>
         </div>
         <div className="footer-bottom">
-          <strong>(주)줍스튜디오</strong>
+          <strong>{language === 'en' ? 'ZOOP Studio Inc.' : '(주)줍스튜디오'}</strong>
           <p>ZOOP AI Recruiting Platform · KOSA Capstone Prototype</p>
             <p>{copy.footer.prototype}</p>
-            <div className="footer-terms" aria-label="정책 안내">
+            <div className="footer-terms" aria-label={language === 'en' ? 'Policies' : language === 'zh' ? '政策' : '정책 안내'}>
             <Link to="/terms">{copy.footer.terms}</Link>
             <Link to="/privacy">{copy.footer.privacy}</Link>
           </div>
