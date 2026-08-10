@@ -26,6 +26,17 @@ const CATEGORY_SVGS = {
   '전문성': <LightbulbIcon color="#bbb" />, '의사소통': <ChatIcon color="#bbb" />, '의사소통 능력': <ChatIcon color="#bbb" />, '문제해결': <WrenchIcon color="#bbb" />, '문제해결 능력': <WrenchIcon color="#bbb" />, '자신감': <StarIcon color="#bbb" />, '자신감과 태도': <StarIcon color="#bbb" />, '경험의 구체성': <BookIcon color="#bbb" />,
   'Technical expertise': <LightbulbIcon color="#bbb" />, Communication: <ChatIcon color="#bbb" />, 'Communication skills': <ChatIcon color="#bbb" />, 'Problem solving': <WrenchIcon color="#bbb" />, 'Problem-solving ability': <WrenchIcon color="#bbb" />, Confidence: <StarIcon color="#bbb" />, 'Confidence and attitude': <StarIcon color="#bbb" />, 'Specificity of experience': <BookIcon color="#bbb" />
 };
+const EN_CATEGORY_LABELS = {
+  '전문성': 'Technical expertise',
+  '의사소통': 'Communication',
+  '의사소통 능력': 'Communication skills',
+  '문제해결': 'Problem solving',
+  '문제해결 능력': 'Problem-solving ability',
+  '자신감': 'Confidence',
+  '자신감과 태도': 'Confidence and attitude',
+  '경험의 구체성': 'Specificity of experience',
+};
+const displayCategoryName = (name) => EN_CATEGORY_LABELS[name] || name;
 
 export default function InterviewEvaluation() {
   const { candidateId } = useParams();
@@ -451,7 +462,7 @@ export default function InterviewEvaluation() {
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 2 }}>
                           <span style={{ fontSize: '2.1rem' }}>{CATEGORY_SVGS[cat.name] || <StarIcon color="#bbb" />}</span>
-                          <span style={{ fontWeight: 800, fontSize: '1.18rem', color: '#22c55e' }}>{cat.name}</span>
+                          <span style={{ fontWeight: 800, fontSize: '1.18rem', color: '#22c55e' }}>{displayCategoryName(cat.name)}</span>
                           <span style={{ color: '#222', fontWeight: 700, fontSize: '1.08rem', marginLeft: 8, background: '#f0fdf4', borderRadius: 12, padding: '4px 16px' }}>{cat.score}/{cat.max_score}</span>
                         </div>
                         <div style={{ fontSize: '1.01rem', color: '#333', marginBottom: 2 }}><b>Evidence:</b> {cat.reason}</div>
@@ -498,7 +509,7 @@ export default function InterviewEvaluation() {
                         <h3 style={{ fontSize: '1.13rem', fontWeight: '700', marginBottom: '1.2rem', color: '#22c55e', letterSpacing: '-0.5px', textAlign: 'center' }}>Category score radar</h3>
                         <ResponsiveContainer width="100%" height={340}>
                           <RadarChart cx="50%" cy="50%" outerRadius="80%" data={parsedAnalysis.visualization.category_labels.map((label, i) => ({
-                            category: label,
+                            category: displayCategoryName(label),
                             score: parsedAnalysis.visualization.category_scores[i],
                             max: parsedAnalysis.categories[i]?.max_score || 25
                           }))}>

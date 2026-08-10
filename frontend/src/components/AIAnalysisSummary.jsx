@@ -7,6 +7,17 @@ const ANALYSIS_COPY = {
   zh: { title: 'AI 分析结果', empty: '没有更多信息。', evidencePart: '证据摘要', verified: '已验证候选人原文', context: '职位背景', needs: '需要验证', evidence: '验证证据', score: '分数', coverage: '证据覆盖率', confidence: '置信度', strong: '证据充分', insufficient: '证据不足', review: '建议复核', structured: '结构化分析', ledger: '这是一份可追溯的验证记录，而不仅是一个分数。', input: '输入类型', source: '原文', evidenceCount: '条已验证证据', fingerprint: '原文指纹', none: '无', unreadable: '暂时没有可读取的分析结果。', calibration: '证据校准分数', draft: 'AI 草案', calibrated: '验证后', signals: '技术与能力信号', gaps: '待确认信息', risks: '风险提示', next: '下一步验证建议', fairness: '公平性保护', fairnessDefault: '已排除与工作无关的信号。', trace: '判断过程', traceDefault: '收集证据 → 总结信号 → 识别验证需求', integrity: '来源完整性', integrityPass: '未检测到指令注入模式', integrityReview: '请复核来源中的指令文本', counterfactuals: '可能改变判断的证据', counterfactualDefault: '没有生成反向验证步骤。', diversity: '证据多样性', diversityDefault: '使用不同证据类型，降低对单一信号的过度依赖。', quality: '证据质量门', qualityAction: '建议的审核动作', qualityGrounded: '已验证', qualityNeeds: '需要验证', qualityUnsupported: '未验证声明比例', qualityLow: '低审核优先级', qualityMedium: '中审核优先级', qualityHigh: '高审核优先级', receipt: '下载判断凭证', raw: '查看原始 JSON', analysisTitle: 'AI 分析结果' }
 };
 
+const EN_CATEGORY_LABELS = {
+  '전문성': 'Technical expertise',
+  '의사소통': 'Communication',
+  '의사소통 능력': 'Communication skills',
+  '문제해결': 'Problem solving',
+  '문제해결 능력': 'Problem-solving ability',
+  '자신감': 'Confidence',
+  '자신감과 태도': 'Confidence and attitude',
+  '경험의 구체성': 'Specificity of experience',
+};
+
 const asArray = (value) => (Array.isArray(value) ? value : []);
 const finiteNumber = (value) => {
   const number = Number(value);
@@ -116,6 +127,7 @@ function EvidenceBlock({ evidence, copy }) {
 export default function AIAnalysisSummary({ analysis, score, title }) {
   const { language } = useLanguage();
   const copy = useMemo(() => ANALYSIS_COPY[language] || ANALYSIS_COPY.en, [language]);
+  const displayCategoryName = (name) => language === 'en' ? (EN_CATEGORY_LABELS[name] || name) : name;
   const resolvedTitle = title || copy.analysisTitle;
   const payload = parseAIAnalysisData(analysis?.analysisData ?? analysis);
   const legacyText = typeof analysis?.analysisData === 'string' && !payload ? analysis.analysisData : null;
@@ -240,7 +252,7 @@ export default function AIAnalysisSummary({ analysis, score, title }) {
           {categories.slice(0, 6).map((category, index) => (
             <div key={`${category.name || category.category}-${index}`} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
               <div className="flex items-center justify-between gap-2 text-sm font-semibold text-gray-700">
-                <span>{category.name || category.category || '평가 항목'}</span>
+                <span>{displayCategoryName(category.name || category.category || 'Evaluation item')}</span>
                 {category.score !== undefined && <span className="text-violet-700">{category.score}/{category.max_score || category.max || 25}</span>}
               </div>
               {(category.reason || category.improvement) && <p className="mt-1 text-xs leading-5 text-gray-600">{category.reason || category.improvement}</p>}
