@@ -48,6 +48,7 @@ export default function CompanyDashboard() {
   const [showPortfolioModal, setShowPortfolioModal] = useState(false);
   const [currentPortfolioUrl, setCurrentPortfolioUrl] = useState('');
   const [portfolioLoading, setPortfolioLoading] = useState(false);
+  const [portfolioError, setPortfolioError] = useState('');
   const [showAiAnalysisModal, setShowAiAnalysisModal] = useState(false);
   const [currentAiAnalysis, setCurrentAiAnalysis] = useState(null);
   const [aiAnalysisLoading, setAiAnalysisLoading] = useState(false);
@@ -1449,6 +1450,7 @@ export default function CompanyDashboard() {
                                 setCurrentPortfolioUrl(applicant.candidate?.portfolioFilePath || applicant.portfolioFilePath);
                                 setShowPortfolioModal(true);
                                 setPortfolioLoading(true);
+                                setPortfolioError('');
                               }}
                               style={{
                                 background: 'linear-gradient(135deg, #4299e1 0%, #3182ce 100%)',
@@ -2866,9 +2868,14 @@ export default function CompanyDashboard() {
               onLoad={() => setPortfolioLoading(false)}
               onError={() => {
                 setPortfolioLoading(false);
-                alert('Could not load the portfolio.');
+                setPortfolioError('Could not load the portfolio preview. Open it in a new tab or ask the candidate to verify the link.');
               }}
             />
+          )}
+          {portfolioError && (
+            <div role="alert" style={{ marginTop: '1rem', padding: '0.9rem 1rem', borderRadius: '10px', background: '#fff7ed', border: '1px solid #fed7aa', color: '#9a3412', fontSize: '0.9rem' }}>
+              {portfolioError}
+            </div>
           )}
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.2rem' }}>
