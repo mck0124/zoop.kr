@@ -19,6 +19,7 @@ export default function StatePage() {
   const resultsPerPage = 6;
   const [sending, setSending] = useState(false);
   const [companyAdminId, setCompanyAdminId] = useState(0);
+  const [pageFeedback, setPageFeedback] = useState({ type: '', message: '' });
 
   /**모달을 위한 상태, 핸들러함수*/
   const [isModalOpen, setModalOpen] = useState(false);
@@ -80,7 +81,7 @@ export default function StatePage() {
   const handleSendEmail = async () => {
     const targets = searchResults.filter(r => selected.includes(r.githubLogin) && r.candidateEmail);
     if (targets.length === 0) {
-      alert('Select at least one candidate with contact information.');
+      setPageFeedback({ type: 'error', message: 'Select at least one candidate with contact information.' });
       return;
     }
     setSending(true); // 👉 버튼 비활성화 시작
@@ -102,13 +103,14 @@ export default function StatePage() {
       });
 
       if (res.ok) {
-        alert("📨 Email sent successfully.");
+        setPageFeedback({ type: 'success', message: `Email sent successfully to ${targets.length} candidate${targets.length === 1 ? '' : 's'}.` });
+        setSelected([]);
       } else {
-        alert("❌ Email delivery failed.");
+        setPageFeedback({ type: 'error', message: 'Email delivery failed. Please review the selected candidates and try again.' });
       }
     } catch (err) {
       console.error("메일 전송 오류:", err);
-      alert("⚠️ A server error prevented delivery.");
+      setPageFeedback({ type: 'error', message: 'A server error prevented delivery. Please try again.' });
     } finally {
       setSending(false); // 👉 버튼 다시 활성화
     }
@@ -160,12 +162,24 @@ export default function StatePage() {
         <CompanySidebar />
         <div className="flex-1 p-10 font-sans">
           <h1 className="text-3xl font-bold mb-8 text-emerald-700">📊 Candidate status</h1>
+          {pageFeedback.message && (
+            <div
+              role={pageFeedback.type === 'error' ? 'alert' : 'status'}
+              aria-live="polite"
+              className={`mb-6 flex items-center justify-between gap-4 rounded-xl border px-4 py-3 text-sm font-medium ${pageFeedback.type === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`}
+            >
+              <span>{pageFeedback.message}</span>
+              <button type="button" onClick={() => setPageFeedback({ type: '', message: '' })} aria-label="Dismiss notification" className="text-lg leading-none">×</button>
+            </div>
+          )}
 
           {/* 탭 UI */}
           <div className="flex space-x-4 mb-8">
             {tabs.map((t) => (
               <button
                 key={t}
+                type="button"
+                aria-pressed={tab === t}
                 onClick={() => { setTab(t); setCurrentPage(1); setSelected([]); }}
                 className={`px-4 py-2 rounded-full font-medium transition-all duration-150 border-2 ${
                   tab === t
