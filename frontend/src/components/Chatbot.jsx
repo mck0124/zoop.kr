@@ -115,13 +115,19 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
   };
 
   useEffect(() => {
+    let animationTimer;
+    let visibilityTimer;
     if (open) {
       setVisible(true);
-      setTimeout(() => setAnimClass("open"), 10);
+      animationTimer = setTimeout(() => setAnimClass("open"), 10);
     } else {
       setAnimClass("closed");
-      setTimeout(() => setVisible(false), 330);
+      visibilityTimer = setTimeout(() => setVisible(false), 330);
     }
+    return () => {
+      if (animationTimer) clearTimeout(animationTimer);
+      if (visibilityTimer) clearTimeout(visibilityTimer);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -271,7 +277,12 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
 
       setMessages((msgs) => [
         ...msgs,
-        { type: "ai", content: botContent, sources: Array.isArray(data.sources) ? data.sources : [] }
+        {
+          type: "ai",
+          content: botContent,
+          sources: Array.isArray(data.sources) ? data.sources : [],
+          grounding: data.grounded ? "grounded" : data.retrieval?.status || "review"
+        }
       ]);
       setOptionButtons(exBtns.map((label) => ({ label })));
     } catch (e) {
@@ -326,6 +337,11 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
     : lang === "zh"
       ? { label: "回答依据", page: "指南 p." }
       : { label: "Sources", page: "Guide p." };
+  const groundingCopy = lang === "ko"
+    ? { grounded: "근거 연결됨", review: "근거 검토 필요", none: "일치하는 안내서 근거 없음" }
+    : lang === "zh"
+      ? { grounded: "已连接指南依据", review: "需要复核依据", none: "没有匹配的指南依据" }
+      : { grounded: "Guide-grounded", review: "Review grounding", none: "No matching guide evidence" };
 
   if (!visible) return null;
 
@@ -416,6 +432,11 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
                           {sourceCopy.page}{source.page}
                         </span>
                       ))}
+                    </div>
+                  )}
+                  {msg.grounding && (
+                    <div className={`chatbot-grounding-status ${msg.grounding === "grounded" ? "is-grounded" : msg.grounding === "no_match" ? "is-empty" : "is-review"}`}>
+                      {msg.grounding === "grounded" ? groundingCopy.grounded : msg.grounding === "no_match" ? groundingCopy.none : groundingCopy.review}
                     </div>
                   )}
                 </>

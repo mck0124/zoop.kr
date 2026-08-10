@@ -350,6 +350,29 @@
   padding: 3px 7px;
 }
 
+.chatbot-grounding-status {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.45rem;
+  padding: 0.22rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.chatbot-grounding-status.is-grounded {
+  color: #087f5b;
+  background: #e5f8f0;
+}
+.chatbot-grounding-status.is-review {
+  color: #9a6700;
+  background: #fff4cc;
+}
+.chatbot-grounding-status.is-empty {
+  color: #6b7280;
+  background: #f1f3f5;
+}
+
 
 .chatbot-bubble-user {
   background: #18dfb1;

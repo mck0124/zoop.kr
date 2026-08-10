@@ -1930,7 +1930,7 @@ export default function CandidateList({ activeTab = 'all' }) {
           paddingTop: '32px', paddingBottom: '32px'
         }}>
           <div style={{
-            background: '#fff', borderRadius: '16px', boxShadow: '0 0 30px rgba(66, 153, 225, 0.3)', width: '800px', maxWidth: '98vw', minWidth: '500px', overflow: 'hidden', position: 'relative'
+            background: '#fff', borderRadius: '16px', boxShadow: '0 0 30px rgba(66, 153, 225, 0.3)', width: '800px', maxWidth: '98vw', minWidth: 0, overflow: 'hidden', position: 'relative'
           }}>
             <div style={{
               background: 'linear-gradient(135deg, #4299e1 0%, #3182ce 100%)',
