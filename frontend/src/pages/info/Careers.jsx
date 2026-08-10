@@ -26,6 +26,7 @@ function Careers() {
   const [selectedPost, setSelectedPost] = useState(null);
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [applicationError, setApplicationError] = useState('');
   const [languageFilter, setLanguageFilter] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [search, setSearch] = useState('');
@@ -99,6 +100,7 @@ function Careers() {
 
   const handleCancelApplication = () => setShowApplyModal(false);
   const handleSubmitApplication = async formData => {
+    setApplicationError('');
     try {
       const res = await fetch(apiUrl('/api/applications'), {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData)
@@ -107,11 +109,11 @@ function Careers() {
         setShowApplyModal(false);
         setShowSuccessModal(true);
       } else {
-        const err = await res.json();
-        alert(`Application failed: ${err.error || 'Unknown error'}`);
+        const err = await res.json().catch(() => ({}));
+        setApplicationError(err.error || 'Application failed. Please check your details and try again.');
       }
     } catch {
-      alert('Something went wrong while submitting your application. Please try again.');
+      setApplicationError('Something went wrong while submitting your application. Please try again.');
     }
   };
 
@@ -435,6 +437,7 @@ function Careers() {
                 <button className="close-button" onClick={()=>setShowApplyModal(false)}>×</button>
               </div>
               <div className="modal-body">
+                {applicationError && <p role="alert" style={{ color: '#b42318', marginBottom: '1rem' }}>{applicationError}</p>}
                 <ApplyForm post={selectedPost} onSubmit={handleSubmitApplication} onCancel={handleCancelApplication} />
               </div>
             </div>
