@@ -40,6 +40,7 @@ export default function CompanyDashboard() {
   const [showAiAnalysisModal, setShowAiAnalysisModal] = useState(false);
   const [currentAiAnalysis, setCurrentAiAnalysis] = useState(null);
   const [aiAnalysisLoading, setAiAnalysisLoading] = useState(false);
+  const [aiAnalysisError, setAiAnalysisError] = useState('');
   const [portfolioMatchesMap, setPortfolioMatchesMap] = useState({});
   
   // 모달 상태 (팀 버전에서 추가된 기능)
@@ -1093,7 +1094,15 @@ export default function CompanyDashboard() {
 
   // AI 분석 결과 가져오기
   const fetchAiAnalysis = async (jobCandidateId) => {
+    setShowAiAnalysisModal(true);
+    setCurrentAiAnalysis(null);
+    setAiAnalysisError('');
     setAiAnalysisLoading(true);
+    if (!jobCandidateId) {
+      setAiAnalysisError('No AI analysis is available yet. The applicant may not have submitted a portfolio.');
+      setAiAnalysisLoading(false);
+      return;
+    }
     try {
       const response = await fetch(apiUrl(`/api/ai-analysis-results/portfolio/${jobCandidateId}`), {
         headers: {
@@ -1104,13 +1113,12 @@ export default function CompanyDashboard() {
       if (response.ok) {
         const analysis = await response.json();
         setCurrentAiAnalysis(analysis);
-        setShowAiAnalysisModal(true);
       } else {
-        alert('No AI analysis was found for this candidate.');
+        setAiAnalysisError('No AI analysis was found for this candidate yet. The analysis may still be processing.');
       }
     } catch (error) {
       console.error('AI 분석 결과 조회 오류:', error);
-      alert('We could not load the AI analysis.');
+      setAiAnalysisError('We could not load the AI analysis. Please retry in a moment.');
     } finally {
       setAiAnalysisLoading(false);
     }
@@ -1416,7 +1424,7 @@ export default function CompanyDashboard() {
                               if (applicant.jobCandidateId) {
                                 fetchAiAnalysis(applicant.jobCandidateId);
                               } else {
-                                alert('No AI analysis is available yet. The applicant may not have submitted a portfolio.');
+                                fetchAiAnalysis(null);
                               }
                             }}
                             style={{
@@ -2804,6 +2812,7 @@ export default function CompanyDashboard() {
         onClose={() => {
           setShowAiAnalysisModal(false);
           setCurrentAiAnalysis(null);
+          setAiAnalysisError('');
         }}
         isAiAnalysis={true}
       >
@@ -2853,6 +2862,12 @@ export default function CompanyDashboard() {
             AI portfolio analysis
           </h2>
         </div>
+
+        {aiAnalysisError && !aiAnalysisLoading && (
+          <div role="alert" style={{ margin: '0 0 1.5rem', padding: '14px 16px', borderRadius: 12, border: '1px solid #fed7aa', background: '#fff7ed', color: '#9a3412', fontSize: 14, lineHeight: 1.5 }}>
+            {aiAnalysisError}
+          </div>
+        )}
         
         {aiAnalysisLoading && (
           <div style={{
