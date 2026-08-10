@@ -272,12 +272,12 @@ function LoginSelectionPage() {
   const getSignupInfo = () => {
     if (userType === 'candidate') {
       return {
-        text: '개인 통합회원 가입',
+        text: 'Sign up as a candidate',
         path: '/auth/applicant/signup/process'
       };
     } else {
       return {
-        text: '기업 통합회원 가입',
+        text: 'Sign up as a company',
         path: '/auth/company/signup/process'
       };
     }
@@ -295,17 +295,17 @@ function LoginSelectionPage() {
     <>
       {/* SEO 컴포넌트 */}
       <SEO
-        title="로그인 - ZOOP | AI 기반 채용 플랫폼"
-        description="ZOOP에 로그인하여 AI 기반 채용 서비스를 이용하세요. 개발자와 기업 모두를 위한 맞춤형 채용 솔루션을 제공합니다."
-        keywords="ZOOP 로그인, AI채용로그인, 개발자로그인, 기업로그인, 채용플랫폼로그인"
+        title="Log in - ZOOP | AI recruiting platform"
+        description="Log in to ZOOP to access evidence-based recruiting tools for candidates and companies."
+        keywords="ZOOP login, AI recruiting, developer jobs, hiring platform"
         image="/login-banner.jpg"
         url="https://zoop.com/auth/login"
         type="website"
         structuredData={{
           "@context": "https://schema.org",
           "@type": "WebPage",
-          "name": "ZOOP 로그인",
-          "description": "AI 기반 채용 플랫폼 ZOOP 로그인 페이지",
+          "name": "ZOOP login",
+          "description": "Log in to the ZOOP AI recruiting platform.",
           "url": "https://zoop.com/auth/login"
         }}
       />
@@ -314,7 +314,7 @@ function LoginSelectionPage() {
       <div className="login-page-wrapper">
         <div className="login-container">
           <div className="login-left">
-            <h2>다양한 ZOOP 서비스를<br />로그인 한 번으로 편리하게 이용하세요.</h2>
+            <h2>Access the full ZOOP experience<br />with one secure login.</h2>
             <div className="zoop-logo">
               <img
                 src="/logo_zoop.png"
@@ -336,14 +336,14 @@ function LoginSelectionPage() {
                 className={`tab-button ${userType === 'candidate' ? 'active' : ''}`}
                 onClick={() => setUserType('candidate')}
               >
-                개인회원
+                Candidate
               </button>
               <button
                 type="button"
                 className={`tab-button ${userType === 'company' ? 'active' : ''}`}
                 onClick={() => setUserType('company')}
               >
-                기업회원
+                Company
               </button>
             </div>
 
@@ -352,7 +352,7 @@ function LoginSelectionPage() {
                 <input
                   type="text"
                   id="loginId"
-                  placeholder="아이디"
+                  placeholder="Username"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value)}
                   disabled={location.state?.fromInvite}
@@ -362,7 +362,7 @@ function LoginSelectionPage() {
                 {location.state?.fromInvite && (
                   <div className="input-note">
                     <small style={{ color: '#059669', fontSize: '12px' }}>
-                      초대 링크를 통해 자동 설정된 아이디입니다.
+                      This username was set automatically from your invitation link.
                     </small>
                   </div>
                 )}
@@ -371,7 +371,7 @@ function LoginSelectionPage() {
                 <input
                   type="password"
                   id="password"
-                  placeholder="비밀번호"
+                  placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -386,7 +386,7 @@ function LoginSelectionPage() {
                     checked={rememberId}
                     onChange={(e) => setRememberId(e.target.checked)}
                   />
-                  아이디 저장
+                  Remember username
                 </label>
                 <label className="checkbox-label"> {/* 인라인 스타일 제거 */}
                   <input
@@ -394,28 +394,28 @@ function LoginSelectionPage() {
                     checked={keepLoggedIn}
                     onChange={(e) => setKeepLoggedIn(e.target.checked)}
                   />
-                  로그인 유지
+                  Keep me signed in
                 </label>
               </div> {/* ✅ div 종료 태그 */}
 
 
-              <button type="submit" className="login-button">로그인</button>
+              <button type="submit" className="login-button">Log in</button>
 
               {error && <p className="error-message" >{error}</p>}
 
               <div className="find-links">
-                <Link to="/find-id">아이디 찾기</Link>
+                <Link to="/find-id">Find username</Link>
                 <span>|</span>
-                <Link to="/find-password">비밀번호 찾기</Link>
+                <Link to="/find-password">Reset password</Link>
               </div>
             </form>
-            <p className="signup-subtext">소셜 계정으로 간편 로그인</p> 
+            <p className="signup-subtext">Or continue with a social account</p>
                 <div className="social-icons"> 
-                  <img src="/icons/naver.svg" alt="네이버 로그인" className="social-icon" onClick={() => handleSocialLogin('naver')}/> {/* ✅ 클래스 추가, style 제거 */}
-                  <img src="/icons/kakao.svg" alt="카카오 로그인" className="social-icon" onClick={() => handleSocialLogin('kakao')}/> {/* ✅ 클래스 추가, style 제거 */}
-                  <img src="/icons/google.svg" alt="구글 로그인" className="social-icon" onClick={() => handleSocialLogin('google')}/> {/* ✅ img 태그 사용, 클래스 추가, 핸들러 연결, style 제거 */}
-                  <img src="/icons/facebook.svg" alt="페이스북 로그인" className="social-icon" onClick={() => handleSocialLogin('facebook')}/> {/* ✅ 클래스 추가, style 제거 */}
-                  <img src="/icons/apple.svg" alt="애플 로그인" className="social-icon" onClick={() => handleSocialLogin('apple')}/> {/* ✅ 클래스 추가, style 제거 */}
+                  <img src="/icons/naver.svg" alt="Continue with Naver" className="social-icon" onClick={() => handleSocialLogin('naver')}/>
+                  <img src="/icons/kakao.svg" alt="Continue with Kakao" className="social-icon" onClick={() => handleSocialLogin('kakao')}/>
+                  <img src="/icons/google.svg" alt="Continue with Google" className="social-icon" onClick={() => handleSocialLogin('google')}/>
+                  <img src="/icons/facebook.svg" alt="Continue with Facebook" className="social-icon" onClick={() => handleSocialLogin('facebook')}/>
+                  <img src="/icons/apple.svg" alt="Continue with Apple" className="social-icon" onClick={() => handleSocialLogin('apple')}/>
                 </div> 
             </div> 
 

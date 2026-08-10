@@ -343,7 +343,7 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
           <HiOutlineGlobeAlt
             className="chatbot-globe"
             role="button"
-            aria-label={langOpen ? "언어 선택 닫기" : "언어 선택"}
+            aria-label={langOpen ? "Close language selection" : "Choose chatbot language"}
             aria-expanded={langOpen}
             onClick={(e) => {
               e.stopPropagation();
@@ -467,7 +467,7 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
         <button
           className="chatbot-flat-icon-btn"
           tabIndex={0}
-          aria-label="이모지"
+          aria-label="Emoji"
           type="button"
           onClick={() => setEmojiOpen(v => !v)}
         >
@@ -494,7 +494,7 @@ export default function Chatbot({ open, onClose, anchorRef, onIdealCandidateUpda
           <button
             className="chatbot-flat-send-btn"
             tabIndex={0}
-            aria-label="보내기"
+            aria-label="Send message"
             onClick={() => {
               const msg = inputValue.trim();
               if (msg !== "" && !loading && !isSending.current) {

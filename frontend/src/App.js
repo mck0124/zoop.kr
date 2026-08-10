@@ -284,7 +284,7 @@ function AppContent() {
             }
             setChatbotOpen(open => !open);
           }}
-          aria-label={chatbotOpen ? "챗봇 닫기" : "챗봇 열기"}
+          aria-label={chatbotOpen ? "Close chatbot" : "Open chatbot"}
         >
           {chatbotOpen ? (
             // 챗봇이 열렸으면 X SVG 아이콘
@@ -309,7 +309,7 @@ function AppContent() {
           ) : (
             // 챗봇이 닫혔으면 챗봇 아이콘
             <span className="chatbot-bubble">
-              <img src="/chat.png" alt="챗봇" style={{ width: 34, height: 34, display: 'block' }} />
+              <img src="/chat.png" alt="Chatbot" style={{ width: 34, height: 34, display: 'block' }} />
             </span>
           )}
         </button>

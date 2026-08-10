@@ -594,17 +594,17 @@ const Navbar = ({ onLangChange, hideAuth }) => {
       className={`zoop-navbar ${isAboutPage ? `about${scrolled ? ' scrolled' : ''}` : ''}`}
       ref={navbarRef}
       role="banner"
-      aria-label="메인 네비게이션"
+      aria-label="Main navigation"
     >
       <AccessibleButton
         className="logo-button"
         onClick={handleLogoClick}
-        ariaLabel="ZOOP 홈으로 이동"
+        ariaLabel="Go to ZOOP home"
         onKeyDown={handleKeyDown}
       >
         <img 
           src="/logo_zoop.png" 
-          alt="ZOOP 로고" 
+          alt="ZOOP logo"
           className="logo-img" 
         />
       </AccessibleButton>
@@ -612,19 +612,19 @@ const Navbar = ({ onLangChange, hideAuth }) => {
       <AccessibleButton
         className="hamburger"
         onClick={() => setMenuOpen(!menuOpen)}
-        ariaLabel={menuOpen ? "메뉴 닫기" : "메뉴 열기"}
+        ariaLabel={menuOpen ? "Close menu" : "Open menu"}
         aria-expanded={menuOpen}
         aria-controls="main-menu"
         onKeyDown={handleKeyDown}
       >
-        <ScreenReaderOnly>메뉴</ScreenReaderOnly>
+        <ScreenReaderOnly>Menu</ScreenReaderOnly>
         ☰
       </AccessibleButton>
 
       <nav 
         className="nav-links desktop-only"
         role="navigation"
-        aria-label="메인 메뉴"
+        aria-label="Main menu"
         id="main-menu"
         ref={menuRef}
       >
@@ -670,7 +670,7 @@ const Navbar = ({ onLangChange, hideAuth }) => {
         <nav 
           className={`mobile-menu ${menuOpen ? 'active' : ''}`}
           role="navigation"
-          aria-label="모바일 메뉴"
+          aria-label="Mobile menu"
           aria-hidden="false"
         >
           <AccessibleLink
