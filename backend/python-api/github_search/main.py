@@ -1,15 +1,12 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Body
 try:
     from .models import FilterRequest
     from .github_search_logic import enhanced_search_github_candidates as search_github_candidates
-    from .github_search_logic import analyze_portfolio_file
 except ImportError:  # Supports `uvicorn main:app` from this service directory.
     from models import FilterRequest
     from github_search_logic import enhanced_search_github_candidates as search_github_candidates
-    from github_search_logic import analyze_portfolio_file
 
 app = FastAPI()
 
@@ -30,16 +27,3 @@ def health_check():
 def search(filters: FilterRequest):
     results = search_github_candidates(filters, getattr(filters, 'post_id', None))
     return {"candidates": results}
-
-@app.post("/analyze-portfolio")
-def analyze_portfolio(payload: dict = Body(...)):
-    """
-    입력: {"file_url": "...", "extra_info": {...}}
-    출력: {"result": 분석결과}
-    """
-    file_url = payload.get("file_url")
-    extra_info = payload.get("extra_info")
-    if not file_url:
-        return {"error": "file_url is required"}
-    result = analyze_portfolio_file(file_url, extra_info)
-    return {"result": result}
