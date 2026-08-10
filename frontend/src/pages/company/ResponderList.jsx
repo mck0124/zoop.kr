@@ -5,6 +5,14 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import SEO from '../../components/SEO';
 import { apiUrl } from '../../api/config';
 
+const authenticatedFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+    ...(options.headers || {}),
+  },
+});
+
 // PDF.js 워커 경로 설정 (필수)
 pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL}/pdf.worker.min.mjs`;
 
@@ -36,7 +44,7 @@ export default function ResponderList() {
 
   // 회신자 목록 로드
   useEffect(() => {
-    fetch(apiUrl(`/api/progress/${postId}`))
+    authenticatedFetch(apiUrl(`/api/progress/${postId}`))
       .then(res => res.json())
       .then(setResponder)
       .catch(err => console.error('❌ 후보자 목록 오류:', err));
@@ -181,7 +189,13 @@ export default function ResponderList() {
                 >‹</button>
                 <div ref={containerRef} className="w-full h-full flex justify-center items-center overflow-auto">
                   {getPdfUrl() && (
-                    <Document file={getPdfUrl()} onLoadSuccess={onDocumentLoadSuccess}>
+                    <Document
+                      file={{
+                        url: getPdfUrl(),
+                        httpHeaders: { Authorization: `Bearer ${localStorage.getItem('jwtToken')}` },
+                      }}
+                      onLoadSuccess={onDocumentLoadSuccess}
+                    >
                       <Page
                         pageNumber={currentIdx + 1}
                         width={containerWidth * zoom}

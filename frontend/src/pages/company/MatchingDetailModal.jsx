@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { apiUrl } from '../../api/config';
 
+const authenticatedFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+    ...(options.headers || {}),
+  },
+});
+
 export default function MatchingDetailModal({ open, onClose, candPortfolioId, postId }) {
   const [match, setMatch] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -27,9 +35,9 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
     
     // 매칭 정보와 함께 jobCandidateId도 가져오기
     Promise.all([
-      fetch(apiUrl(`/api/portfolio-job-matches/portfolio/${candPortfolioId}/post/${postId}`))
+      authenticatedFetch(apiUrl(`/api/portfolio-job-matches/portfolio/${candPortfolioId}/post/${postId}`))
         .then(r => r.ok ? r.json() : null),
-      fetch(apiUrl(`/api/progress/${postId}/portfolio/${candPortfolioId}/job-candidate-id`))
+      authenticatedFetch(apiUrl(`/api/progress/${postId}/portfolio/${candPortfolioId}/job-candidate-id`))
         .then(r => r.ok ? r.json() : null)
         .catch(() => null) // jobCandidateId가 없을 수 있음
     ])
@@ -67,7 +75,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
 
     setInviting(true);
     try {
-      const response = await fetch(apiUrl(`/api/progress/${jobCandidateId}/update-stage-2p`), {
+      const response = await authenticatedFetch(apiUrl(`/api/progress/${jobCandidateId}/update-stage-2p`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

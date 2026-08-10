@@ -7,6 +7,14 @@ import SEO from '../../components/SEO';
 import AIAnalysisSummary from '../../components/AIAnalysisSummary';
 import { apiUrl } from '../../api/config';
 
+const authenticatedFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+    ...(options.headers || {}),
+  },
+});
+
 import { pdfjs } from "react-pdf";
 pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL}/pdf.worker.min.mjs`;
 
@@ -33,7 +41,7 @@ export default function StatePage() {
     const stagesNeedingFile = ['2y', '3n', '3y', '4n', '4y'];
     if (stagesNeedingFile.includes(r.jobCandCurrStage)) {
       try {
-        const res = await fetch(apiUrl(`/api/portfolios/${r.jobCandidateId}/file-path`));
+        const res = await authenticatedFetch(apiUrl(`/api/portfolios/${r.jobCandidateId}/file-path`));
         if (!res.ok) throw new Error("포트폴리오 경로 요청 실패");
         const data = await res.json();         // 👈 JSON으로 받아야 함     
         const filePath = data.filePath;        // 👈 실제 경로 추출
@@ -50,7 +58,7 @@ export default function StatePage() {
   };
 
   useEffect(() => {
-    fetch(apiUrl(`/api/github-search/${postId}/states`))
+    authenticatedFetch(apiUrl(`/api/github-search/${postId}/states`))
       .then((res) => {
         if (res.status === 401 || res.status === 403) {
           throw new Error('Your session has expired. Please sign in again.');
