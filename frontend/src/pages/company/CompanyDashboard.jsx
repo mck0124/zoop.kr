@@ -90,18 +90,18 @@ export default function CompanyDashboard() {
   // 일괄전송 함수
   const handleBulkEmailSend = async () => {
     if (!bulkEmailSubject.trim() || !bulkCustomGreeting.trim() || !bulkCustomMessage.trim()) {
-      alert('제목, 인사말, 메시지를 모두 입력해주세요.');
+      alert('Please enter a subject, greeting, and message.');
       return;
     }
 
     if (selectedApplicants.size === 0) {
-      alert('전송할 후보자를 선택해주세요.');
+      alert('Select at least one candidate to contact.');
       return;
     }
 
     const templateName = emailTemplates[bulkSelectedTemplate].name;
     const confirmed = window.confirm(
-      `선택된 ${selectedApplicants.size}명에게 ${templateName} 템플릿으로 일괄전송하시겠습니까?\n\n제목: ${bulkEmailSubject}`
+      `Send the ${templateName} template to ${selectedApplicants.size} selected candidate(s)?\n\nSubject: ${bulkEmailSubject}`
     );
 
     if (!confirmed) return;
@@ -123,7 +123,7 @@ export default function CompanyDashboard() {
       }).filter(candidate => candidate && candidate.candidateEmail); // null 제거 및 이메일이 있는 후보자만 필터링
 
       if (selectedCandidates.length === 0) {
-        alert('선택된 후보자 중 이메일 주소가 있는 후보자가 없습니다.');
+        alert('None of the selected candidates has an email address.');
         setBulkEmailSending(false);
         return;
       }
@@ -160,7 +160,7 @@ export default function CompanyDashboard() {
       const result = await response.json();
       
       if (result.success) {
-        alert(`📨 ${result.totalCandidates}명에게 ${templateName} 템플릿으로 이메일이 성공적으로 전송되었습니다!`);
+        alert(`📨 Email sent successfully to ${result.totalCandidates} candidate(s) using the ${templateName} template.`);
         // 모달 닫기 및 상태 초기화
         setShowBulkEmailModal(false);
         setBulkEmailSubject('');
@@ -174,7 +174,7 @@ export default function CompanyDashboard() {
       }
     } catch (error) {
       console.error('일괄전송 오류:', error);
-      alert('일괄전송 중 오류가 발생했습니다.');
+      alert('Something went wrong while sending the batch email.');
     } finally {
       setBulkEmailSending(false);
     }
@@ -513,7 +513,7 @@ export default function CompanyDashboard() {
       const detailRes = await fetch(apiUrl(`/api/postings/info/${selectedPostId}`));
         setSelectedPostDetail(await detailRes.json());
       } else {
-        alert('수정에 실패했습니다.');
+        alert('Could not update the job posting.');
       }
     } finally {
       setEditLoading(false);
@@ -541,7 +541,7 @@ export default function CompanyDashboard() {
         });
         setPostings(await listRes.json());
       } else {
-        alert('삭제에 실패했습니다.');
+        alert('Could not delete the job posting.');
       }
     } finally {
       setDeleteLoading(false);
@@ -1106,11 +1106,11 @@ export default function CompanyDashboard() {
         setCurrentAiAnalysis(analysis);
         setShowAiAnalysisModal(true);
       } else {
-        alert('AI 분석 결과를 찾을 수 없습니다.');
+        alert('No AI analysis was found for this candidate.');
       }
     } catch (error) {
       console.error('AI 분석 결과 조회 오류:', error);
-      alert('AI 분석 결과를 불러오는 중 오류가 발생했습니다.');
+      alert('We could not load the AI analysis.');
     } finally {
       setAiAnalysisLoading(false);
     }
@@ -1162,13 +1162,13 @@ export default function CompanyDashboard() {
                    marginBottom: '1.5rem'
                  }}>
                    <h2 style={{ fontSize: '1.6rem', fontWeight: '700', color: '#2d3748', margin: 0 }}>
-                     직접 지원자 목록 ({directApplicants.length}명)
+                     Direct applicants ({directApplicants.length})
                    </h2>
                    
                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                        <span style={{ color: '#4a5568', fontWeight: '600', fontSize: '0.95rem' }}>
-                         {selectedApplicants.size}명 선택됨
+                         {selectedApplicants.size} selected
                        </span>
                        {selectedApplicants.size > 0 && (
                          <button
@@ -1182,7 +1182,7 @@ export default function CompanyDashboard() {
                              textDecoration: 'underline'
                            }}
                          >
-                           선택 해제
+                           Clear selection
                          </button>
                        )}
                      </div>
@@ -1211,7 +1211,7 @@ export default function CompanyDashboard() {
                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                            <path d="M20 6L9 17l-5-5"/>
                          </svg>
-                         수락
+                         Accept
                        </button>
                        
                        <button
@@ -1236,7 +1236,7 @@ export default function CompanyDashboard() {
                            <path d="M18 6L6 18"/>
                            <path d="M6 6l12 12"/>
                          </svg>
-                         거절
+                         Reject
                        </button>
                      </div>
                    </div>
@@ -1245,7 +1245,7 @@ export default function CompanyDashboard() {
 
               {loadingDirectApplicants ? (
                 <div style={{ textAlign: 'center', padding: '4rem', color: '#666' }}>
-                  직접 지원자 목록을 불러오는 중...
+                  Loading direct applicants...
                 </div>
               ) : directApplicants.length === 0 ? (
                 <div style={{ 
@@ -1266,7 +1266,7 @@ export default function CompanyDashboard() {
                     <rect x="3.5" y="15" width="17" height="6" rx="3" stroke="#b5c6d6" strokeWidth="1.5"/>
                   </svg>
                   <div style={{ fontSize: '1.08rem', color: '#7b8794', fontWeight: 500 }}>
-                    아직 추가 지원자가 없습니다.
+                    No direct applicants yet.
                   </div>
                 </div>
               ) : (
@@ -2290,7 +2290,7 @@ export default function CompanyDashboard() {
                                     fontSize: '0.8rem',
                                     fontWeight: '600'
                                   }}>
-                                    {index + 1}위
+                                  Rank {index + 1}
                                   </div>
 
                                   {/* 면접 평가 버튼 (우측 하단) */}
@@ -2335,7 +2335,7 @@ export default function CompanyDashboard() {
                                           e.currentTarget.style.boxShadow = '0 2px 8px rgba(34,197,94,0.13)';
                                           e.currentTarget.style.transform = 'none';
                                         }}
-                                        title="면접 평가"
+                                        title="Interview evaluation"
                                       >
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                           <rect x="4" y="3" width="16" height="18" rx="2" />
@@ -2344,7 +2344,7 @@ export default function CompanyDashboard() {
                                           <path d="M9 15h2" />
                                           <path d="M15 19l2 2 4-4" stroke="#22c55e" strokeWidth="2" fill="none"/>
                                         </svg>
-                                        면접 평가
+                                        Interview evaluation
                                       </button>
                                     </div>
                                   )}
@@ -2611,14 +2611,14 @@ export default function CompanyDashboard() {
                     </div>
                   </div>
                 ) : (
-                  <p style={{ color: '#888', textAlign: 'center', padding: '2rem' }}>기업 정보를 불러오는 중...</p>
+                  <p style={{ color: '#888', textAlign: 'center', padding: '2rem' }}>Loading company information...</p>
                 )}
               </section>
 
               <h2 style={{ fontSize: '1.4rem', fontWeight: '600', marginBottom: '1.2rem', color: '#2d3748' }}>Active hiring</h2>
               <section style={{ ...hoverBoxStyle }} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
                 {loading ? (
-                  <p style={{ color: '#4a5568', textAlign: 'center', padding: '2rem' }}>공고 정보를 불러오는 중...</p>
+                  <p style={{ color: '#4a5568', textAlign: 'center', padding: '2rem' }}>Loading job postings...</p>
                 ) : activePostings.length === 0 ? (
                   <p style={{ color: '#4a5568', textAlign: 'center', padding: '2rem' }}>No active hiring yet.</p>
                 ) : (
