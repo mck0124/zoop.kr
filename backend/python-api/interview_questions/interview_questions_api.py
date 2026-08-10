@@ -64,8 +64,23 @@ def _verification_context(portfolio_analysis: str) -> str:
         return "(No structured candidate evidence is available.)"
     if not isinstance(parsed, dict):
         return "(No structured candidate evidence is available.)"
+    # Portfolio and interview results may be stored in an envelope such as
+    # {"analysis": {...}, "score": ...}. Resolve it before reading the ledger.
+    if isinstance(parsed.get("analysis"), dict):
+        parsed = parsed["analysis"]
+    if isinstance(parsed.get("analysisData"), str):
+        try:
+            nested = json.loads(parsed["analysisData"])
+            if isinstance(nested, dict):
+                parsed = nested.get("analysis", nested)
+        except (TypeError, ValueError):
+            pass
     evidence = []
-    for item in parsed.get("evidence", []) if isinstance(parsed.get("evidence"), list) else []:
+    source_items = parsed.get("evidence", [])
+    if not isinstance(source_items, list):
+        dimensions = parsed.get("dimensions") or parsed.get("categories") or []
+        source_items = [item for dimension in dimensions if isinstance(dimension, dict) for item in dimension.get("evidence", [])]
+    for item in source_items if isinstance(source_items, list) else []:
         if isinstance(item, dict):
             evidence.append({
                 "evidence_id": str(item.get("evidence_id", "")),
@@ -158,19 +173,21 @@ def generate_interview_questions(post_title: str, post_description: str,
                                portfolio_analysis: str = "", language: str = "en") -> List[str]:
     """OpenAI를 사용하여 면접 질문 생성"""
     
-    # 포트폴리오 분석 결과가 있는 경우 프롬프트에 포함
+    # 포트폴리오 분석 결과가 있는 경우, 전체 JSON보다 검증 원장을 우선해
+    # 질문이 일반론으로 퇴행하지 않도록 한다.
     portfolio_section = ""
+    verification_context = _verification_context(portfolio_analysis)
     if portfolio_analysis and portfolio_analysis.strip():
         portfolio_section = f"""
 === 지원자 포트폴리오 분석 결과 ===
-{portfolio_analysis}
+{portfolio_analysis[:12000]}
 
 이 분석 결과를 참고하여 지원자의 강점과 약점을 파악하고, 그에 맞는 맞춤형 질문을 생성해주세요.
 """
 
     language = normalize_language(language)
     prompt = f"""
-당신은 전문적인 AI 면접관입니다. 아래 채용 공고 정보와 지원자의 포트폴리오 분석 결과를 종합하여 해당 직무에 적합한 면접 질문 3개를 생성해주세요.
+당신은 전문적인 AI 면접관입니다. 아래 채용 공고와 후보자 근거 원장을 바탕으로 해당 직무에 적합한 면접 질문 3개를 생성해주세요.
 
 언어 지침: {LANGUAGE_INSTRUCTIONS[language]}
 
@@ -191,9 +208,16 @@ def generate_interview_questions(post_title: str, post_description: str,
 === 질문 생성 기준 ===
 - 각 질문은 구체적이고 답변하기 쉬우면서도 지원자의 역량을 정확히 파악할 수 있어야 함
 - 공고의 요구사항과 인재상에 맞는 맞춤형 질문이어야 함
-- 포트폴리오 분석 결과가 있다면, 그 내용을 참고하여 지원자의 강점을 살리거나 약점을 보완할 수 있는 질문을 포함해야 함
+- 최소 한 질문은 확인된 근거의 실제 기여·설계 선택을 검증해야 함
+- 최소 한 질문은 gaps 또는 counterfactuals에 있는 미확인 신호를 검증해야 함
+- 근거가 없으면 후보자가 해당 경험을 했다고 전제하지 말고, 사실 확인형 질문으로 작성해야 함
 - 기술적 질문과 인성/역량 질문의 균형을 맞춰야 함
 - 질문은 자연스럽고 대화하기 편한 톤으로 작성해야 함
+- 이름, 성별, 나이, 학교, 위치 등 직무와 무관한 속성은 질문하지 말 것
+
+=== 근거 원장 (질문 설계의 우선 입력) ===
+{verification_context}
+=== 근거 원장 끝 ===
 
 === 출력 형식 ===
 질문 3개만 번호 없이 줄바꿈으로 구분해서 출력해주세요.
@@ -216,7 +240,7 @@ def generate_interview_questions(post_title: str, post_description: str,
         
         questions_text = response.choices[0].message.content.strip()
         
-        return normalize_generated_questions(questions_text, minimum=3, maximum=3, language=language)
+        return normalize_generated_questions(questions_text, minimum=3, maximum=3, require_tags=True, language=language)
         
     except Exception as e:
         print(f"OpenAI 질문 생성 오류: {e}")
