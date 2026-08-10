@@ -2,6 +2,8 @@ fastapi
 uvicorn
 pytesseract
 Pillow
+easyocr
+python-multipart
 
 //pip install fastapi uvicorn pytesseract pillow
 

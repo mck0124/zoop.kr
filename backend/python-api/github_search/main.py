@@ -2,9 +2,14 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Body
-from models import FilterRequest
-from github_search_logic import enhanced_search_github_candidates as search_github_candidates
-from github_search_logic import analyze_portfolio_file
+try:
+    from .models import FilterRequest
+    from .github_search_logic import enhanced_search_github_candidates as search_github_candidates
+    from .github_search_logic import analyze_portfolio_file
+except ImportError:  # Supports `uvicorn main:app` from this service directory.
+    from models import FilterRequest
+    from github_search_logic import enhanced_search_github_candidates as search_github_candidates
+    from github_search_logic import analyze_portfolio_file
 
 app = FastAPI()
 
