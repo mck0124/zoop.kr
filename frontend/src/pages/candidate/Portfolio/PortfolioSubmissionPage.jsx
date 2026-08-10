@@ -41,6 +41,8 @@ function PortfolioSubmissionPage() {
   // Job posting information
   const [jobPosting, setJobPosting] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [feedback, setFeedback] = useState({ type: '', message: '' });
   const isFetchingRef = useRef(false);
 
   // 실제 로그인한 사용자의 ID 사용
@@ -59,7 +61,6 @@ function PortfolioSubmissionPage() {
 
     // 사용자가 로그인하지 않았거나 candidateId가 없으면 로그인 페이지로 리다이렉트
     if (!candidateId) {
-      alert('Please log in to continue.');
       navigate('/login');
       return;
     }
@@ -85,10 +86,12 @@ function PortfolioSubmissionPage() {
         }
         const data = await response.json();
         setJobPosting(data);
-        
+        setLoadError('');
+
       } catch (error) {
         console.error('공고 정보를 가져오는 중 오류 발생:', error);
         setJobPosting(null);
+        setLoadError('We could not load this job posting. Check your connection and try again.');
       } finally {
         setLoading(false);
         isFetchingRef.current = false;
@@ -119,7 +122,7 @@ function PortfolioSubmissionPage() {
     if (workExperiences.length < 5) {
       setWorkExperiences([...workExperiences, { companyName: '', jobTitle: '', startDate: '', endDate: '', currentlyWorking: false }]);
     } else {
-      alert('You can add up to 5 work experiences.');
+      setFeedback({ type: 'error', message: 'You can add up to 5 work experiences.' });
     }
   };
 
@@ -152,15 +155,16 @@ function PortfolioSubmissionPage() {
     if (!file) return;
     const extension = `.${file.name.split('.').pop().toLowerCase()}`;
     if (file.size > MAX_FILE_SIZE) {
-      alert('Files must be 50MB or smaller.');
+      setFeedback({ type: 'error', message: 'Files must be 50MB or smaller.' });
       event.target.value = '';
       return;
     }
     if (allowedExtensions && !allowedExtensions.includes(extension)) {
-      alert(`Unsupported file type. Please select one of: ${allowedExtensions.join(', ')}.`);
+      setFeedback({ type: 'error', message: `Unsupported file type. Please select one of: ${allowedExtensions.join(', ')}.` });
       event.target.value = '';
       return;
     }
+    setFeedback({ type: '', message: '' });
     setFile(file);
   };
 
@@ -169,24 +173,25 @@ function PortfolioSubmissionPage() {
 
     // Validate candidateId
     if (!candidateId) {
-      alert('Please log in to continue.');
+      setFeedback({ type: 'error', message: 'Please log in to continue.' });
       navigate('/login');
       return;
     }
 
     // Validate required agreement
     if (!agreeRequiredPersonal) {
-      alert('You must agree to the required personal data terms.');
+      setFeedback({ type: 'error', message: 'You must agree to the required personal data terms.' });
       return;
     }
 
     // Validate portfolio file is required
     if (!portfolioFile) {
-      alert('Please select a portfolio file.');
+      setFeedback({ type: 'error', message: 'Please select a portfolio file.' });
       return;
     }
 
     setIsSubmitting(true);
+    setFeedback({ type: '', message: '' });
 
     const formData = new FormData();
     formData.append('postId', parseInt(postId, 10));
@@ -236,13 +241,13 @@ function PortfolioSubmissionPage() {
         }
 
         await response.json();
-        alert('Your application was submitted successfully.');
+        setFeedback({ type: 'success', message: 'Your application was submitted successfully. Redirecting to your dashboard…' });
         setIsSubmitting(false);
         navigate('/candidate/dashboard');
 
     } catch (error) {
         console.error('지원서 제출 오류:', error);
-        alert(`Application submission failed: ${error.message}`);
+        setFeedback({ type: 'error', message: `Application submission failed: ${error.message}` });
         setIsSubmitting(false);
     }
   };
@@ -279,7 +284,15 @@ function PortfolioSubmissionPage() {
 
   // 3. 데이터가 없을 때
   if (!jobPosting) {
-    return <div>Unable to load job details.</div>;
+    return (
+      <div className="portfolio-submission-container">
+        <div className="submission-error-state" role="alert">
+          <h1>Unable to load job details</h1>
+          <p>{loadError || 'This job posting is unavailable right now.'}</p>
+          <button type="button" onClick={() => { setLoadError(''); setLoading(true); }}>Try again</button>
+        </div>
+      </div>
+    );
   }
 
   // 4. 정상 UI
@@ -290,6 +303,12 @@ function PortfolioSubmissionPage() {
         <Sidebar />
         <div className="main-content-area">
           <h1 className="page-title">Submit your portfolio</h1>
+          {feedback.message && (
+            <div className={`submission-feedback ${feedback.type}`} role={feedback.type === 'error' ? 'alert' : 'status'}>
+              <span>{feedback.message}</span>
+              <button type="button" onClick={() => setFeedback({ type: '', message: '' })} aria-label="Dismiss message">×</button>
+            </div>
+          )}
           {isSubmitting && (
             <div className="modal-backdrop" style={{ position: 'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.3)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center' }}>
               <div className="modal-content" style={{ background:'#fff', borderRadius: '16px', padding:'2.5rem 3.5rem', boxShadow:'0 8px 32px rgba(0,0,0,0.15)', textAlign:'center', fontSize:'1.2rem', fontWeight:600, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
