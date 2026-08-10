@@ -1208,6 +1208,7 @@ export default function CandidateList({ activeTab = 'all' }) {
   const [bulkCustomMessage, setBulkCustomMessage] = useState('');
   const [bulkSelectedTemplate, setBulkSelectedTemplate] = useState('professional');
   const [bulkEmailSending, setBulkEmailSending] = useState(false);
+  const [actionFeedback, setActionFeedback] = useState({ type: '', message: '' });
 
   // 4. 모달 열기 함수
   const openBulkEmailModal = () => {
@@ -1231,19 +1232,20 @@ export default function CandidateList({ activeTab = 'all' }) {
   // 6. 메일 전송 함수 (템플릿 기반)
   const handleBulkMailSend = async () => {
     if (!bulkEmailSubject.trim() || !bulkCustomGreeting.trim() || !bulkCustomMessage.trim()) {
-      alert('Please enter a subject, greeting, and message.');
+      setActionFeedback({ type: 'error', message: 'Please enter a subject, greeting, and message.' });
       return;
     }
     if (selected.length === 0) return;
     if (!companyAdminId) {
-      alert('We could not verify the company administrator. Refresh the page and try again.');
+      setActionFeedback({ type: 'error', message: 'We could not verify the company administrator. Refresh the page and try again.' });
       return;
     }
     const candidatesToSend = candidates.filter(c => selected.includes(c.githubLogin || c.login) && c.candidateEmail);
     if (candidatesToSend.length === 0) {
-      alert('Select candidates with email addresses.');
+      setActionFeedback({ type: 'error', message: 'Select candidates with email addresses.' });
       return;
     }
+    setActionFeedback({ type: '', message: '' });
     setBulkEmailSending(true);
     try {
       // 템플릿 HTML 생성 (플레이스홀더)
@@ -1265,7 +1267,7 @@ export default function CandidateList({ activeTab = 'all' }) {
         })
       });
       if (res.ok) {
-        alert(`📨 Email sent to ${candidatesToSend.length} candidate(s).`);
+        setActionFeedback({ type: 'success', message: `Email sent to ${candidatesToSend.length} candidate(s).` });
         setShowBulkEmailModal(false);
         setBulkEmailSubject('');
         setBulkCustomGreeting('');
@@ -1274,11 +1276,11 @@ export default function CandidateList({ activeTab = 'all' }) {
         setBulkEmailSending(false);
         navigate('/company/dashboard');
       } else {
-        alert('❌ Email delivery failed.');
+        setActionFeedback({ type: 'error', message: 'Email delivery failed.' });
         setBulkEmailSending(false);
       }
     } catch (err) {
-      alert('⚠️ A server error prevented email delivery.');
+      setActionFeedback({ type: 'error', message: 'A server error prevented email delivery.' });
       setBulkEmailSending(false);
     }
   };
@@ -1450,6 +1452,15 @@ export default function CandidateList({ activeTab = 'all' }) {
       />
       <Navbar />
       <Container>
+        {actionFeedback.message && (
+          <div
+            role={actionFeedback.type === 'error' ? 'alert' : 'status'}
+            aria-live="polite"
+            style={{ marginBottom: '1rem', padding: '0.85rem 1rem', borderRadius: 12, background: actionFeedback.type === 'error' ? '#fff7f7' : '#effcf7', border: `1px solid ${actionFeedback.type === 'error' ? '#fecaca' : '#bbf7d0'}`, color: actionFeedback.type === 'error' ? '#991b1b' : '#166534', fontWeight: 700 }}
+          >
+            {actionFeedback.message}
+          </div>
+        )}
         {/* 공고 정보 */}
         {postInfo && (
           <PostInfoCard>
