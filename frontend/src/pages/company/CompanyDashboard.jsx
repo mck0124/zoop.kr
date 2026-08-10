@@ -9,6 +9,14 @@ import SEO from '../../components/SEO';
 import AIAnalysisSummary from '../../components/AIAnalysisSummary';
 import { apiUrl } from '../../api/config';
 
+const authenticatedFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+    ...(options.headers || {}),
+  },
+});
+
 
 export default function CompanyDashboard() {
   const location = useLocation();
@@ -275,7 +283,7 @@ export default function CompanyDashboard() {
     if (!userId) return;
     
     
-      fetch(apiUrl(`/api/companyadmins/info/${userId}`), {
+      authenticatedFetch(apiUrl(`/api/companyadmins/info/${userId}`), {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -396,7 +404,7 @@ export default function CompanyDashboard() {
           endpoint = apiUrl(`/api/github-search/by-post/${postId}/all`);
       }
 
-      const response = await fetch(endpoint);
+      const response = await authenticatedFetch(endpoint);
       if (!response.ok) throw new Error('후보자 데이터 조회 실패');
       const data = await response.json();
       
@@ -757,7 +765,7 @@ export default function CompanyDashboard() {
         let allCandidates = [];
         for (const post of postings) {
           if (!post.postId) continue;
-          const res = await fetch(apiUrl(`/api/github-search/by-post/${post.postId}/interview-scheduled`));
+          const res = await authenticatedFetch(apiUrl(`/api/github-search/by-post/${post.postId}/interview-scheduled`));
           if (res.ok) {
             const data = await res.json();
             // API 응답 구조에 따라 candidate 정보 추출
@@ -799,7 +807,7 @@ export default function CompanyDashboard() {
       
       // 모든 공고의 추가 지원자를 조회
       for (const post of postings) {
-        const response = await fetch(apiUrl(`/api/github-search/by-post/${post.postId}/additional-applicants`));
+        const response = await authenticatedFetch(apiUrl(`/api/github-search/by-post/${post.postId}/additional-applicants`));
         if (response.ok) {
           const applicants = await response.json();
           const applicantsWithPostInfo = applicants.map(applicant => ({
@@ -1155,7 +1163,7 @@ export default function CompanyDashboard() {
       for (const candidate of githubCandidates) {
         if (candidate.candPortfolioId) {
           try {
-            const res = await fetch(apiUrl(`/api/portfolio-job-matches/portfolio/${candidate.candPortfolioId}`));
+            const res = await authenticatedFetch(apiUrl(`/api/portfolio-job-matches/portfolio/${candidate.candPortfolioId}`));
             const data = await res.json();
             map[candidate.candPortfolioId] = data;
           } catch (e) {
