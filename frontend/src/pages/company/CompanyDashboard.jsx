@@ -66,14 +66,14 @@ export default function CompanyDashboard() {
 
   // 일괄전송 모달 열기 함수
   const openBulkEmailModal = () => {
-    const postTitle = selectedPostDetail?.postTitle || '채용 공고';
-    const companyName = companyInfo?.companyName || '저희 회사';
+    const postTitle = selectedPostDetail?.postTitle || 'Open role';
+    const companyName = companyInfo?.companyName || 'Our company';
     
     // 기본값 설정
     setBulkSelectedTemplate('professional');
     setBulkCustomGreeting(emailTemplates.professional.defaultGreeting);
     setBulkCustomMessage(emailTemplates.professional.defaultMessage);
-    setBulkEmailSubject(`[${companyName}] ${postTitle} - 특별 초대`);
+    setBulkEmailSubject(`[${companyName}] ${postTitle} - Special invitation`);
     setBulkEmailContent(''); // 템플릿 사용하므로 비워둠
     
     setShowBulkEmailModal(true);
@@ -620,14 +620,14 @@ export default function CompanyDashboard() {
       .replace(/'/g, '&#039;');
     // candidate가 null이거나 undefined인 경우 기본값 사용
     if (!candidate) {
-      candidate = { githubLogin: '후보자', candidateEmail: '' };
+      candidate = { githubLogin: 'Candidate', candidateEmail: '' };
     }
     
-    const postTitle = escapeHtml(selectedPostDetail?.postTitle || '채용 공고');
+    const postTitle = escapeHtml(selectedPostDetail?.postTitle || 'Open role');
     const postDescription = escapeHtml(selectedPostDetail?.postDescription || '');
-    const githubLogin = escapeHtml(candidate.githubLogin || '후보자');
-    const companyName = escapeHtml(companyInfo?.companyName || '저희 회사');
-    const postLocation = escapeHtml(selectedPostDetail?.postLocation || '서울');
+    const githubLogin = escapeHtml(candidate.githubLogin || 'Candidate');
+    const companyName = escapeHtml(companyInfo?.companyName || 'Our company');
+    const postLocation = escapeHtml(selectedPostDetail?.postLocation || 'Remote');
     const postProgrammingLanguage = escapeHtml(selectedPostDetail?.postProgrammingLanguage || 'Java');
     const postSalaryStart = escapeHtml(selectedPostDetail?.postSalaryStart || '5000');
     const postSalaryEnd = escapeHtml(selectedPostDetail?.postSalaryEnd || '6000');
@@ -637,59 +637,59 @@ export default function CompanyDashboard() {
     // 공고기간 포맷팅
     const postStartDate = selectedPostDetail?.postPostedDate ? formatDate(selectedPostDetail.postPostedDate) : '';
     const postEndDate = selectedPostDetail?.postExpiryDate ? formatDate(selectedPostDetail.postExpiryDate) : '';
-    const recruitmentPeriod = postStartDate && postEndDate ? `${postStartDate} ~ ${postEndDate}` : '상시모집';
+    const recruitmentPeriod = postStartDate && postEndDate ? `${postStartDate} ~ ${postEndDate}` : 'Open until filled';
 
     if (templateKey === 'professional') {
       return '<div style="font-family:Arial, sans-serif; background-color:#f8fafc; padding:20px;">' +
         '<div style="max-width:600px; margin:0 auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.1);">' +
           '<div style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding:30px; text-align:center;">' +
             '<h1 style="color:white; margin:0; font-size:28px; font-weight:bold;">' + companyName + '</h1>' +
-            '<p style="color:#e0e7ff; margin:10px 0 0 0; font-size:14px;">개발자 채용 공고</p>' +
+            '<p style="color:#e0e7ff; margin:10px 0 0 0; font-size:14px;">Developer opportunity</p>' +
           '</div>' +
           '<div style="padding:30px;">' +
-            '<h2 style="color:#1e293b; margin:0 0 20px 0; font-size:24px;">' + safeGreeting + ' ' + githubLogin + '님,</h2>' +
+            '<h2 style="color:#1e293b; margin:0 0 20px 0; font-size:24px;">' + safeGreeting + ' ' + githubLogin + ',</h2>' +
             '<p style="color:#475569; font-size:16px; line-height:1.6; margin:0 0 25px 0;">' + safeMessage + '</p>' +
             '<div style="background:#f1f5f9; border-radius:8px; padding:20px; margin:25px 0;">' +
               '<h3 style="color:#2563eb; margin:0 0 15px 0; font-size:20px;">📋 ' + postTitle + '</h3>' +
               '<p style="color:#475569; margin:0 0 15px 0; line-height:1.6;">' + postDescription + '</p>' +
               '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px;">' +
-                '<div><strong>기술스택:</strong> ' + postProgrammingLanguage + '</div>' +
-                '<div><strong>위치:</strong> ' + postLocation + '</div>' +
-                '<div><strong>급여:</strong> ' + postSalaryStart + ' ~ ' + postSalaryEnd + '만원</div>' +
-                '<div><strong>공고기간:</strong> ' + recruitmentPeriod + '</div>' +
+                '<div><strong>Stack:</strong> ' + postProgrammingLanguage + '</div>' +
+                '<div><strong>Location:</strong> ' + postLocation + '</div>' +
+                '<div><strong>Salary:</strong> ' + postSalaryStart + ' ~ ' + postSalaryEnd + '</div>' +
+                '<div><strong>Application window:</strong> ' + recruitmentPeriod + '</div>' +
               '</div>' +
             '</div>' +
             '<div style="text-align:center; margin:30px 0;">' +
-              '<a href="{{invitationLink}}" style="background:#2563eb; color:white; text-decoration:none; padding:15px 30px; border-radius:8px; font-weight:bold; display:inline-block; font-size:16px;">지원하기</a>' +
+              '<a href="{{invitationLink}}" style="background:#2563eb; color:white; text-decoration:none; padding:15px 30px; border-radius:8px; font-weight:bold; display:inline-block; font-size:16px;">View opportunity</a>' +
             '</div>' +
-            '<p style="color:#64748b; font-size:14px; margin:0;">감사합니다.<br/>' + companyName + ' 인사팀</p>' +
+            '<p style="color:#64748b; font-size:14px; margin:0;">Best,<br/>' + companyName + ' hiring team</p>' +
           '</div>' +
         '</div>' +
       '</div>';
     } else if (templateKey === 'friendly') {
-      return '<div style="font-family:\'Malgun Gothic\', \'맑은 고딕\', sans-serif; background-color:#f0fdf4; padding:20px;">' +
+      return '<div style="font-family:Arial, sans-serif; background-color:#f0fdf4; padding:20px;">' +
         '<div style="max-width:600px; margin:0 auto; background:#fff; border-radius:16px; overflow:hidden; border:3px solid #22c55e;">' +
           '<div style="background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%); padding:25px; text-align:center;">' +
             '<h1 style="color:white; margin:0; font-size:26px;">🌟 ' + companyName + ' 🌟</h1>' +
-            '<p style="color:#bbf7d0; margin:10px 0 0 0;">함께 성장할 동료를 찾습니다!</p>' +
+            '<p style="color:#bbf7d0; margin:10px 0 0 0;">We are looking for a teammate to grow with us.</p>' +
           '</div>' +
           '<div style="padding:25px;">' +
-            '<h2 style="color:#166534; margin:0 0 20px 0; font-size:22px;">😊 ' + safeGreeting + ' ' + githubLogin + '님!</h2>' +
+            '<h2 style="color:#166534; margin:0 0 20px 0; font-size:22px;">😊 ' + safeGreeting + ' ' + githubLogin + '!</h2>' +
             '<p style="color:#374151; font-size:16px; line-height:1.7; margin:0 0 20px 0;">' + safeMessage + '</p>' +
             '<div style="background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius:12px; padding:20px; margin:20px 0; border-left:4px solid #22c55e;">' +
               '<h3 style="color:#22c55e; margin:0 0 15px 0; font-size:18px;">🎯 ' + postTitle + '</h3>' +
               '<p style="color:#374151; margin:0 0 15px 0; line-height:1.6;">' + postDescription + '</p>' +
               '<div style="background:white; border-radius:8px; padding:15px; margin:15px 0;">' +
-                '<p style="margin:5px 0; color:#059669;"><strong>💻 기술스택:</strong> ' + postProgrammingLanguage + '</p>' +
-                '<p style="margin:5px 0; color:#059669;"><strong>📍 위치:</strong> ' + postLocation + '</p>' +
-                '<p style="margin:5px 0; color:#059669;"><strong>💰 급여:</strong> ' + postSalaryStart + ' ~ ' + postSalaryEnd + '만원</p>' +
-                '<p style="margin:5px 0; color:#059669;"><strong>📅 공고기간:</strong> ' + recruitmentPeriod + '</p>' +
+                '<p style="margin:5px 0; color:#059669;"><strong>💻 Stack:</strong> ' + postProgrammingLanguage + '</p>' +
+                '<p style="margin:5px 0; color:#059669;"><strong>📍 Location:</strong> ' + postLocation + '</p>' +
+                '<p style="margin:5px 0; color:#059669;"><strong>💰 Salary:</strong> ' + postSalaryStart + ' ~ ' + postSalaryEnd + '</p>' +
+                '<p style="margin:5px 0; color:#059669;"><strong>📅 Application window:</strong> ' + recruitmentPeriod + '</p>' +
               '</div>' +
             '</div>' +
             '<div style="text-align:center; margin:25px 0;">' +
-              '<a href="{{invitationLink}}" style="background:#22c55e; color:white; text-decoration:none; padding:12px 25px; border-radius:25px; font-weight:bold; display:inline-block; font-size:16px;">🚀 함께하기</a>' +
+              '<a href="{{invitationLink}}" style="background:#22c55e; color:white; text-decoration:none; padding:12px 25px; border-radius:25px; font-weight:bold; display:inline-block; font-size:16px;">🚀 Join the team</a>' +
             '</div>' +
-            '<p style="color:#6b7280; font-size:14px; margin:0; text-align:center;">💝 ' + companyName + ' 팀 일동</p>' +
+            '<p style="color:#6b7280; font-size:14px; margin:0; text-align:center;">💝 The ' + companyName + ' team</p>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -819,7 +819,7 @@ export default function CompanyDashboard() {
     
     if (selectedApplicants.size === 0) return;
 
-    const confirmed = window.confirm(`선택한 ${selectedApplicants.size}명의 지원자를 수락하시겠습니까?`);
+    const confirmed = window.confirm(`Accept ${selectedApplicants.size} selected applicant(s)?`);
     if (!confirmed) return;
 
     try {
@@ -877,7 +877,7 @@ export default function CompanyDashboard() {
       const result = await response.json();
       
       if (result.success) {
-        alert(`${result.updatedCount}명의 지원자가 수락되어 회신자로 이동했습니다.`);
+        alert(`${result.updatedCount} applicant(s) accepted and moved to Responded.`);
         // 선택 해제 및 목록 새로고침
         setSelectedApplicants(new Set());
         if (showDirectApplicants) {
@@ -886,11 +886,11 @@ export default function CompanyDashboard() {
           fetchCandidates(selectedPostId, '추가 지원자');
         }
       } else {
-        alert('수락 처리 중 오류가 발생했습니다: ' + result.message);
+        alert('Batch accept failed: ' + result.message);
       }
     } catch (error) {
       console.error('수락 처리 오류:', error);
-      alert('수락 처리 중 오류가 발생했습니다.');
+      alert('Could not complete the accept action.');
     }
   };
 
@@ -898,7 +898,7 @@ export default function CompanyDashboard() {
   const handleRejectApplicants = async () => {
     if (selectedApplicants.size === 0) return;
 
-    const confirmed = window.confirm(`선택한 ${selectedApplicants.size}명의 지원자를 거절하시겠습니까?`);
+    const confirmed = window.confirm(`Reject ${selectedApplicants.size} selected applicant(s)?`);
     if (!confirmed) return;
 
     try {
@@ -956,7 +956,7 @@ export default function CompanyDashboard() {
       const result = await response.json();
       
       if (result.success) {
-        alert(`${result.updatedCount}명의 지원자가 거절 처리되었습니다.`);
+        alert(`${result.updatedCount} applicant(s) rejected.`);
         // 선택 해제 및 목록 새로고침
         setSelectedApplicants(new Set());
         if (showDirectApplicants) {
@@ -965,11 +965,11 @@ export default function CompanyDashboard() {
           fetchCandidates(selectedPostId, '추가 지원자');
         }
       } else {
-        alert('거절 처리 중 오류가 발생했습니다: ' + result.message);
+        alert('Batch rejection failed: ' + result.message);
       }
     } catch (error) {
       console.error('거절 처리 오류:', error);
-      alert('거절 처리 중 오류가 발생했습니다.');
+      alert('Could not complete the rejection action.');
     }
   };
 
@@ -981,7 +981,7 @@ export default function CompanyDashboard() {
     const candidateId = candidate.candidate?.candidateId || candidate.candidateId;
     const postId = candidate.candidate?.postId || candidate.postId || selectedPostId;
     
-    const confirmed = window.confirm(`${candidateName}님을 수락하시겠습니까?`);
+    const confirmed = window.confirm(`Accept ${candidateName}?`);
     if (!confirmed) return;
 
     try {
@@ -1001,7 +1001,7 @@ export default function CompanyDashboard() {
       const result = await response.json();
       
       if (result.success) {
-        alert(`${candidateName}님이 수락되었습니다.`);
+        alert(`${candidateName} accepted.`);
         
         // 선택에서 제거 (uniqueKey로 제거)
         const uniqueKey = `${candidateId}_${postId}`;
@@ -1017,11 +1017,11 @@ export default function CompanyDashboard() {
           fetchAdditionalApplicants();
         }
       } else {
-        alert('수락 처리 중 오류가 발생했습니다: ' + result.message);
+        alert('Accept failed: ' + result.message);
       }
     } catch (error) {
       console.error('수락 처리 오류:', error);
-      alert('수락 처리 중 오류가 발생했습니다.');
+      alert('Could not complete the accept action.');
     }
   };
 
@@ -1033,7 +1033,7 @@ export default function CompanyDashboard() {
     const candidateId = candidate.candidate?.candidateId || candidate.candidateId;
     const postId = candidate.candidate?.postId || candidate.postId || selectedPostId;
     
-    const confirmed = window.confirm(`${candidateName}님을 거절하시겠습니까?`);
+    const confirmed = window.confirm(`Reject ${candidateName}?`);
     if (!confirmed) return;
 
     try {
@@ -1053,7 +1053,7 @@ export default function CompanyDashboard() {
       const result = await response.json();
       
       if (result.success) {
-        alert(`${candidateName}님이 거절되었습니다.`);
+        alert(`${candidateName} rejected.`);
         
         // 선택에서 제거 (uniqueKey로 제거)
         const uniqueKey = `${candidateId}_${postId}`;
@@ -1069,11 +1069,11 @@ export default function CompanyDashboard() {
           fetchAdditionalApplicants();
         }
       } else {
-        alert('거절 처리 중 오류가 발생했습니다: ' + result.message);
+        alert('Reject failed: ' + result.message);
       }
     } catch (error) {
       console.error('거절 처리 오류:', error);
-      alert('거절 처리 중 오류가 발생했습니다.');
+      alert('Could not complete the rejection action.');
     }
   };
 
@@ -1138,7 +1138,7 @@ export default function CompanyDashboard() {
 
   return (
     <div className="company-dashboard" style={{ fontFamily: 'SUIT, Apple SD Gothic Neo, sans-serif', backgroundColor: '#ffffff', minHeight: '100vh' }}>
-      <SEO title="기업 대시보드" description="기업 대시보드에서는 기업이 채용 공고와 후보자를 관리할 수 있습니다." />
+      <SEO title="Company hiring dashboard" description="Manage open roles and evaluate candidates in one hiring workspace." />
       <Navbar />
       <div className="dashboard-container" style={{ display: 'flex', marginTop: '6rem', alignItems: 'flex-start' }}>
         <CompanySidebar
@@ -1327,7 +1327,7 @@ export default function CompanyDashboard() {
                                fontSize: '0.8rem',
                                fontWeight: '600'
                              }}>
-                               {applicant.candidate?.careerType || applicant.careerType || '신입'} ({applicant.candidate?.totalCareerPeriod || applicant.totalCareerPeriod || '0'}년)
+                               {(applicant.candidate?.careerType || applicant.careerType) === '경력' ? 'Experienced' : 'Early career'} ({applicant.candidate?.totalCareerPeriod || applicant.totalCareerPeriod || '0'} years)
                              </span>
                           </div>
                           
@@ -1364,7 +1364,7 @@ export default function CompanyDashboard() {
                           </div>
                           
                           <div style={{ color: '#666', fontSize: '0.9rem' }}>
-                            지원일: {applicant.portfolioSubmissionDate ? new Date(applicant.portfolioSubmissionDate).toLocaleDateString('ko-KR') : '날짜 정보 없음'}
+                            Submitted: {applicant.portfolioSubmissionDate ? new Date(applicant.portfolioSubmissionDate).toLocaleDateString('en-US') : 'No date'}
                           </div>
                         </div>
                         
@@ -1404,7 +1404,7 @@ export default function CompanyDashboard() {
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                 <polyline points="14,2 14,8 20,8"/>
                               </svg>
-                              포트폴리오 보기
+                              View portfolio
                             </button>
                           )}
                           
@@ -1416,7 +1416,7 @@ export default function CompanyDashboard() {
                               if (applicant.jobCandidateId) {
                                 fetchAiAnalysis(applicant.jobCandidateId);
                               } else {
-                                alert('AI 분석 결과를 찾을 수 없습니다. 지원자가 아직 포트폴리오를 제출하지 않았을 수 있습니다.');
+                                alert('No AI analysis is available yet. The applicant may not have submitted a portfolio.');
                               }
                             }}
                             style={{
@@ -1548,11 +1548,11 @@ export default function CompanyDashboard() {
                           </div>
                           <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                             <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>Location</strong>
-                            <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{selectedPostDetail.postLocation || '지역 미정'}</div>
+                            <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{selectedPostDetail.postLocation || 'Location not specified'}</div>
                           </div>
                           <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                             <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>Openings</strong>
-                            <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{selectedPostDetail.postHeadcount || 0}명</div>
+                            <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{selectedPostDetail.postHeadcount || 0} opening(s)</div>
                           </div>
                           <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                             <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>Salary range</strong>
@@ -1562,7 +1562,7 @@ export default function CompanyDashboard() {
                           </div>
                           <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                             <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>Programming language</strong>
-                            <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{selectedPostDetail.postProgrammingLanguage || '미정'}</div>
+                            <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{selectedPostDetail.postProgrammingLanguage || 'Not specified'}</div>
                           </div>
                           <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                             <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>Posted</strong>
@@ -1658,7 +1658,7 @@ export default function CompanyDashboard() {
                           e.currentTarget.style.transform = 'none';
                         }}
                       >
-                        <EditIcon /> 수정하기
+                        <EditIcon /> Edit
                       </button>
                       <button
                         onClick={openDeleteModal}
@@ -1689,7 +1689,7 @@ export default function CompanyDashboard() {
                           e.currentTarget.style.transform = 'none';
                         }}
                       >
-                        <TrashIcon /> 삭제하기
+                        <TrashIcon /> Delete
                       </button>
                     </div>
                   </div>
@@ -1930,7 +1930,7 @@ export default function CompanyDashboard() {
                                     fontSize: '0.8rem',
                                     fontWeight: '600'
                                   }}>
-                                    추가 지원
+                                    Direct applicant
                                   </div>
                                   {candidateFilter === '매칭' && (
                                     <div style={{
@@ -1951,7 +1951,7 @@ export default function CompanyDashboard() {
                                         <path d="M12 3c0 1-1 2-2 2s-2-1-2-2 1-2 2-2 2 1 2 2z"/>
                                         <path d="M12 21c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2z"/>
                                       </svg>
-                                      매칭
+                                      Matched
                                     </div>
                                   )}
                                 </div>
@@ -1979,7 +1979,7 @@ export default function CompanyDashboard() {
                                       color: '#2d3748',
                                       margin: '0 0 0.5rem 0'
                                     }}>
-                                      {candidate.githubName || candidate.candidateName || candidate.name || '이름 미공개'}
+                                          {candidate.githubName || candidate.candidateName || candidate.name || 'Name unavailable'}
                                     </h4>
                                     
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginBottom: '1rem' }}>
@@ -2029,9 +2029,9 @@ export default function CompanyDashboard() {
                             }}
                           >
                             <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🔍</div>
-                            <p>아직 깃허브 검색이 실행되지 않았습니다.</p>
+                            <p>GitHub candidate search has not run yet.</p>
                             <p style={{ fontSize: '0.9rem', marginTop: '0.5rem', color: '#718096' }}>
-                              깃허브 검색을 실행하면 이 공고에 적합한 후보자들이 표시됩니다.
+                              Run GitHub search to see candidates that match this role.
                             </p>
                           </motion.div>
                         ) : (
@@ -2110,14 +2110,14 @@ export default function CompanyDashboard() {
                                       fontSize: '0.95rem',
                                       marginBottom: '0.1rem'
                                     }}>
-                                      {selectedApplicants.size > 0 ? `${selectedApplicants.size}명 선택됨` : '지원자 선택'}
+                                      {selectedApplicants.size > 0 ? `${selectedApplicants.size} selected` : 'Select applicants'}
                                     </div>
                                     <div style={{
                                       color: selectedApplicants.size > 0 ? '#0369a1' : '#94a3b8',
                                       fontSize: '0.75rem',
                                       fontWeight: '500'
                                     }}>
-                                      {selectedApplicants.size > 0 ? '일괄 작업이 가능합니다' : '지원자를 선택하여 일괄 작업을 수행하세요'}
+                                      {selectedApplicants.size > 0 ? 'Batch actions are available' : 'Select applicants to enable batch actions'}
                                     </div>
                                   </div>
                                 </div>
@@ -2154,7 +2154,7 @@ export default function CompanyDashboard() {
                                       <path d="M18 6L6 18"/>
                                       <path d="M6 6l12 12"/>
                                     </svg>
-                                    해제
+                                    Clear selection
                                   </button>
                                 )}
                               </div>
@@ -2383,7 +2383,7 @@ export default function CompanyDashboard() {
                                     }}>
                                       <img 
                                         src={getGithubAvatarUrl(candidate.githubLogin)}
-                                        alt={`${candidate.githubLogin}의 프로필`}
+                                        alt={`${candidate.githubLogin} profile`}
                                         style={{
                                           width: '100%',
                                           height: '100%',
@@ -2437,7 +2437,7 @@ export default function CompanyDashboard() {
                                                 <path d="M12 3c0 1-1 2-2 2s-2-1-2-2 1-2 2-2 2 1 2 2z"/>
                                                 <path d="M12 21c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2z"/>
                                               </svg>
-                                              매칭
+                                              Matched
                                             </span>
                                           )}
                                         </div>
@@ -2463,7 +2463,7 @@ export default function CompanyDashboard() {
                                           onMouseLeave={(e) => {
                                             e.currentTarget.style.backgroundColor = 'transparent';
                                           }}
-                                          title="GitHub 프로필 보기"
+                                          title="View GitHub profile"
                                         >
                                           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ color: '#4a5568' }}>
                                             <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.09.66-.261.66-.48 0-.24-.01-.87-.01-1.7-2.78.6-3.37-1.34-3.37-1.34-.45-1.15-1.1-1.46-1.1-1.46-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85.004 1.71.115 2.51.337 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.85-2.34 4.7-4.57 4.95.36.31.68.92.68 1.85 0 1.33-.01 2.4-.01 2.73 0 .27.16.58.67.48A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg>
@@ -2507,9 +2507,9 @@ export default function CompanyDashboard() {
                                             e.currentTarget.style.transform = 'translateY(0)';
                                             e.currentTarget.style.boxShadow = 'none';
                                           }}
-                                          title={candidateFilter === '매칭' ? '매칭 상세보기' : '상세보기'}
+                                          title={candidateFilter === '매칭' ? 'View match details' : 'View details'}
                                         >
-                                          {candidateFilter === '매칭' ? '매칭 상세보기' : '상세보기'}
+                                          {candidateFilter === '매칭' ? 'View match details' : 'View details'}
                                         </button>
                                       </div>
                                       <div style={{ marginBottom: '0.8rem' }}>
@@ -2528,7 +2528,7 @@ export default function CompanyDashboard() {
                                           fontSize: '0.8rem',
                                           fontWeight: '600'
                                         }}>
-                                          분석 점수: {
+                                      Analysis score: {
                                             candidate.analysisScore !== undefined && candidate.analysisScore !== null
                                               ? candidate.analysisScore
                                               : candidate.candPortfolioId && portfolioMatchesMap[candidate.candPortfolioId] && portfolioMatchesMap[candidate.candPortfolioId].length > 0
@@ -2545,11 +2545,11 @@ export default function CompanyDashboard() {
                                         color: '#4a5568'
                                       }}>
                                         <div>
-                                          <strong>검색일:</strong> {formatDateTime(candidate.githubSearchDate)}
+                                            <strong>Search date:</strong> {formatDateTime(candidate.githubSearchDate)}
                                         </div>
                                         {candidate.candidateEmail && (
                                           <div>
-                                            <strong>이메일:</strong> {candidate.candidateEmail}
+                                            <strong>Email:</strong> {candidate.candidateEmail}
                                           </div>
                                         )}
                                       </div>
@@ -2752,11 +2752,11 @@ export default function CompanyDashboard() {
                 height: '100%',
                 border: 'none'
               }}
-              title="포트폴리오"
+              title="Portfolio"
               onLoad={() => setPortfolioLoading(false)}
               onError={() => {
                 setPortfolioLoading(false);
-                alert('포트폴리오를 불러올 수 없습니다.');
+                alert('Could not load the portfolio.');
               }}
             />
           )}
@@ -2775,7 +2775,7 @@ export default function CompanyDashboard() {
               cursor: 'pointer' 
             }}
           >
-            새 탭에서 열기
+            Open in new tab
           </button>
           <button 
             onClick={() => {
@@ -2963,7 +2963,7 @@ export default function CompanyDashboard() {
                   zIndex: 1,
                   textShadow: '0 2px 8px rgba(0,0,0,0.2), 0 0 30px rgba(255,255,255,0.5)'
                 }}>
-                  {currentAiAnalysis.analysisScore}점
+                  {currentAiAnalysis.analysisScore} points
                 </div>
                 <div style={{ 
                   fontSize: '1rem', 
@@ -3181,7 +3181,7 @@ export default function CompanyDashboard() {
               <path d="M22 2L11 13"/>
               <path d="M22 2L15 22L11 13L2 9L22 2Z"/>
             </svg>
-            일괄 이메일 전송 ({selectedApplicants.size}명)
+            Batch email ({selectedApplicants.size})
           </h2>
         </div>
 
@@ -3207,16 +3207,16 @@ export default function CompanyDashboard() {
                 <path d="M22 2L11 13"/>
                 <path d="M22 2L15 22L11 13L2 9L22 2Z"/>
               </svg>
-              ✨ 템플릿 기반 일괄 메일 전송
+              ✨ Send a template-based batch email
             </h4>
             <div style={{ 
               fontSize: '0.85rem', 
               color: '#a16207',
               lineHeight: '1.5'
             }}>
-              • <strong>선택된 후보자</strong>: {selectedApplicants.size}명에게 동시 전송<br/>
-              • <strong>개인화</strong>: 각 후보자의 이름이 자동으로 삽입됩니다<br/>
-              • <strong>전문적 디자인</strong>: 3가지 템플릿 중 선택하여 브랜드에 맞는 디자인 적용
+              • <strong>Selected candidates</strong>: send to {selectedApplicants.size} at once<br/>
+              • <strong>Personalization</strong>: each candidate's name is inserted automatically<br/>
+              • <strong>Professional design</strong>: choose from three branded templates
             </div>
           </div>
 
@@ -3229,7 +3229,7 @@ export default function CompanyDashboard() {
               display: 'block',
               marginBottom: '0.5rem'
             }}>
-              📋 전송 대상 ({selectedApplicants.size}명)
+              📋 Recipients ({selectedApplicants.size})
             </label>
             <div style={{
               border: '2px solid #e5e7eb',
@@ -3255,7 +3255,7 @@ export default function CompanyDashboard() {
                     <span style={{ color: '#22c55e', fontWeight: 'bold' }}>✓</span>
                     <span style={{ fontWeight: '600' }}>{candidate.githubLogin}</span>
                     <span style={{ color: '#6b7280' }}>
-                      ({candidate.candidateEmail || candidate.githubEmail || candidate.email || '이메일 없음'})
+                      ({candidate.candidateEmail || candidate.githubEmail || candidate.email || 'No email'})
                     </span>
                   </div>
                 );
@@ -3272,7 +3272,7 @@ export default function CompanyDashboard() {
               display: 'block',
               marginBottom: '1rem'
             }}>
-              📧 이메일 템플릿 선택
+              📧 Choose an email template
             </label>
             <div style={{ 
               display: 'grid', 
@@ -3328,13 +3328,13 @@ export default function CompanyDashboard() {
               display: 'block',
               marginBottom: '0.5rem'
             }}>
-              📝 메일 제목
+              📝 Email subject
             </label>
             <input
               type="text"
               value={bulkEmailSubject}
               onChange={(e) => setBulkEmailSubject(e.target.value)}
-              placeholder="메일 제목을 입력하세요"
+              placeholder="Enter an email subject"
               style={{
                 width: '100%',
                 padding: '0.8rem 1rem',
@@ -3358,13 +3358,13 @@ export default function CompanyDashboard() {
               display: 'block',
               marginBottom: '0.5rem'
             }}>
-              👋 인사말
+              👋 Greeting
             </label>
             <input
               type="text"
               value={bulkCustomGreeting}
               onChange={(e) => setBulkCustomGreeting(e.target.value)}
-              placeholder="인사말을 입력하세요 (예: 안녕하세요, Hello)"
+              placeholder="Enter a greeting (for example, Hello)"
               style={{
                 width: '100%',
                 padding: '0.8rem 1rem',
@@ -3388,12 +3388,12 @@ export default function CompanyDashboard() {
               display: 'block',
               marginBottom: '0.5rem'
             }}>
-              💬 메시지 내용
+              💬 Message
             </label>
             <textarea
               value={bulkCustomMessage}
               onChange={(e) => setBulkCustomMessage(e.target.value)}
-              placeholder="개인화된 메시지를 입력하세요"
+              placeholder="Enter a personalized message"
               rows={4}
               style={{
                 width: '100%',
@@ -3421,7 +3421,7 @@ export default function CompanyDashboard() {
               display: 'block',
               marginBottom: '0.5rem'
             }}>
-              👀 미리보기 (첫 번째 후보자 기준)
+              👀 Preview (first candidate)
             </label>
             <div style={{
               border: '2px solid #e5e7eb',
@@ -3464,7 +3464,7 @@ export default function CompanyDashboard() {
               marginTop: '0.5rem',
               textAlign: 'center'
             }}>
-              각 후보자에게는 개별 이름이 삽입되어 전송됩니다
+              Each candidate receives a message with their own name.
             </div>
           </div>
         </div>
@@ -3502,7 +3502,7 @@ export default function CompanyDashboard() {
               transition: 'all 0.2s'
             }}
           >
-            취소
+            Cancel
           </button>
           
           <button
@@ -3554,7 +3554,7 @@ export default function CompanyDashboard() {
                   borderRadius: '50%',
                   animation: 'spin 1s linear infinite'
                 }}></div>
-                전송 중...
+                Sending...
               </>
             ) : (
               <>
@@ -3562,7 +3562,7 @@ export default function CompanyDashboard() {
                   <path d="M22 2L11 13"/>
                   <path d="M22 2L15 22L11 13L2 9L22 2Z"/>
                 </svg>
-                {emailTemplates[bulkSelectedTemplate].name} 템플릿으로 일괄 전송 ({selectedApplicants.size}명)
+                Send with {emailTemplates[bulkSelectedTemplate].name} ({selectedApplicants.size})
               </>
             )}
           </button>
