@@ -530,13 +530,13 @@ useEffect(() => {
         {!fromInvite && (
           <div>
             <label className="block mb-2 font-semibold">Email</label>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <input
                 type="text"
                 value={emailLocal}
                 onChange={e => setEmailLocal(e.target.value)}
                 disabled={isEmailVerified}
-                className="flex-1 border border-gray-300 px-4 py-2 rounded-lg bg-white text-base focus:outline-none focus:border-sky-400 focus:ring-sky-200 transition-colors"
+                className="min-w-0 flex-1 border border-gray-300 px-4 py-2 rounded-lg bg-white text-base focus:outline-none focus:border-sky-400 focus:ring-sky-200 transition-colors"
               />
               <span className="text-lg font-semibold text-gray-600">@</span>
               {customInput ? (
@@ -545,14 +545,14 @@ useEffect(() => {
                   value={emailDomain}
                   onChange={e => setEmailDomain(e.target.value)}
                   disabled={isEmailVerified}
-                  className="flex-1 border border-gray-300 px-4 py-2 rounded-lg bg-white text-base focus:outline-none focus:border-sky-400 focus:ring-sky-200 transition-colors"
+                  className="min-w-0 flex-1 border border-gray-300 px-4 py-2 rounded-lg bg-white text-base focus:outline-none focus:border-sky-400 focus:ring-sky-200 transition-colors"
                 />
               ) : (
                 <select
                   value={emailDomain}
                   onChange={handleDomainChange}
                   disabled={isEmailVerified}
-                  className="flex-1 border border-gray-300 px-4 py-2 rounded-lg bg-white text-base focus:outline-none focus:border-sky-400 focus:ring-sky-200 transition-colors"
+                  className="min-w-0 flex-1 border border-gray-300 px-4 py-2 rounded-lg bg-white text-base focus:outline-none focus:border-sky-400 focus:ring-sky-200 transition-colors"
                 >
                   <option value="">Select a domain</option>
                   <option value="naver.com">naver.com</option>
