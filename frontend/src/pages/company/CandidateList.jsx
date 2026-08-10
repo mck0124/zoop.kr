@@ -799,8 +799,7 @@ const getAnalysisPayload = (candidate, analysisResult) => {
   }, []);
   const groundedEvidence = evidence.filter(item => item && (
     item.verification_state === 'verified' ||
-    item.verification_state === 'grounded' ||
-    (item.source === 'github' && item.evidence_id)
+    item.verification_state === 'grounded'
   ));
   const hasStructuredEvidence = ['github-evidence-v1', 'portfolio-evidence-v1', 'interview-evidence-v1'].includes(payload?.version);
   const decision = payload?.decision || (hasStructuredEvidence && coverage !== null && coverage >= 70 ? 'review' : 'not_enough_evidence');

@@ -34,3 +34,16 @@ test('keeps the envelope score when the nested analysis has no score', () => {
   expect(payload.score).toBe(74);
   expect(payload.coverage).toBe(40);
 });
+
+test('does not count a GitHub evidence id without an explicit grounded state', () => {
+  const payload = getAnalysisPayload({}, {
+    analysisData: JSON.stringify({
+      version: 'github-evidence-v1',
+      score: 88,
+      evidence_coverage: 50,
+      evidence: [{ source: 'github', evidence_id: 'EVID-1', claim: 'Needs review', verification_state: 'needs_verification' }]
+    })
+  });
+
+  expect(payload.evidenceCount).toBe(0);
+});
