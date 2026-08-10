@@ -129,7 +129,7 @@ function JobDetailPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!loginForm.loginId || !loginForm.password) {
-      setLoginError('아이디와 비밀번호를 입력해주세요.');
+      setLoginError('Please enter your login ID and password.');
       return;
     }
     setLoggingIn(true);
@@ -162,7 +162,7 @@ function JobDetailPage() {
         });
       }
     } catch (err) {
-      setLoginError(err.response?.data?.message || '로그인 중 오류가 발생했습니다.');
+      setLoginError(err.response?.data?.message || 'We could not sign you in.');
     } finally {
       setLoggingIn(false);
     }
@@ -178,7 +178,7 @@ function JobDetailPage() {
     setUploadError(null);
     try {
       const candidateId = authState.userId;
-      if (!candidateId) throw new Error('로그인 정보가 없습니다.');
+      if (!candidateId) throw new Error('Your login session is unavailable.');
       const formData = new FormData();
       
       if (useExistingPortfolio && existingPortfolio) {
@@ -223,16 +223,16 @@ function JobDetailPage() {
         
         // 파일 크기 초과 에러 처리 (413 Payload Too Large)
         if (pfRes.status === 413 || errorText.includes('파일 크기가 너무 큽니다') || errorText.includes('Maximum upload size exceeded')) {
-          throw new Error('파일 크기가 너무 큽니다. 5MB 이하의 파일을 업로드해주세요.');
+          throw new Error('The file is too large. Please upload a file under 5 MB.');
         }
         
         // 기타 에러 처리
         if (pfRes.status === 400) {
-          throw new Error('잘못된 파일 형식입니다. PDF, DOC, DOCX, TXT, ZIP, RAR 파일만 업로드 가능합니다.');
+          throw new Error('Unsupported file type. Use PDF, DOC, DOCX, TXT, ZIP, or RAR.');
         }
         
         if (pfRes.status === 500) {
-          throw new Error('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+          throw new Error('The server could not process the upload. Please try again.');
         }
         
         // 백엔드에서 반환된 에러 메시지가 있으면 사용
@@ -240,7 +240,7 @@ function JobDetailPage() {
           throw new Error(errorText);
         }
         
-        throw new Error('파일 업로드에 실패했습니다. 다시 시도해주세요.');
+        throw new Error('Upload failed. Please try again.');
       }
 
       // Refresh list
@@ -278,11 +278,11 @@ function JobDetailPage() {
             font-size: 1.2rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
-          ">입사지원이 완료되었습니다!</div>
+          ">Application submitted!</div>
           <div style="
             color: #666;
             font-size: 0.9rem;
-          ">지원서가 성공적으로 제출되었습니다.</div>
+          ">Your application was submitted successfully.</div>
         </div>
       `;
       document.body.appendChild(successMessage);
@@ -296,13 +296,13 @@ function JobDetailPage() {
       let errorMessage = e.message;
       
       if (e.message === 'Failed to fetch') {
-        errorMessage = '서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.';
+        errorMessage = 'We could not connect to the service. Please try again shortly.';
       } else if (e.message.includes('CORS') || e.message.includes('Access-Control-Allow-Origin')) {
-        errorMessage = '서버 연결 설정 오류입니다. 잠시 후 다시 시도해주세요.';
+        errorMessage = 'The service connection is misconfigured. Please try again shortly.';
       } else if (e.message.includes('NetworkError') || e.message.includes('network')) {
-        errorMessage = '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.';
+        errorMessage = 'A network error occurred. Please check your connection.';
       } else if (e.message.includes('timeout')) {
-        errorMessage = '요청 시간이 초과되었습니다. 파일 크기를 확인하고 다시 시도해주세요.';
+        errorMessage = 'The request timed out. Check the file size and try again.';
       }
       
       setUploadError(errorMessage);
@@ -368,9 +368,9 @@ function JobDetailPage() {
     }
   }, [fromMatchingTab, matchingPortfolioId, matchingAnalysisId]);
 
-  if (loading) return <div style={{ padding: '2rem' }}>불러오는 중...</div>;
-  if (error)   return <div style={{ padding: '2rem', color: 'red' }}>Error: {error}</div>;
-  if (!post)  return <div style={{ padding: '2rem' }}>This job posting could not be found.</div>;
+  if (loading) return <><Navbar /><main style={{ maxWidth: 760, margin: '8rem auto', padding: '2rem', textAlign: 'center' }}><p style={{ color: '#64748b' }}>Loading job details...</p></main></>;
+  if (error) return <><Navbar /><main style={{ maxWidth: 760, margin: '8rem auto', padding: '2.5rem 1.5rem', textAlign: 'center' }}><div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 20, padding: '3rem 2rem' }}><div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>↗</div><h1 style={{ color: '#0f172a', marginBottom: '0.75rem' }}>This job posting is temporarily unavailable.</h1><p style={{ color: '#64748b', lineHeight: 1.6 }}>The posting may have expired or the hiring service may be offline. Browse other open roles and try again.</p><a href="/careers" style={{ display: 'inline-block', marginTop: '1rem', background: '#30c59b', color: '#fff', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', fontWeight: 700 }}>Browse open roles</a></div></main></>;
+  if (!post) return <><Navbar /><main style={{ maxWidth: 760, margin: '8rem auto', padding: '2rem', textAlign: 'center' }}><h1>This job posting could not be found.</h1><a href="/careers">Browse open roles</a></main></>;
 
   return (
     <>
@@ -416,7 +416,7 @@ function JobDetailPage() {
             onClick={() => !hasApplied && setShowPortfolioPopup(true)}
             disabled={hasApplied}
           >
-            {hasApplied ? '이미 지원한 공고' : '입사지원'}
+            {hasApplied ? 'Applied' : 'Apply now'}
           </button>
         </div>
       )}
@@ -503,7 +503,7 @@ function JobDetailPage() {
                 onClick={() => !hasApplied && setShowPortfolioPopup(true)}
                 disabled={hasApplied}
               >
-                {hasApplied ? '이미 지원한 공고' : '입사지원'}
+                {hasApplied ? 'Applied' : 'Apply now'}
               </button>
             </div>
           </div>
@@ -527,7 +527,7 @@ function JobDetailPage() {
               {/* Left */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ color: '#7b858e', minWidth: 56, fontWeight: 500 }}>언어</span>
+                  <span style={{ color: '#7b858e', minWidth: 90, fontWeight: 500 }}>Stack</span>
                   {post.postProgrammingLanguage ? (
                     (() => {
                       const langs = post.postProgrammingLanguage.split(/[,/\s]+/).filter(Boolean);
@@ -549,27 +549,27 @@ function JobDetailPage() {
                   ) : <span style={{ color: '#aaa' }}>-</span>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ color: '#7b858e', minWidth: 56, fontWeight: 500 }}>근무지역</span>
-                  <span style={{ color: '#222', fontWeight: 500 }}>{post.postLocation || <span style={{ color: '#aaa' }}>-</span>}</span>
+                  <span style={{ color: '#7b858e', minWidth: 90, fontWeight: 500 }}>Location</span>
+                  <span style={{ color: '#222', fontWeight: 500 }}>{post.postLocation || <span style={{ color: '#aaa' }}>Not specified</span>}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ color: '#7b858e', minWidth: 56, fontWeight: 500 }}>모집인원</span>
-                  <span style={{ color: '#222', fontWeight: 500 }}>{post.postHeadcount ? `${post.postHeadcount}명` : <span style={{ color: '#aaa' }}>-</span>}</span>
+                  <span style={{ color: '#7b858e', minWidth: 90, fontWeight: 500 }}>Openings</span>
+                  <span style={{ color: '#222', fontWeight: 500 }}>{post.postHeadcount ? `${post.postHeadcount} opening(s)` : <span style={{ color: '#aaa' }}>Not specified</span>}</span>
                 </div>
               </div>
               {/* Right */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ color: '#7b858e', minWidth: 56, fontWeight: 500 }}>급여</span>
+                  <span style={{ color: '#7b858e', minWidth: 90, fontWeight: 500 }}>Salary</span>
                   <span style={{ color: '#222', fontWeight: 500 }}>
                     {post.postSalaryStart && post.postSalaryEnd
-                      ? `연봉 ${post.postSalaryStart} ~ ${post.postSalaryEnd} 만원`
-                      : <span style={{ color: '#aaa' }}>-</span>}
+                      ? `${post.postSalaryStart} – ${post.postSalaryEnd}`
+                      : <span style={{ color: '#aaa' }}>Not specified</span>}
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ color: '#7b858e', minWidth: 56, fontWeight: 500 }}>마감일</span>
-                  <span style={{ color: '#222', fontWeight: 500 }}>{post.postExpiryDate || <span style={{ color: '#aaa' }}>-</span>}</span>
+                  <span style={{ color: '#7b858e', minWidth: 90, fontWeight: 500 }}>Deadline</span>
+                  <span style={{ color: '#222', fontWeight: 500 }}>{post.postExpiryDate || <span style={{ color: '#aaa' }}>Not specified</span>}</span>
                 </div>
               </div>
             </div>
@@ -581,7 +581,7 @@ function JobDetailPage() {
 
           {/* 기업의 인재상 */}
           <div style={{ fontWeight: 700, fontSize: '1.13rem', color: '#222', margin: '2.2rem 0 0.7rem 0' }}>
-            기업의 인재상
+            What this team values
           </div>
           <div style={{
             background: '#f8fafd',
@@ -598,7 +598,7 @@ function JobDetailPage() {
             width: '100%',
           }}>
             {(() => {
-              let ideal = post.postIdealCandidate || '해당 공고의 인재상 정보가 없습니다.';
+              let ideal = post.postIdealCandidate || 'No additional candidate profile was provided.';
               ideal = ideal.replace(/<EXAMPLES>[\s\S]*?<END>/g, '').trim();
               if (ideal.includes('-')) {
                 return ideal.split('-').filter(Boolean).map((line, idx) => {
@@ -621,7 +621,7 @@ function JobDetailPage() {
 
           {/* 기업정보 */}
           <div style={{ fontWeight: 700, fontSize: '1.13rem', color: '#222', margin: '2.2rem 0 0.7rem 0' }}>
-            기업정보
+            Company information
           </div>
           <div style={{ maxWidth: 1100, margin: '0 auto', width: '100%' }}>
             {company && <CompanyInfoCard company={company} />}
@@ -641,12 +641,12 @@ function JobDetailPage() {
           marginBottom: 32,
         }}>
           <div style={{ fontWeight: 700, fontSize: '1.08rem', color: '#222', marginBottom: '1.2rem' }}>
-            이 회사의 다른 공고
+            More roles from this company
           </div>
 
           {otherPosts.length === 0 ? (
             <div style={{ color: '#aaa', fontSize: '0.97rem' }}>
-              다른 공고가 없습니다.
+              No other open roles are available.
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
@@ -681,10 +681,10 @@ function JobDetailPage() {
                   </div>
                   <div style={{ color: '#888', fontSize: '0.97rem', display: 'flex', gap: 8 }}>
                     {p.postLocation && <span>{p.postLocation}</span>}
-                    {p.postHeadcount && <span>| {p.postHeadcount}명</span>}
+                    {p.postHeadcount && <span>| {p.postHeadcount} opening(s)</span>}
                   </div>
                   <div style={{ color: '#888', fontSize: '0.97rem', marginTop: 4 }}>
-                    마감: {p.postExpiryDate}
+                    Deadline: {p.postExpiryDate}
                   </div>
                   <button
                     className="other-post-apply-btn"
@@ -713,7 +713,7 @@ function JobDetailPage() {
                       setPost(p);
                     }}
                   >
-                    입사지원
+                    Apply now
                   </button>
                 </div>
               ))}
@@ -762,7 +762,7 @@ function JobDetailPage() {
                   margin: 0,
                   letterSpacing: '-0.5px'
                 }}>
-                  <span style={{ color: '#30c59b' }}>로그인</span><span style={{ color: '#888' }}>이 필요한 서비스입니다</span>
+                  <span style={{ color: '#30c59b' }}>Sign in</span><span style={{ color: '#888' }}> to apply</span>
                 </h2>
               </div>
             )}
@@ -789,7 +789,7 @@ function JobDetailPage() {
                   textOverflow: 'ellipsis',
                   maxWidth: '300px',
                 }}>
-                  {company?.companyName || '회사명'}
+                  {company?.companyName || 'Company'}
                 </div>
               </div>
             )}
@@ -1090,7 +1090,7 @@ function JobDetailPage() {
                     color: '#333',
                     marginBottom: '0.5rem'
                   }}>
-                    포트폴리오 업로드
+                    Submit your portfolio
                   </div>
                   
                   {/* 기존 포트폴리오 표시 */}
@@ -1113,7 +1113,7 @@ function JobDetailPage() {
                         <div style={{ fontWeight: 700, color: '#30c59b', fontSize: '1.05rem', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: 6 }}>
                           {/* 폴더 SVG 아이콘 */}
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ marginRight: 2, verticalAlign: 'middle' }}><path d="M3 7C3 5.89543 3.89543 5 5 5H9.17157C9.70201 5 10.2107 5.21071 10.5858 5.58579L12.4142 7.41421C12.7893 7.78929 13.298 8 13.8284 8H19C20.1046 8 21 8.89543 21 10V17C21 18.1046 20.1046 19 19 19H5C3.89543 19 3 18.1046 3 17V7Z" stroke="#30c59b" strokeWidth="2" strokeLinejoin="round"/></svg>
-                          기존 포트폴리오
+                          Existing portfolio
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <button
@@ -1131,7 +1131,7 @@ function JobDetailPage() {
                               transition: 'background 0.18s, color 0.18s',
                             }}
                           >
-                            사용하기
+                            Use this
                           </button>
                           <button
                             onClick={() => setUseExistingPortfolio(false)}
@@ -1148,7 +1148,7 @@ function JobDetailPage() {
                               transition: 'background 0.18s, color 0.18s',
                             }}
                           >
-                            새로 업로드
+                            Upload new
                           </button>
                         </div>
                       </div>
@@ -1173,12 +1173,12 @@ function JobDetailPage() {
                             display: 'inline-block',
                             verticalAlign: 'middle',
                           }}
-                          title={existingPortfolio.originalFileName || '포트폴리오 파일'}
+                          title={existingPortfolio.originalFileName || 'Portfolio file'}
                           onMouseOver={e => e.target.style.color = '#1a9d7c'}
                           onMouseOut={e => e.target.style.color = '#30c59b'}
                           download
                         >
-                          {existingPortfolio.originalFileName || '포트폴리오 파일'}
+                          {existingPortfolio.originalFileName || 'Portfolio file'}
                         </a>
                         <button
                           onClick={handleDeleteExistingPortfolio}
@@ -1194,7 +1194,7 @@ function JobDetailPage() {
                           }}
                           onMouseOver={e => e.currentTarget.style.background = '#fef2f2'}
                           onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-                          aria-label="포트폴리오 삭제"
+                          aria-label="Delete portfolio"
                         >
                           {/* 휴지통 SVG 아이콘 */}
                           <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M3 6H5H21" stroke="#e74c3c" strokeWidth="2" strokeLinecap="round"/><path d="M8 6V4C8 2.89543 8.89543 2 10 2H14C15.1046 2 16 2.89543 16 4V6M19 6V20C19 21.1046 18.1046 22 17 22H7C5.89543 22 5 21.1046 5 20V6H19Z" stroke="#e74c3c" strokeWidth="2"/><path d="M10 11V17" stroke="#e74c3c" strokeWidth="2" strokeLinecap="round"/><path d="M14 11V17" stroke="#e74c3c" strokeWidth="2" strokeLinecap="round"/></svg>
@@ -1202,7 +1202,7 @@ function JobDetailPage() {
                       </div>
                       {existingPortfolio.postTitle && (
                         <div style={{ fontSize: '0.85rem', color: '#888', marginTop: '0.2rem', fontWeight: 500 }}>
-                          이전 지원: <span style={{ color: '#30c59b', fontWeight: 700 }}>{existingPortfolio.postTitle}</span>
+                          Previously submitted to: <span style={{ color: '#30c59b', fontWeight: 700 }}>{existingPortfolio.postTitle}</span>
                         </div>
                       )}
                     </div>
@@ -1252,16 +1252,16 @@ function JobDetailPage() {
                       <div style={{ color: '#30c59b', fontWeight: 600, fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: 6 }}>
                         {/* 체크 SVG 아이콘 */}
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 13L9 17L19 7" stroke="#30c59b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        선택된 파일: {selectedFile.name}
+                        Selected file: {selectedFile.name}
                       </div>
                     ) : (
                       <div style={{ color: '#888', fontWeight: 500, fontSize: '1.01rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <div style={{ marginBottom: '0.7rem', display: 'flex', justifyContent: 'center' }}>
                           <svg width="48" height="48" viewBox="0 0 24 24" fill="none"><path d="M10 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V8C22 6.9 21.1 6 20 6H12L10 4Z" stroke="#30c59b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         </div>
-                        <div style={{ fontWeight: 700, color: '#30c59b', fontSize: '1.08rem', marginBottom: 2, textAlign: 'center' }}>여기에 파일을 드래그하거나 클릭해서 업로드</div>
+                        <div style={{ fontWeight: 700, color: '#30c59b', fontSize: '1.08rem', marginBottom: 2, textAlign: 'center' }}>Drag a file here or click to upload</div>
                         <div style={{ fontSize: '0.93rem', color: '#aaa', marginTop: '0.5rem', textAlign: 'center' }}>
-                          지원 형식: PDF, DOC, DOCX, TXT, ZIP, RAR (최대 5MB)
+                          Accepted: PDF, DOC, DOCX, TXT, ZIP, RAR (up to 5 MB)
                         </div>
                       </div>
                     )}
@@ -1276,7 +1276,7 @@ function JobDetailPage() {
                     borderRadius: '6px',
                     border: '1px solid #e9ecef'
                   }}>
-                    제출서류는 공고 마감일로부터 90일까지 보관되며, 채용과 관련된 목적으로만 활용됩니다.
+                    Submitted materials are retained for 90 days after the deadline and used only for hiring.
                   </div>
 
                   {uploadError && (
@@ -1325,7 +1325,7 @@ function JobDetailPage() {
                   transition: 'background 0.2s',
                 }}
               >
-                {uploading ? '업로드 중...' : '입사지원'}
+                {uploading ? 'Uploading...' : 'Submit application'}
               </button>
             )}
           </div>
@@ -1335,7 +1335,7 @@ function JobDetailPage() {
         <div className="modal-backdrop" style={{ position: 'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.3)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center' }}>
           <div className="modal-content" style={{ background:'#fff', borderRadius: '16px', padding:'2.5rem 3.5rem', boxShadow:'0 8px 32px rgba(0,0,0,0.15)', textAlign:'center', fontSize:'1.2rem', fontWeight:600, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
             <div className="loading-spinner" style={{ marginBottom:'1.5rem', width:'48px', height:'48px', border:'6px solid #e2e8f0', borderTop:'6px solid #38a169', borderRadius:'50%', animation:'spin 1s linear infinite' }} />
-            <div>분석 중입니다. 잠시만 기다려주세요...</div>
+            <div>Analyzing your submission. Please wait...</div>
           </div>
         </div>
       )}
@@ -1351,37 +1351,37 @@ function JobDetailPage() {
           marginLeft: 'auto',
           marginRight: 'auto',
         }}>
-          <h2 style={{ color: '#30c59b', fontWeight: 800, fontSize: '1.4rem', marginBottom: '1.2rem' }}>매칭 상세 정보</h2>
+          <h2 style={{ color: '#30c59b', fontWeight: 800, fontSize: '1.4rem', marginBottom: '1.2rem' }}>Match details</h2>
           {matchingLoading ? (
-            <div>불러오는 중...</div>
+            <div>Loading...</div>
           ) : matchingError ? (
             <div style={{ color: 'red' }}>{matchingError}</div>
           ) : (
             <>
               {/* 이력서/포트폴리오 정보 */}
               <div style={{ marginBottom: '1.2rem' }}>
-                <strong>이력서/포트폴리오:</strong><br />
+                <strong>Resume / portfolio:</strong><br />
                 {existingPortfolio && existingPortfolio.portfolioFilePath ? (
                   <a href={existingPortfolio.portfolioFilePath} target="_blank" rel="noopener noreferrer">
-                    {existingPortfolio.originalFileName || '포트폴리오 파일 다운로드'}
+                    {existingPortfolio.originalFileName || 'Download portfolio'}
                   </a>
                 ) : (
-                  <span>포트폴리오 파일 정보 없음</span>
+                  <span>No portfolio file information</span>
                 )}
               </div>
               {/* 분석 결과 */}
               <div style={{ marginBottom: '1.2rem' }}>
-                <strong>분석 결과:</strong><br />
+                <strong>Analysis result:</strong><br />
                 {matchingAnalysis && matchingAnalysis.analysisData ? (
                   <pre style={{ background: '#fff', padding: '1rem', borderRadius: 8, fontSize: '1rem', maxHeight: 200, overflow: 'auto' }}>{typeof matchingAnalysis.analysisData === 'string' ? matchingAnalysis.analysisData : JSON.stringify(matchingAnalysis.analysisData, null, 2)}</pre>
                 ) : (
-                  <span>분석 결과 정보 없음</span>
+                  <span>No analysis result available</span>
                 )}
               </div>
               {/* 매칭 점수/이유 */}
               <div>
-                <strong>매칭 점수:</strong> {matchingScore !== null ? <span style={{ color: '#30c59b', fontWeight: 700 }}>{matchingScore}점</span> : '정보 없음'}<br />
-                <strong>매칭 이유:</strong> {matchingReason || '정보 없음'}
+                <strong>Match score:</strong> {matchingScore !== null ? <span style={{ color: '#30c59b', fontWeight: 700 }}>{matchingScore} points</span> : 'Not available'}<br />
+                <strong>Match rationale:</strong> {matchingReason || 'Not available'}
               </div>
             </>
           )}
