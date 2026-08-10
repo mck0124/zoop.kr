@@ -518,9 +518,9 @@ export default function InterviewEvaluation() {
                   {parsedAnalysis.totalFeedback && (
                     <div style={{ background: 'linear-gradient(90deg,#f0fdf4 60%,#e6f9f3 100%)', padding: '1.5rem', borderRadius: '14px', border: '1.5px solid #bbf7d0', marginBottom: '2rem', boxShadow: '0 2px 12px #30c59b11' }}>
                       <h3 style={{ fontSize: '1.13rem', fontWeight: '700', marginBottom: '0.7rem', color: '#166534', letterSpacing: '-0.5px' }}>Overall summary</h3>
-                      <div style={{ fontSize: '1.01rem', color: '#14532d', marginBottom: 8 }}><b>요약:</b> {parsedAnalysis.totalFeedback.summary}</div>
-                      <div style={{ fontSize: '1.01rem', color: '#14532d', marginBottom: 8 }}><b>헤드헌팅 추천 포인트:</b> {parsedAnalysis.totalFeedback.headhunting_point}</div>
-                      <div style={{ fontSize: '1.01rem', color: '#14532d', marginBottom: 8 }}><b>추천/코멘트:</b> {parsedAnalysis.totalFeedback.recommendation}</div>
+                      <div style={{ fontSize: '1.01rem', color: '#14532d', marginBottom: 8 }}><b>Summary:</b> {parsedAnalysis.totalFeedback.summary}</div>
+                      <div style={{ fontSize: '1.01rem', color: '#14532d', marginBottom: 8 }}><b>Recruiting signal:</b> {parsedAnalysis.totalFeedback.headhunting_point}</div>
+                      <div style={{ fontSize: '1.01rem', color: '#14532d', marginBottom: 8 }}><b>Recommendation:</b> {parsedAnalysis.totalFeedback.recommendation}</div>
                       {parsedAnalysis.totalFeedback.limitations?.length > 0 && (
                         <div style={{ fontSize: '0.94rem', color: '#4b5563', marginBottom: 8 }}><b>Analysis limitations:</b> {parsedAnalysis.totalFeedback.limitations.join(' ')}</div>
                       )}
