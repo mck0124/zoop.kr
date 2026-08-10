@@ -259,9 +259,12 @@ public class AiInterviewScheduleService {
         
         System.out.println("[AiInterviewScheduleService] 면접 일정 조회 성공: " + schedule.getAiInterviewScheduleId());
         
+        boolean alreadyCompleted = "completed".equals(schedule.getAiInterviewStatus());
         // 면접 상태를 완료로 변경
         schedule.setAiInterviewStatus("completed");
-        schedule.setAiInterviewCompletionTime(LocalDateTime.now());
+        if (!alreadyCompleted || schedule.getAiInterviewCompletionTime() == null) {
+            schedule.setAiInterviewCompletionTime(LocalDateTime.now());
+        }
         
         // 분석 상태를 pending으로 변경 (영상이 업로드되면 분석 시작)
         schedule.setAiAnalysisStatus("pending");
@@ -269,14 +272,16 @@ public class AiInterviewScheduleService {
         AiInterviewSchedule updatedSchedule = aiInterviewScheduleRepository.save(schedule);
         System.out.println("[AiInterviewScheduleService] 면접 일정 상태 업데이트 완료: " + updatedSchedule.getAiInterviewStatus());
         
-        // JobCandProgress 상태를 3y로 업데이트
+        // JobCandProgress 상태를 3y로 업데이트. 재시도 요청에서는 알림을 중복 발송하지 않는다.
         JobCandProgress jobCandProgress = schedule.getJobCandProgress();
         String oldStage = jobCandProgress.getJobCandCurrStage();
         
         System.out.println("[AiInterviewScheduleService] JobCandProgress stage 업데이트: " + oldStage + " → 3y");
         
-        // 알림 생성과 함께 stage 업데이트
-        jobCandProgressService.updateStageWithNotification(jobCandProgress.getJobCandidateId(), "3y");
+        if (!alreadyCompleted && !"3y".equals(oldStage)) {
+            // 알림 생성과 함께 stage 업데이트
+            jobCandProgressService.updateStageWithNotification(jobCandProgress.getJobCandidateId(), "3y");
+        }
         
         // 면접 완료 날짜 업데이트
         jobCandProgress.setJobCandAiIntrvwCompltDate(LocalDateTime.now());

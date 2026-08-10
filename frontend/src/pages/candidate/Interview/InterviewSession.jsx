@@ -10,9 +10,9 @@ const THINK_TIME = 30;  // 30-second preparation window
 const ANSWER_TIME = 60; // 60-second answer window
 
 const SESSION_COPY = {
-  en: { invalidId: 'This interview schedule ID is invalid.', loadFailed: 'Could not load the interview questions.', noQuestions: 'No interview questions were generated. Please ask the interviewer to try again.', unsupported: 'This browser cannot access the camera or microphone. Please use a modern browser.', denied: 'Camera and microphone access was denied. Allow access in your browser settings.', missing: 'No camera or microphone was found. Check that your devices are connected.', mediaFailed: 'Could not access your media devices: ', recorder: 'This browser does not support interview recording. Use the latest Chrome, Safari, or Edge.', recordingFailed: 'Could not start recording. Check your camera permission and browser settings.', uploadFailed: 'Upload failed.', retryUpload: 'Retry upload', retrySession: 'Retry session', preparing: 'Get ready to answer.', recordingStatus: 'Recording your answer...', preparingRecording: 'Preparing to record...', uploading: 'Uploading...', uploadReady: 'Preparing upload...', done: 'Interview complete!', progress: 'Question progress', loading: 'Loading question...', listen: 'Listen again', listening: 'Playing question', think: 'Preparation time', answer: 'Answer time', upload: 'Uploading', complete: 'Complete', seconds: 's', finish: 'Returning to your dashboard...' },
-  ko: { invalidId: '유효하지 않은 면접 일정 ID입니다.', loadFailed: '질문을 불러오지 못했습니다.', noQuestions: '생성된 면접 질문이 없습니다. 면접 담당자에게 질문 생성을 다시 요청해주세요.', unsupported: '이 브라우저에서는 카메라와 마이크를 사용할 수 없습니다. 최신 브라우저에서 다시 시도해주세요.', denied: '카메라와 마이크 접근이 거부되었습니다. 브라우저에서 권한을 허용해주세요.', missing: '카메라나 마이크를 찾을 수 없습니다. 장치가 연결되어 있는지 확인해주세요.', mediaFailed: '미디어 접근에 실패했습니다: ', recorder: '이 브라우저에서는 면접 녹화를 지원하지 않습니다. 최신 Chrome, Safari 또는 Edge를 사용해주세요.', recordingFailed: '면접 녹화를 시작하지 못했습니다. 카메라 권한과 브라우저 설정을 확인해주세요.', uploadFailed: '업로드 실패', retryUpload: '업로드 다시 시도', retrySession: '세션 다시 시도', preparing: '답변을 준비하세요.', recordingStatus: '답변을 녹화 중입니다...', preparingRecording: '녹화 준비 중...', uploading: '업로드 중...', uploadReady: '업로드 준비 중...', done: '면접이 완료되었습니다!', progress: '질문 진행', loading: '질문을 불러오는 중...', listen: '질문 다시 듣기', listening: '읽는 중...', think: '준비 시간', answer: '답변 시간', upload: '업로드 중', complete: '완료', seconds: '초', finish: '잠시 후 대시보드로 이동합니다...' },
-  zh: { invalidId: '面试安排 ID 无效。', loadFailed: '无法加载面试问题。', noQuestions: '尚未生成面试问题，请联系面试负责人重新生成。', unsupported: '此浏览器无法使用摄像头和麦克风，请使用最新版本的浏览器。', denied: '摄像头和麦克风权限被拒绝，请在浏览器设置中允许访问。', missing: '找不到摄像头或麦克风，请确认设备已连接。', mediaFailed: '无法访问媒体设备：', recorder: '此浏览器不支持面试录制，请使用最新版本的 Chrome、Safari 或 Edge。', recordingFailed: '无法开始录制，请检查摄像头权限和浏览器设置。', uploadFailed: '上传失败。', retryUpload: '重试上传', retrySession: '重试面试', preparing: '请准备回答。', recordingStatus: '正在录制回答……', preparingRecording: '正在准备录制……', uploading: '正在上传……', uploadReady: '准备上传……', done: '面试已完成！', progress: '问题进度', loading: '正在加载问题……', listen: '再次听题', listening: '正在播放', think: '准备时间', answer: '回答时间', upload: '上传中', complete: '完成', seconds: '秒', finish: '即将返回控制面板……' }
+  en: { invalidId: 'This interview schedule ID is invalid.', loadFailed: 'Could not load the interview questions.', noQuestions: 'No interview questions were generated. Please ask the interviewer to try again.', unsupported: 'This browser cannot access the camera or microphone. Please use a modern browser.', denied: 'Camera and microphone access was denied. Allow access in your browser settings.', missing: 'No camera or microphone was found. Check that your devices are connected.', mediaFailed: 'Could not access your media devices: ', recorder: 'This browser does not support interview recording. Use the latest Chrome, Safari, or Edge.', recordingFailed: 'Could not start recording. Check your camera permission and browser settings.', uploadFailed: 'Upload failed.', completeFailed: 'Your answer was uploaded, but we could not start the AI analysis. Please retry.', retryUpload: 'Retry upload', retrySession: 'Retry session', retryCompletion: 'Retry AI analysis', preparing: 'Get ready to answer.', recordingStatus: 'Recording your answer...', preparingRecording: 'Preparing to record...', uploading: 'Uploading...', uploadReady: 'Preparing upload...', done: 'Interview complete!', progress: 'Question progress', loading: 'Loading question...', listen: 'Listen again', listening: 'Playing question', think: 'Preparation time', answer: 'Answer time', upload: 'Uploading', complete: 'Complete', seconds: 's', finish: 'Returning to your dashboard...' },
+  ko: { invalidId: '유효하지 않은 면접 일정 ID입니다.', loadFailed: '질문을 불러오지 못했습니다.', noQuestions: '생성된 면접 질문이 없습니다. 면접 담당자에게 질문 생성을 다시 요청해주세요.', unsupported: '이 브라우저에서는 카메라와 마이크를 사용할 수 없습니다. 최신 브라우저에서 다시 시도해주세요.', denied: '카메라와 마이크 접근이 거부되었습니다. 브라우저에서 권한을 허용해주세요.', missing: '카메라나 마이크를 찾을 수 없습니다. 장치가 연결되어 있는지 확인해주세요.', mediaFailed: '미디어 접근에 실패했습니다: ', recorder: '이 브라우저에서는 면접 녹화를 지원하지 않습니다. 최신 Chrome, Safari 또는 Edge를 사용해주세요.', recordingFailed: '면접 녹화를 시작하지 못했습니다. 카메라 권한과 브라우저 설정을 확인해주세요.', uploadFailed: '업로드 실패', completeFailed: '답변은 업로드되었지만 AI 분석을 시작하지 못했습니다. 다시 시도해주세요.', retryUpload: '업로드 다시 시도', retrySession: '세션 다시 시도', retryCompletion: 'AI 분석 다시 시도', preparing: '답변을 준비하세요.', recordingStatus: '답변을 녹화 중입니다...', preparingRecording: '녹화 준비 중...', uploading: '업로드 중...', uploadReady: '업로드 준비 중...', done: '면접이 완료되었습니다!', progress: '질문 진행', loading: '질문을 불러오는 중...', listen: '질문 다시 듣기', listening: '읽는 중...', think: '준비 시간', answer: '답변 시간', upload: '업로드 중', complete: '완료', seconds: '초', finish: '잠시 후 대시보드로 이동합니다...' },
+  zh: { invalidId: '面试安排 ID 无效。', loadFailed: '无法加载面试问题。', noQuestions: '尚未生成面试问题，请联系面试负责人重新生成。', unsupported: '此浏览器无法使用摄像头和麦克风，请使用最新版本的浏览器。', denied: '摄像头和麦克风权限被拒绝，请在浏览器设置中允许访问。', missing: '找不到摄像头或麦克风，请确认设备已连接。', mediaFailed: '无法访问媒体设备：', recorder: '此浏览器不支持面试录制，请使用最新版本的 Chrome、Safari 或 Edge。', recordingFailed: '无法开始录制，请检查摄像头权限和浏览器设置。', uploadFailed: '上传失败。', completeFailed: '回答已上传，但无法启动 AI 分析，请重试。', retryUpload: '重试上传', retrySession: '重试面试', retryCompletion: '重试 AI 分析', preparing: '请准备回答。', recordingStatus: '正在录制回答……', preparingRecording: '正在准备录制……', uploading: '正在上传……', uploadReady: '准备上传……', done: '面试已完成！', progress: '问题进度', loading: '正在加载问题……', listen: '再次听题', listening: '正在播放', think: '准备时间', answer: '回答时间', upload: '上传中', complete: '完成', seconds: '秒', finish: '即将返回控制面板……' }
 };
 
 const InterviewSession = () => {
@@ -26,6 +26,7 @@ const InterviewSession = () => {
   const chunksRef = useRef([]);
   const speechRef = useRef(null);
   const pendingBlobRef = useRef(null);
+  const pendingCompletionRef = useRef(false);
 
   const [questions, setQuestions] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -221,6 +222,25 @@ const InterviewSession = () => {
     streamRef.current?.getTracks().forEach(track => track.stop());
   }, []);
 
+  const completeInterview = async () => {
+    pendingCompletionRef.current = true;
+    setUploading(true);
+    try {
+      const completion = await fetch(apiUrl(`/api/interview-schedules/${scheduleId}/complete`), {
+        method: 'PUT',
+      });
+      if (!completion.ok) throw new Error(copy.completeFailed);
+      pendingCompletionRef.current = false;
+      pendingBlobRef.current = null;
+      setPhase('done');
+      setError('');
+    } catch (completionError) {
+      setError(completionError.message || copy.completeFailed);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   // 업로드 함수
   const uploadVideo = async (blob) => {
     pendingBlobRef.current = blob;
@@ -242,8 +262,7 @@ const InterviewSession = () => {
         setPhase('think');
         setTimer(THINK_TIME);
       } else {
-        pendingBlobRef.current = null;
-        setPhase('done');
+        await completeInterview();
       }
     } catch (e) {
       setError(e.message);
@@ -253,6 +272,11 @@ const InterviewSession = () => {
   };
 
   const retryCurrentUpload = () => {
+    if (pendingCompletionRef.current && !uploading) {
+      setError('');
+      completeInterview();
+      return;
+    }
     if (pendingBlobRef.current && !uploading) {
       setError('');
       uploadVideo(pendingBlobRef.current);
@@ -354,7 +378,7 @@ const InterviewSession = () => {
                 disabled={uploading}
                 style={{ marginTop: 10, border: 'none', borderRadius: 10, padding: '8px 14px', background: '#e74c3c', color: '#fff', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer' }}
               >
-                {pendingBlobRef.current ? copy.retryUpload : copy.retrySession}
+                {pendingCompletionRef.current ? copy.retryCompletion : pendingBlobRef.current ? copy.retryUpload : copy.retrySession}
               </button>
             </div>
           )}
