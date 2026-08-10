@@ -1449,7 +1449,7 @@ export default function CompanyDashboard() {
                               <path d="M12 3c0 1-1 2-2 2s-2-1-2-2 1-2 2-2 2 1 2 2z"/>
                               <path d="M12 21c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2z"/>
                             </svg>
-                            AI 분석 결과 보기
+                            View AI analysis
                           </button>
                         </div>
                       </div>
@@ -1487,7 +1487,7 @@ export default function CompanyDashboard() {
                   }}
                   disabled={activeTab === 'details'}
                 >
-                  공고 상세 정보
+                  Job details
                 </button>
                 <button
                   onClick={() => handleTabChange('candidates')}
@@ -1504,7 +1504,7 @@ export default function CompanyDashboard() {
                   }}
                   disabled={activeTab === 'candidates'}
                 >
-                  후보자 목록
+                  Candidates
                 </button>
               </div>
 
@@ -1518,7 +1518,7 @@ export default function CompanyDashboard() {
                       onMouseLeave={handleMouseLeave}
                     >
                       {loadingPostDetail || !selectedPostDetail ? (
-                        <p style={{ color: '#888', textAlign: 'center', padding: '2rem' }}>공고 정보를 불러오는 중...</p>
+                        <p style={{ color: '#888', textAlign: 'center', padding: '2rem' }}>Loading job details...</p>
                       ) : (
                         <div style={{
                           display: 'grid',
@@ -1528,11 +1528,11 @@ export default function CompanyDashboard() {
                           fontSize: '0.95rem'
                         }}>
                           <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>공고 제목</strong>
+                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>Job title</strong>
                             <div style={{ marginTop: '0.5rem', color: '#4a5568', fontSize: '1rem' }}>{selectedPostDetail.postTitle}</div>
                           </div>
                           <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>상태</strong>
+                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>Status</strong>
                             <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>
                               <span style={{
                                 background: selectedPostDetail.postStatus === 'ACTIVE' ? '#48bb78' : '#ed8936',
@@ -1542,34 +1542,34 @@ export default function CompanyDashboard() {
                                 fontSize: '0.8rem',
                                 fontWeight: '600'
                               }}>
-                                {selectedPostDetail.postStatus === 'ACTIVE' ? '진행중' : '마감'}
+                                {selectedPostDetail.postStatus === 'ACTIVE' ? 'Active' : 'Closed'}
                               </span>
                             </div>
                           </div>
                           <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>지역</strong>
+                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>Location</strong>
                             <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{selectedPostDetail.postLocation || '지역 미정'}</div>
                           </div>
                           <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>모집 인원</strong>
+                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>Openings</strong>
                             <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{selectedPostDetail.postHeadcount || 0}명</div>
                           </div>
                           <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>연봉</strong>
+                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>Salary range</strong>
                             <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>
                               {selectedPostDetail.postSalaryStart || '0'} ~ {selectedPostDetail.postSalaryEnd || '0'}
                             </div>
                           </div>
                           <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>프로그래밍 언어</strong>
+                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>Programming language</strong>
                             <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{selectedPostDetail.postProgrammingLanguage || '미정'}</div>
                           </div>
                           <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>공고일</strong>
+                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>Posted</strong>
                             <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{formatDate(selectedPostDetail.postPostedDate)}</div>
                           </div>
                           <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>마감일</strong>
+                            <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>Deadline</strong>
                             <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{formatDate(selectedPostDetail.postExpiryDate)}</div>
                           </div>
                         </div>
@@ -1578,7 +1578,7 @@ export default function CompanyDashboard() {
                     {/* 공고 설명 */}
                     {selectedPostDetail && !loadingPostDetail && selectedPostDetail.postDescription && (
                       <section style={{ ...hoverBoxStyle, marginTop: '2rem' }} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-                        <h3 style={{ fontSize: '1.3rem', fontWeight: '600', marginBottom: '1rem', color: '#2d3748' }}>공고 설명</h3>
+                        <h3 style={{ fontSize: '1.3rem', fontWeight: '600', marginBottom: '1rem', color: '#2d3748' }}>Job description</h3>
                         <div style={{
                           padding: '1.5rem',
                           background: '#f8fafc',
@@ -1594,7 +1594,7 @@ export default function CompanyDashboard() {
                     {/* 인재상 */}
                     {selectedPostDetail && !loadingPostDetail && selectedPostDetail.postIdealCandidate && (
                       <section style={{ ...hoverBoxStyle, marginTop: '2rem' }} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-                        <h3 style={{ fontSize: '1.3rem', fontWeight: '600', marginBottom: '1rem', color: '#2d3748' }}>인재상</h3>
+                        <h3 style={{ fontSize: '1.3rem', fontWeight: '600', marginBottom: '1rem', color: '#2d3748' }}>Ideal candidate</h3>
                         <div style={{
                           padding: '1.5rem',
                           background: '#f8fafc',
@@ -1696,7 +1696,7 @@ export default function CompanyDashboard() {
                 ) : (
                   <section style={{ ...hoverBoxStyle }} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
                     {loadingCandidates ? (
-                      <p style={{ color: '#888', textAlign: 'center', padding: '2rem' }}>후보자 정보를 불러오는 중...</p>
+                      <p style={{ color: '#888', textAlign: 'center', padding: '2rem' }}>Loading candidates...</p>
                     ) : activeTab === 'candidates' && (
                       <div style={{ position: 'relative', display: 'flex', gap: '1rem', marginBottom: '1.5rem', justifyContent: 'center' }}>
                         {filterLabels.map((label, i) => {
@@ -1769,9 +1769,9 @@ export default function CompanyDashboard() {
                             }}
                           >
                             <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>👥</div>
-                            <p>아직 직접 지원한 지원자가 없습니다.</p>
+                            <p>No direct applicants yet.</p>
                             <p style={{ fontSize: '0.9rem', marginTop: '0.5rem', color: '#718096' }}>
-                              지원자가 포트폴리오를 제출하면 여기에 표시됩니다.
+                              Applicants will appear here after submitting a portfolio.
                             </p>
                           </motion.div>
                         ) : candidateFilter === '추가 지원자' ? (
@@ -1796,7 +1796,7 @@ export default function CompanyDashboard() {
                             }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                 <span style={{ color: '#4a5568', fontWeight: '600', fontSize: '0.95rem' }}>
-                                  {selectedApplicants.size}명 선택됨
+                                  {selectedApplicants.size} selected
                                 </span>
                                 {selectedApplicants.size > 0 && (
                                   <button
@@ -1810,7 +1810,7 @@ export default function CompanyDashboard() {
                                       textDecoration: 'underline'
                                     }}
                                   >
-                                    선택 해제
+                                    Clear selection
                                   </button>
                                 )}
                               </div>
@@ -1839,7 +1839,7 @@ export default function CompanyDashboard() {
                                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                     <path d="M20 6L9 17l-5-5"/>
                                   </svg>
-                                  수락
+                                  Accept
                                 </button>
                                 
                                 <button
@@ -1864,7 +1864,7 @@ export default function CompanyDashboard() {
                                     <path d="M18 6L6 18"/>
                                     <path d="M6 6l12 12"/>
                                   </svg>
-                                  거절
+                                  Reject
                                 </button>
                               </div>
                             </div>
@@ -1986,23 +1986,23 @@ export default function CompanyDashboard() {
                                       {/* 이메일 */}
                                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', color: '#4a5568' }}>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#718096" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                                        {candidate.githubEmail || candidate.candidateEmail || candidate.email || '이메일 미공개'}
+                                        {candidate.githubEmail || candidate.candidateEmail || candidate.email || 'Email unavailable'}
                                       </div>
                                       {/* 전화번호 */}
                                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', color: '#4a5568' }}>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#718096" strokeWidth="2"><path d="M22 16.92V21a2 2 0 0 1-2.18 2A19.72 19.72 0 0 1 3 5.18 2 2 0 0 1 5 3h4.09a2 2 0 0 1 2 1.72c.13 1.13.37 2.24.72 3.32a2 2 0 0 1-.45 2.11l-1.27 1.27a16 16 0 0 0 6.29 6.29l1.27-1.27a2 2 0 0 1 2.11-.45c1.08.35 2.19.59 3.32.72A2 2 0 0 1 21 18.91V21z"/></svg>
-                                        {candidate.candidatePhoneNumber || '전화번호 미공개'}
+                                        {candidate.candidatePhoneNumber || 'Phone unavailable'}
                                       </div>
                                       {/* GitHub 아이디 */}
                                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', color: '#4a5568' }}>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#718096" strokeWidth="2"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.09.66-.22.66-.48 0-.24-.01-.87-.01-1.7-2.78.6-3.37-1.34-3.37-1.34-.45-1.15-1.1-1.46-1.1-1.46-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85.004 1.71.115 2.51.337 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.85-2.34 4.7-4.57 4.95.36.31.68.92.68 1.85 0 1.33-.01 2.4-.01 2.73 0 .27.16.58.67.48A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg>
-                                        {candidate.githubLogin || 'GitHub 미공개'}
+                                        {candidate.githubLogin || 'GitHub unavailable'}
                                       </div>
                                       {/* 공고 정보 (추가 지원자 필터에서만 표시) */}
                                       {candidateFilter === '추가 지원자' && candidate.postId && (
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', color: '#4a5568' }}>
                                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#718096" strokeWidth="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                                          공고 #{candidate.postId}
+                                          Job #{candidate.postId}
                                         </div>
                                       )}
                                     </div>
@@ -2202,7 +2202,7 @@ export default function CompanyDashboard() {
                                     <path d="M22 2L11 13"/>
                                     <path d="M22 2L15 22L11 13L2 9L22 2Z"/>
                                   </svg>
-                                  <span>일괄 이메일 전송</span>
+                                  <span>Send bulk email</span>
                                   {selectedApplicants.size > 0 && (
                                     <div style={{
                                       position: 'absolute',
@@ -2571,7 +2571,7 @@ export default function CompanyDashboard() {
           ) : (
             <>
               <div style={{ marginTop: '1.2rem' }}></div>
-              <h2 style={{ fontSize: '1.6rem', fontWeight: '700', marginBottom: '1.2rem', color: '#2d3748' }}>기업 정보</h2>
+              <h2 style={{ fontSize: '1.6rem', fontWeight: '700', marginBottom: '1.2rem', color: '#2d3748' }}>Company information</h2>
               <section
                 style={{ ...hoverBoxStyle, background: '#ffffff' }}
                 onMouseEnter={handleMouseEnter}
@@ -2586,27 +2586,27 @@ export default function CompanyDashboard() {
                     fontSize: '0.95rem'
                   }}>
                     <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                      <strong style={{ color: '#2d3748' }}>기업 이름</strong>
+                      <strong style={{ color: '#2d3748' }}>Company name</strong>
                       <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{companyInfo.companyName}</div>
                     </div>
                     <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                      <strong style={{ color: '#2d3748' }}>사업자번호</strong>
+                      <strong style={{ color: '#2d3748' }}>Business number</strong>
                       <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{companyInfo.businessNumber}</div>
                     </div>
                     <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                      <strong style={{ color: '#2d3748' }}>대표자명</strong>
+                      <strong style={{ color: '#2d3748' }}>CEO</strong>
                       <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{companyInfo.ceoName}</div>
                     </div>
                     <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                      <strong style={{ color: '#2d3748' }}>관리자명</strong>
+                      <strong style={{ color: '#2d3748' }}>Administrator</strong>
                       <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{companyInfo.adminName}</div>
                     </div>
                     <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                      <strong style={{ color: '#2d3748' }}>이메일</strong>
+                      <strong style={{ color: '#2d3748' }}>Email</strong>
                       <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{companyInfo.email}</div>
                     </div>
                     <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                      <strong style={{ color: '#2d3748' }}>주소</strong>
+                      <strong style={{ color: '#2d3748' }}>Address</strong>
                       <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>{companyInfo.address}</div>
                     </div>
                   </div>
@@ -2615,16 +2615,16 @@ export default function CompanyDashboard() {
                 )}
               </section>
 
-              <h2 style={{ fontSize: '1.4rem', fontWeight: '600', marginBottom: '1.2rem', color: '#2d3748' }}>진행 중인 채용</h2>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: '600', marginBottom: '1.2rem', color: '#2d3748' }}>Active hiring</h2>
               <section style={{ ...hoverBoxStyle }} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
                 {loading ? (
                   <p style={{ color: '#4a5568', textAlign: 'center', padding: '2rem' }}>공고 정보를 불러오는 중...</p>
                 ) : activePostings.length === 0 ? (
-                  <p style={{ color: '#4a5568', textAlign: 'center', padding: '2rem' }}>진행 중인 채용이 없습니다.</p>
+                  <p style={{ color: '#4a5568', textAlign: 'center', padding: '2rem' }}>No active hiring yet.</p>
                 ) : (
                   <div>
                     <p style={{ color: '#4a5568', marginBottom: '1.5rem', fontSize: '1rem' }}>
-                      현재 <strong style={{ color: '#68d391' }}>{activePostings.length}개</strong>의 공고가 진행 중입니다.
+                      <strong style={{ color: '#68d391' }}>{activePostings.length}</strong> active job posting(s).
                     </p>
                     <div style={{ display: 'grid', gap: '1.2rem' }}>
                       {activePostings.slice(0, 3).map((post) => (
@@ -2647,7 +2647,7 @@ export default function CompanyDashboard() {
                           <div style={{ fontWeight: '600', marginBottom: '0.8rem', color: '#2d3748', fontSize: '1.1rem' }}>{post.postTitle}</div>
                           <div style={{ fontSize: '0.9rem', color: '#4a5568', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                             <span><LocationIcon /> {post.postLocation}</span>
-                            <span><PeopleIcon /> {post.postHeadcount}명 모집</span>
+                            <span><PeopleIcon /> {post.postHeadcount} opening(s)</span>
                             <span><CalendarIcon /> {formatDate(post.postPostedDate)}</span>
                           </div>
                         </div>
@@ -2657,10 +2657,10 @@ export default function CompanyDashboard() {
                 )}
               </section>
 
-              <h2 style={{ fontSize: '1.4rem', fontWeight: '600', marginBottom: '1.2rem', color: '#2d3748' }}>면접 예정자</h2>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: '600', marginBottom: '1.2rem', color: '#2d3748' }}>Upcoming interviews</h2>
               <section style={{ ...hoverBoxStyle }} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
                 {interviewScheduledCandidates.length === 0 ? (
-                  <div style={{ color: '#888', textAlign: 'center', padding: '2rem' }}>면접 예정자가 없습니다.</div>
+                  <div style={{ color: '#888', textAlign: 'center', padding: '2rem' }}>No upcoming interviews.</div>
                 ) : (
                   <div style={{ display: 'grid', gap: '1rem' }}>
                     {interviewScheduledCandidates.map((cand, idx) => (
@@ -2676,10 +2676,10 @@ export default function CompanyDashboard() {
                 )}
               </section>
 
-              <h2 style={{ fontSize: '1.4rem', fontWeight: '600', marginBottom: '1.2rem', color: '#2d3748' }}>과거 채용 내역</h2>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: '600', marginBottom: '1.2rem', color: '#2d3748' }}>Past hiring</h2>
               <section style={{ ...hoverBoxStyle }} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
                 {closedPostings.length === 0 ? (
-                  <div style={{ color: '#888', textAlign: 'center', padding: '2rem' }}>과거 채용 내역이 없습니다.</div>
+                  <div style={{ color: '#888', textAlign: 'center', padding: '2rem' }}>No past hiring records.</div>
                 ) : (
                   <div style={{ display: 'grid', gap: '1rem' }}>
                     {closedPostings.map((post, idx) => (
@@ -2704,7 +2704,7 @@ export default function CompanyDashboard() {
         }}
         isPortfolio={true}
       >
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.2rem', color: '#2d3748' }}>포트폴리오</h2>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.2rem', color: '#2d3748' }}>Portfolio</h2>
         <div style={{ 
           width: '100%', 
           height: '70vh', 
@@ -2740,7 +2740,7 @@ export default function CompanyDashboard() {
                   borderRadius: '50%',
                   animation: 'spin 1s linear infinite'
                 }}></div>
-                <p style={{ color: '#718096', fontSize: '0.9rem' }}>포트폴리오를 불러오는 중...</p>
+                <p style={{ color: '#718096', fontSize: '0.9rem' }}>Loading portfolio...</p>
               </div>
             </div>
           )}
@@ -2793,7 +2793,7 @@ export default function CompanyDashboard() {
               cursor: 'pointer' 
             }}
           >
-            닫기
+            Close
           </button>
         </div>
       </Modal>
@@ -2850,7 +2850,7 @@ export default function CompanyDashboard() {
               <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.9 1 3 1.9 3 3V21C3 22.1 3.9 23 5 23H19C20.1 23 21 22.1 21 21V9ZM19 21H5V3H13V9H19V21Z" fill="currentColor"/>
               <path d="M8 12H16V14H8V12ZM8 16H16V18H8V16Z" fill="currentColor"/>
             </svg>
-            AI 포트폴리오 분석 결과
+            AI portfolio analysis
           </h2>
         </div>
         
@@ -3032,7 +3032,7 @@ export default function CompanyDashboard() {
                   <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="#718096"/>
                   <path d="M12 6C9.79 6 8 7.79 8 10C8 12.21 9.79 14 12 14C14.21 14 16 12.21 16 10C16 7.79 14.21 6 12 6ZM12 12C10.9 12 10 11.1 10 10C10 8.9 10.9 8 12 8C13.1 8 14 8.9 14 10C14 11.1 13.1 12 12 12Z" fill="#718096"/>
                 </svg>
-                <strong>분석 타입:</strong> {currentAiAnalysis.analysisType || 'portfolio'}
+                <strong>Analysis type:</strong> {currentAiAnalysis.analysisType || 'portfolio'}
               </div>
               {currentAiAnalysis.analysisDate && (
                 <div style={{ 
@@ -3092,7 +3092,7 @@ export default function CompanyDashboard() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
             </svg>
-            닫기
+            Close
           </button>
         </div>
         
@@ -3110,16 +3110,16 @@ export default function CompanyDashboard() {
 
       {/* 수정 모달 */}
       <Modal open={showEditModal} onClose={() => setShowEditModal(false)}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.2rem', color: '#2d3748' }}>공고 수정</h2>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.2rem', color: '#2d3748' }}>Edit job posting</h2>
         <div style={{ marginBottom: '1.1rem' }}>
-          <label style={{ fontWeight: 600, color: '#444', fontSize: '1rem' }}>제목</label>
+          <label style={{ fontWeight: 600, color: '#444', fontSize: '1rem' }}>Title</label>
           <input
             value={editTitle}
             onChange={e => setEditTitle(e.target.value)}
             style={{ width: '100%', marginTop: 6, marginBottom: 12, padding: '0.7rem 1rem', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: '1rem' }}
             maxLength={100}
           />
-          <label style={{ fontWeight: 600, color: '#444', fontSize: '1rem' }}>설명</label>
+          <label style={{ fontWeight: 600, color: '#444', fontSize: '1rem' }}>Description</label>
           <textarea
             value={editDesc}
             onChange={e => setEditDesc(e.target.value)}
@@ -3128,19 +3128,19 @@ export default function CompanyDashboard() {
           />
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.2rem' }}>
-          <button onClick={() => setShowEditModal(false)} style={{ background: '#e2e8f0', color: '#444', border: 'none', borderRadius: 8, padding: '0.7rem 1.5rem', fontWeight: 600, fontSize: '1rem', cursor: 'pointer' }}>취소</button>
-          <button onClick={handleEditSave} disabled={editLoading} style={{ background: 'linear-gradient(135deg, #68d391 0%, #48bb78 100%)', color: 'white', border: 'none', borderRadius: 8, padding: '0.7rem 1.5rem', fontWeight: 600, fontSize: '1rem', cursor: editLoading ? 'not-allowed' : 'pointer', opacity: editLoading ? 0.7 : 1 }}>저장</button>
+          <button onClick={() => setShowEditModal(false)} style={{ background: '#e2e8f0', color: '#444', border: 'none', borderRadius: 8, padding: '0.7rem 1.5rem', fontWeight: 600, fontSize: '1rem', cursor: 'pointer' }}>Cancel</button>
+          <button onClick={handleEditSave} disabled={editLoading} style={{ background: 'linear-gradient(135deg, #68d391 0%, #48bb78 100%)', color: 'white', border: 'none', borderRadius: 8, padding: '0.7rem 1.5rem', fontWeight: 600, fontSize: '1rem', cursor: editLoading ? 'not-allowed' : 'pointer', opacity: editLoading ? 0.7 : 1 }}>Save</button>
         </div>
       </Modal>
       {/* 삭제 모달 */}
       <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.2rem', color: '#e53e3e' }}>공고 삭제</h2>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.2rem', color: '#e53e3e' }}>Delete job posting</h2>
         <div style={{ color: '#444', fontSize: '1.05rem', marginBottom: '1.5rem' }}>
-          정말 이 공고를 삭제하시겠습니까?<br />삭제하면 복구할 수 없습니다.
+          Are you sure you want to delete this job posting?<br />This action cannot be undone.
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-          <button onClick={() => setShowDeleteModal(false)} style={{ background: '#e2e8f0', color: '#444', border: 'none', borderRadius: 8, padding: '0.7rem 1.5rem', fontWeight: 600, fontSize: '1rem', cursor: 'pointer' }}>취소</button>
-          <button onClick={handleDelete} disabled={deleteLoading} style={{ background: 'linear-gradient(135deg, #f56565 0%, #e53e3e 100%)', color: 'white', border: 'none', borderRadius: 8, padding: '0.7rem 1.5rem', fontWeight: 600, fontSize: '1rem', cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.7 : 1 }}>삭제</button>
+          <button onClick={() => setShowDeleteModal(false)} style={{ background: '#e2e8f0', color: '#444', border: 'none', borderRadius: 8, padding: '0.7rem 1.5rem', fontWeight: 600, fontSize: '1rem', cursor: 'pointer' }}>Cancel</button>
+          <button onClick={handleDelete} disabled={deleteLoading} style={{ background: 'linear-gradient(135deg, #f56565 0%, #e53e3e 100%)', color: 'white', border: 'none', borderRadius: 8, padding: '0.7rem 1.5rem', fontWeight: 600, fontSize: '1rem', cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.7 : 1 }}>Delete</button>
         </div>
       </Modal>
 
