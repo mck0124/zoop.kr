@@ -151,6 +151,8 @@ export default function RecruitCreate() {
     salary: 5000,
     headcount: 5,
   });
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [formFeedback, setFormFeedback] = useState({ type: '', message: '' });
 
   const toggleSelection = (field, value) => {
     setFilters((prev) => {
@@ -169,19 +171,22 @@ export default function RecruitCreate() {
   };
 
   const handleSubmit = async () => {
+    if (submitLoading) return;
     if (filters.languages.length === 0) {
-      alert(copy.selectLanguage);
+      setFormFeedback({ type: 'error', message: copy.selectLanguage });
       return;
     }
     if (!filters.nationwide && filters.regions.length === 0) {
-      alert(copy.selectRegion);
+      setFormFeedback({ type: 'error', message: copy.selectRegion });
       return;
     }
     if (!expiryDate) {
-      alert(copy.selectDeadline);
+      setFormFeedback({ type: 'error', message: copy.selectDeadline });
       return;
     }
 
+    setFormFeedback({ type: '', message: '' });
+    setSubmitLoading(true);
     try {
       // 사용자 정보 가져오기
       const userId = localStorage.getItem('userId');
@@ -232,7 +237,9 @@ export default function RecruitCreate() {
       const stateData = { filters, description, expiryDate, postId, language };
       navigate(`/company/ideal-candidate/${postId}`, { state: stateData });
     } catch (error) {
-      alert(copy.createFailed + error.message);
+      setFormFeedback({ type: 'error', message: copy.createFailed + error.message });
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
@@ -430,6 +437,15 @@ export default function RecruitCreate() {
           >
             {copy.subtitle}
           </div>
+          {formFeedback.message && (
+            <div
+              role="alert"
+              aria-live="polite"
+              style={{ marginTop: '1.2rem', padding: '0.85rem 1rem', borderRadius: 12, border: '1px solid #fecaca', background: '#fef2f2', color: '#b91c1c', fontWeight: 600 }}
+            >
+              {formFeedback.message}
+            </div>
+          )}
         </motion.div>
 
         <Section title={copy.role}>
@@ -720,6 +736,7 @@ export default function RecruitCreate() {
 
         <motion.button
           onClick={handleSubmit}
+          disabled={submitLoading}
           whileHover={{ scale: 1.035, background: "linear-gradient(90deg,#35cfce 15%,#35d7a1 85%)" }}
           whileTap={{ scale: 0.98 }}
           style={{
@@ -733,12 +750,13 @@ export default function RecruitCreate() {
             fontWeight: 800,
             letterSpacing: "0.5px",
             boxShadow: "0 8px 32px rgba(53,215,161,0.14)",
-            cursor: "pointer",
+            cursor: submitLoading ? "wait" : "pointer",
+            opacity: submitLoading ? 0.7 : 1,
             transition: "all 0.2s cubic-bezier(0.4,0,0.2,1)",
             outline: "none",
           }}
         >
-          {copy.apply}
+          {submitLoading ? 'Creating…' : copy.apply}
         </motion.button>
       </motion.div>
     </div>

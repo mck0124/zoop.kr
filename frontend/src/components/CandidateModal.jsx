@@ -265,6 +265,8 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
 
   const [videoBlobUrl, setVideoBlobUrl] = useState(null);
   const [localStage, setLocalStage] = useState(candidate?.jobCandCurrStage);
+  const [invitationLoading, setInvitationLoading] = useState(false);
+  const [actionFeedback, setActionFeedback] = useState({ type: '', message: '' });
 
   // candidate가 변경될 때 localStage 동기화
   useEffect(() => {
@@ -517,12 +519,14 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
   // 면접초대 버튼 클릭시
   const handleInterviewInvitation = async () => {
     if (!jobCandidateId) {
-      alert('Candidate details are still loading. Please try again shortly.');
+      setActionFeedback({ type: 'error', message: 'Candidate details are still loading. Please try again shortly.' });
       return;
     }
+    if (invitationLoading) return;
 
     const invitationUrl = buildApiUrl(`/api/progress/${jobCandidateId}/update-stage-2p`);
 
+    setInvitationLoading(true);
     try {
       const response = await fetch(invitationUrl, {
         method: 'POST',
@@ -533,17 +537,19 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
 
 
       if (response.ok) {
-        alert('Interview invitation sent successfully.');
+        setActionFeedback({ type: 'success', message: 'Interview invitation sent successfully.' });
         // 로컬 상태 업데이트: 2y -> 2p로 변경
         setLocalStage('2p');
       } else {
         const errorText = await response.text();
         console.error('API 오류 응답:', errorText);
-        alert(`Could not send the interview invitation: ${errorText}`);
+        setActionFeedback({ type: 'error', message: `Could not send the interview invitation: ${errorText || 'server error'}` });
       }
     } catch (error) {
       console.error('면접 초대 API 호출 오류:', error);
-      alert('Something went wrong while sending the interview invitation.');
+      setActionFeedback({ type: 'error', message: 'Something went wrong while sending the interview invitation.' });
+    } finally {
+      setInvitationLoading(false);
     }
   };
 
@@ -563,6 +569,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
     setPortfolioAnalysis(null);
     setInterviewVideoUrl(null);
     setInterviewAnalysis(null);
+    setActionFeedback({ type: '', message: '' });
 
     // 최종 닫기
     onClose();
@@ -599,7 +606,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
     const portfolioId = candidate.candPortfolioId || portfolioAnalysis?.candPortfolioId;
     const analysisId = portfolioAnalysis?.analysisId || null; // 실제 분석ID로 대체 필요
     if (!portfolioId) {
-      window.alert('The portfolio matching result is not ready for this candidate yet.');
+      setActionFeedback({ type: 'error', message: 'The portfolio matching result is not ready for this candidate yet.' });
       return;
     }
     navigate(`/job/${postId}`, {
@@ -870,6 +877,15 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
         </div>
 
         {/* 하단 버튼 */}
+        {actionFeedback.message && (
+          <div
+            role={actionFeedback.type === 'error' ? 'alert' : 'status'}
+            aria-live="polite"
+            className={`mb-4 rounded-xl border px-4 py-3 text-sm font-medium ${actionFeedback.type === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`}
+          >
+            {actionFeedback.message}
+          </div>
+        )}
         <div className="mt-10 flex justify-end gap-3">
           {fromMatchingTab && (
             <button
@@ -882,9 +898,10 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
           { ["2y"].includes(localStage) && (
             <button
               onClick={handleInterviewInvitation}
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+              disabled={invitationLoading}
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
             >
-              Invite to interview
+              {invitationLoading ? 'Sending…' : 'Invite to interview'}
             </button>
           )}
           <button
