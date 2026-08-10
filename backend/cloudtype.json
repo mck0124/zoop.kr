@@ -14,11 +14,15 @@
     "DATABASE_USERNAME": "your-oracle-username",
     "DATABASE_PASSWORD": "your-oracle-password",
     "JWT_SECRET": "your-jwt-secret-key",
-    "PYTHON_API_URL": "https://your-python-api-url.cloudtype.app",
+    "PYTHON_CHATBOT_API_URL": "https://your-chatbot-api-url.cloudtype.app",
+    "PYTHON_INTERVIEW_API_URL": "https://your-interview-api-url.cloudtype.app",
+    "PYTHON_QUESTIONS_API_URL": "https://your-questions-api-url.cloudtype.app",
+    "PYTHON_MATCHING_API_URL": "https://your-matching-api-url.cloudtype.app",
+    "PYTHON_GITHUB_API_URL": "https://your-github-api-url.cloudtype.app",
     "GOOGLE_REDIRECT_URI": "https://your-frontend-url.cloudtype.app/google-auth",
     "GITHUB_REDIRECT_URI": "https://your-frontend-url.cloudtype.app/github-auth"
   },
   "ports": [
     8080
   ]
-} 
+}

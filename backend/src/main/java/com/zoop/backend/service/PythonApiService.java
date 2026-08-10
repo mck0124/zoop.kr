@@ -19,11 +19,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PythonApiService {
 
-    @Value("${python.api.url:http://localhost:8000}")
+    @Value("${python.chatbot.api.url:http://localhost:8001}")
     private String pythonApiUrl;
 
-    // 면접 예상질문 전용 URL (8003포트)
-    @Value("${python.interview.api.url:http://localhost:8003}")
+    // Interview-question generation is a separate service from portfolio matching.
+    // Keep the local default aligned with start_services.sh and the documented 8004 port.
+    @Value("${python.questions.api.url:http://localhost:8004}")
     private String pythonInterviewApiUrl;
 
     private final RestTemplate restTemplate;
@@ -69,7 +70,7 @@ public class PythonApiService {
             // 요청 엔티티 생성
             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, headers);
 
-            // API 호출 - 면접 예상질문 전용 URL 사용 (8003포트)
+            // API 호출 - 면접 예상질문 전용 URL 사용 (8004포트)
             String url = pythonInterviewApiUrl + "/generate-preparation-questions";
             log.info("호출 URL: {}", url);
             ResponseEntity<Map> response = restTemplate.postForEntity(url, requestEntity, Map.class);

@@ -1,11 +1,11 @@
 {
-  "name": "zoop-python-api",
+  "name": "zoop-github-api",
   "type": "python",
   "build": {
-    "command": "pip install -r requirements.txt"
+    "command": "cd github_search && pip install -r requirements.txt"
   },
   "run": {
-    "command": "python main.py"
+    "command": "cd github_search && uvicorn main:app --host 0.0.0.0 --port 8000"
   },
   "env": {
     "OPENAI_API_KEY": "your-openai-api-key",
@@ -14,4 +14,4 @@
   "ports": [
     8000
   ]
-} 
+}
