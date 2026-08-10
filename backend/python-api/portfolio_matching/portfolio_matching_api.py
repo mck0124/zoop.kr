@@ -15,7 +15,7 @@ import time
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../github_search')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from common.ai_quality import bounded_confidence, evidence_quality_report, fairness_guard_audit, source_integrity_audit
+from common.ai_quality import bounded_confidence, decision_gate_report, evidence_quality_report, fairness_guard_audit, source_integrity_audit
 
 # .env에서 API 키 로드
 load_dotenv()
@@ -807,6 +807,26 @@ def match_portfolio_to_specific_job(analysis_data: str, job_data: Dict[str, Any]
         structured["grounded_evidence_ids"] = [item["evidence_id"] for item in grounded_items if item.get("evidence_id") in evidence_catalog]
         structured["evidence_coverage"] = round(min(100.0, len(grounded_items) / max(1, len(dimensions)) * 100), 1)
         structured["confidence"] = round(min(1.0, sum(item["confidence"] for item in grounded_items) / max(1, len(grounded_items))), 2)
+        match_integrity = source_integrity_audit(
+            json.dumps({"analysis": analysis_data, "job": job_data}, ensure_ascii=False, default=str),
+            source_type="portfolio_to_job_match",
+        )
+        structured["source_integrity"] = match_integrity
+        structured["evidence_quality"] = evidence_quality_report(
+            evidence_items,
+            coverage=structured["evidence_coverage"],
+            source_integrity=match_integrity,
+        )
+        structured["decision_gate"] = decision_gate_report(
+            structured.get("decision"),
+            grounded_evidence=len(grounded_items),
+            evidence_quality=structured.get("evidence_quality"),
+            source_integrity=match_integrity,
+            fairness_status=structured.get("fairness_guard", {}).get("status"),
+        )
+        structured["decision"] = structured["decision_gate"]["final_decision"]
+        if structured["decision_gate"]["status"] == "downgraded":
+            structured["risk_flags"] = list(dict.fromkeys(structured["risk_flags"] + structured["decision_gate"]["reasons"]))
         structured["decision_trace"] = [
             "직무와 무관한 개인정보 신호를 평가에서 제외",
             f"{len(dimensions)}개 직무 기준을 포트폴리오 근거와 대조",

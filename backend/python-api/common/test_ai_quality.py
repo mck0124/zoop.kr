@@ -1,6 +1,6 @@
 import unittest
 
-from ai_quality import evidence_quality_report, fairness_guard_audit, source_integrity_audit
+from ai_quality import decision_gate_report, evidence_quality_report, fairness_guard_audit, source_integrity_audit
 
 
 class EvidenceQualityReportTests(unittest.TestCase):
@@ -46,6 +46,30 @@ class EvidenceQualityReportTests(unittest.TestCase):
 
         self.assertEqual(audit["status"], "pass")
         self.assertEqual(audit["violations"], [])
+
+    def test_decision_gate_downgrades_strong_match_on_injection(self):
+        gate = decision_gate_report(
+            "strong_match",
+            grounded_evidence=4,
+            evidence_quality={"review_priority": "high", "coverage_percent": 100},
+            source_integrity={"status": "review"},
+            fairness_status="pass",
+        )
+
+        self.assertEqual(gate["version"], "decision-gate-v1")
+        self.assertEqual(gate["final_decision"], "review")
+        self.assertEqual(gate["status"], "downgraded")
+
+    def test_decision_gate_rejects_strong_match_without_grounded_evidence(self):
+        gate = decision_gate_report(
+            "strong_match",
+            grounded_evidence=0,
+            evidence_quality={"review_priority": "high", "coverage_percent": 0},
+            source_integrity={"status": "pass"},
+            fairness_status="pass",
+        )
+
+        self.assertEqual(gate["final_decision"], "not_enough_evidence")
 
 
 if __name__ == "__main__":

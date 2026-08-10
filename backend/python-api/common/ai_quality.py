@@ -178,3 +178,60 @@ def evidence_quality_report(
             else "Proceed with the recommended verification step and keep the receipt"
         ),
     }
+
+
+def decision_gate_report(
+    proposed_decision: str,
+    *,
+    grounded_evidence: Any = 0,
+    evidence_quality: Optional[Dict[str, Any]] = None,
+    source_integrity: Optional[Dict[str, Any]] = None,
+    fairness_status: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Apply the final deterministic safety gate to an AI-proposed decision.
+
+    A model may draft a strong match, but it cannot override missing evidence,
+    source injection signals, or fairness review flags. Lower-confidence
+    decisions are preserved because the gate is a safety ceiling, not a scorer.
+    """
+
+    original = str(proposed_decision or "review")
+    if original not in {"strong_match", "review", "not_enough_evidence"}:
+        original = "review"
+    try:
+        grounded_count = int(grounded_evidence or 0)
+    except (TypeError, ValueError):
+        grounded_count = 0
+
+    reasons = []
+    quality = evidence_quality if isinstance(evidence_quality, dict) else {}
+    integrity = source_integrity if isinstance(source_integrity, dict) else {}
+    if grounded_count <= 0 and original == "strong_match":
+        reasons.append("No grounded evidence is available")
+    if integrity.get("status") == "review":
+        reasons.append("Source integrity requires review")
+    if fairness_status == "review":
+        reasons.append("Fairness audit requires review")
+    if quality.get("review_priority") == "high":
+        reasons.append("Evidence quality is high-priority review")
+    try:
+        coverage = float(quality.get("coverage_percent"))
+    except (TypeError, ValueError):
+        coverage = None
+    if original == "strong_match" and coverage is not None and coverage < 70:
+        reasons.append("Evidence coverage is below the strong-match threshold")
+
+    if original == "strong_match" and grounded_count <= 0:
+        final_decision = "not_enough_evidence"
+    elif original == "strong_match" and reasons:
+        final_decision = "review"
+    else:
+        final_decision = original
+    return {
+        "version": "decision-gate-v1",
+        "proposed_decision": original,
+        "final_decision": final_decision,
+        "status": "downgraded" if final_decision != original else "pass",
+        "reasons": reasons,
+        "note": "The final decision is bounded by deterministic evidence and safety checks.",
+    }

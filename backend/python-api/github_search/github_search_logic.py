@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from PyPDF2 import PdfReader
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from common.ai_quality import evidence_quality_report, fairness_guard_audit, source_integrity_audit
+from common.ai_quality import decision_gate_report, evidence_quality_report, fairness_guard_audit, source_integrity_audit
 
 load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -814,6 +814,16 @@ JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므
             result["risk_flags"] = list(dict.fromkeys(result.get("risk_flags", []) + ["Potentially job-irrelevant attributes appeared in AI decision text"]))
             if result.get("decision") == "strong_match":
                 result["decision"] = "review"
+        result["decision_gate"] = decision_gate_report(
+            result.get("decision"),
+            grounded_evidence=len(grounded),
+            evidence_quality=result.get("evidence_quality"),
+            source_integrity=integrity,
+            fairness_status=result["fairness_guard"].get("status"),
+        )
+        result["decision"] = result["decision_gate"]["final_decision"]
+        if result["decision_gate"]["status"] == "downgraded":
+            result["risk_flags"] = list(dict.fromkeys(result.get("risk_flags", []) + result["decision_gate"]["reasons"]))
         return json.dumps(result, ensure_ascii=False)
     except Exception as e:
         print(f"[OpenAI structured analysis error] {e}")

@@ -164,6 +164,7 @@ export default function AIAnalysisSummary({ analysis, score, title }) {
   const calibration = data?.score_calibration || data?.scoreCalibration || null;
   const evidenceDiversity = data?.evidence_diversity || data?.evidenceDiversity || null;
   const evidenceQuality = data?.evidence_quality || data?.evidenceQuality || null;
+  const decisionGate = data?.decision_gate || data?.decisionGate || null;
   const hasStructuredData = Boolean(payload);
   const safeScore = finiteNumber(score);
   const coveragePercent = formatPercent(coverage);
@@ -236,6 +237,17 @@ export default function AIAnalysisSummary({ analysis, score, title }) {
             <span>{copy.draft} {Math.round(Number(calibration.model_score || 0))} → {copy.calibrated} {Math.round(Number(calibration.calibrated_score || safeScore || 0))}</span>
           </div>
           <p className="mt-1">{calibration.description || 'Only claims grounded in the candidate source are fully reflected in the decision.'}</p>
+        </div>
+      )}
+
+      {decisionGate && (
+        <div className={`mt-4 rounded-xl border p-3 text-xs ${decisionGate.status === 'downgraded' ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}`}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="font-semibold">Deterministic decision gate</span>
+            <span className="rounded-full bg-white/70 px-2 py-1 font-semibold">{decisionGate.status || 'pass'}</span>
+          </div>
+          <p className="mt-1">{decisionGate.note || 'The final decision is bounded by evidence and safety checks.'}</p>
+          {decisionGate.reasons?.length > 0 && <p className="mt-1 font-medium">Review reasons: {decisionGate.reasons.join(' · ')}</p>}
         </div>
       )}
 

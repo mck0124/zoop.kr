@@ -19,7 +19,7 @@ import yt_dlp
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from common.ai_quality import evidence_quality_report, fairness_guard_audit, source_integrity_audit
+from common.ai_quality import decision_gate_report, evidence_quality_report, fairness_guard_audit, source_integrity_audit
 
 # .env에서 API 키 로드
 load_dotenv()
@@ -513,6 +513,16 @@ def analyze_interview_responses(transcripts: List[str], questions: List[str], po
                 coverage=evidence_coverage,
                 source_integrity=integrity,
             )
+            analysis_data["decision_gate"] = decision_gate_report(
+                analysis_data.get("decision"),
+                grounded_evidence=len(grounded_evidence),
+                evidence_quality=analysis_data["evidence_quality"],
+                source_integrity=integrity,
+                fairness_status=analysis_data["fairness_guard"].get("status"),
+            )
+            analysis_data["decision"] = analysis_data["decision_gate"]["final_decision"]
+            if analysis_data["decision_gate"]["status"] == "downgraded":
+                analysis_data["risk_flags"] = list(dict.fromkeys(analysis_data["risk_flags"] + analysis_data["decision_gate"]["reasons"]))
             distinct_sources = sorted({item.get("source") for item in all_evidence if item.get("source")})
             analysis_data["evidence_diversity"] = {
                 "source_count": len(distinct_sources),
