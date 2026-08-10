@@ -74,7 +74,7 @@ function LoginSelectionPage() {
     if (authError) {
         // URL 디코딩하여 에러 메시지 상태에 저장
         // 에러 메시지는 사용자에게 보여줄 적절한 형태로 가공하는 것이 좋습니다.
-        setError(`로그인 처리 중 오류 발생: ${decodeURIComponent(authError)}`);
+        setError(`Sign-in error: ${decodeURIComponent(authError)}`);
         // 에러 정보가 표시된 후에는 URL에서 해당 파라미터를 제거하여 새로고침 시 중복 표시 방지
         // navigate 함수에 { replace: true } 옵션을 사용하여 현재 히스토리 항목을 대체합니다.
         navigate(window.location.pathname, { replace: true }); // 현재 경로로 이동하며 기록 대체
@@ -86,7 +86,7 @@ function LoginSelectionPage() {
     event.preventDefault();
 
     if (!loginId || !password) {
-      setError('아이디와 비밀번호를 입력해주세요.');
+      setError('Enter your username and password.');
       return;
     }
 
@@ -184,13 +184,13 @@ function LoginSelectionPage() {
         }
        
       } else {
-        setError('로그인은 성공했으나 인증 토큰을 받지 못했습니다.');
+        setError('Sign-in succeeded, but no authentication token was returned.');
       }
 
     } catch (err) {
       setError(
         err.response?.data?.message ||
-        (typeof err.response?.data === 'string' ? err.response.data : '로그인 중 오류가 발생했습니다.')
+        (typeof err.response?.data === 'string' ? err.response.data : 'Something went wrong while signing in.')
       );
     }
   };
@@ -221,7 +221,7 @@ function LoginSelectionPage() {
     // 필수 설정 정보 누락 확인
     if (!config || !config.clientId || !config.redirectUri || !config.authUrl) {
       console.error('소셜 로그인 설정 정보가 누락되었습니다:', provider, config);
-      setError(`소셜 로그인 설정 오류가 발생했습니다 (${provider}). .env 파일을 확인해주세요.`); // 사용자에게 오류 표시
+      setError(`Social sign-in is not configured for ${provider}. Check the environment settings.`); // 사용자에게 오류 표시
       return; // 함수 실행 중단
     }
 
@@ -253,7 +253,7 @@ function LoginSelectionPage() {
     } else {
         // socialConfig에 정의되지 않은 provider 이름이 handleSocialLogin 함수로 넘어온 경우
         console.error('지원하지 않는 소셜 로그인 제공자:', provider);
-        setError(`지원하지 않는 소셜 로그인입니다 (${provider}).`);
+        setError(`Social sign-in is not supported for ${provider}.`);
         return;
     }
 
@@ -264,7 +264,7 @@ function LoginSelectionPage() {
     } else {
         // authUrl 생성이 실패한 경우 (설정 오류 등)
         console.error('소셜 로그인 인증 URL 생성 중 오류 발생');
-        setError('소셜 로그인 URL 생성 중 오류가 발생했습니다.');
+        setError('Could not create the social sign-in URL.');
     }
   };
 

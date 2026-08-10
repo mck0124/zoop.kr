@@ -142,19 +142,31 @@ const [individualAgree, setIndividualAgree] = useState({
 
 // 2. 이메일 인증 코드 요청 함수
 const handleSendCode = async () => {
+  if (!emailLocal.trim() || !emailDomain.trim()) {
+    setErrorMessage('Enter a complete email address before requesting a verification code.');
+    return;
+  }
   setIsSendingCode(true); // 전송 중 상태로 설정
   const fullEmail = `${emailLocal}@${emailDomain}`; // 전체 이메일 주소 조합
-  const res = await fetch(apiUrl(`/api/email/send?email=${encodeURIComponent(fullEmail)}`), {
-    method: 'POST',
-  });
+  try {
+    const res = await fetch(apiUrl(`/api/email/send?email=${encodeURIComponent(fullEmail)}`), {
+      method: 'POST',
+    });
 
-  if (res.ok) {
-    alert('인증 코드가 전송되었습니다.');
-    setCodeSent(true); // 코드 전송 성공 시 상태 변경
-  } else {
-    alert('코드 전송 실패');
+    if (res.ok) {
+      alert('Verification code sent.');
+      setErrorMessage('');
+      setCodeSent(true); // 코드 전송 성공 시 상태 변경
+      setResendTimer(300);
+    } else {
+      setErrorMessage('We could not send the verification code. Please try again.');
+    }
+  } catch (error) {
+    console.error('Email verification request failed:', error);
+    setErrorMessage('Network error. Check your connection and try again.');
+  } finally {
+    setIsSendingCode(false); // 전송 종료
   }
-  setIsSendingCode(false); // 전송 종료
 };
 
 /**
@@ -187,19 +199,19 @@ useEffect(() => {
     // 영문자+숫자 조합, 최소 8자리 (특수문자 선택적 포함 가능)
     const regex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-=[\]{}\\|;:'"<>,.?/~]{8,}$/;
     if (regex.test(value)) {
-      setPasswordMessage('사용 가능한 비밀번호입니다.');
+      setPasswordMessage('Password meets the requirements.');
       setIsPasswordValid(true);
     } else {
-      setPasswordMessage('영문자+숫자 조합, 최소 8자리여야 합니다. (특수문자 !@#$%^&_-~ 선택적 사용 가능)');
+      setPasswordMessage('Use at least 8 characters with letters and numbers. Special characters are optional.');
       setIsPasswordValid(false);
     }
     // 비밀번호가 바뀌면 비밀번호 확인도 다시 체크
     if (passwordConfirm.length > 0) {
       if (passwordConfirm === value) {
-        setPasswordConfirmMessage('비밀번호가 일치합니다.');
+        setPasswordConfirmMessage('Passwords match.');
         setIsPasswordConfirmValid(true);
       } else {
-        setPasswordConfirmMessage('비밀번호가 일치하지 않습니다.');
+        setPasswordConfirmMessage('Passwords do not match.');
         setIsPasswordConfirmValid(false);
       }
     }
@@ -210,23 +222,33 @@ useEffect(() => {
     const value = e.target.value;
     setPasswordConfirm(value);
     if (value === password && value.length > 0) {
-      setPasswordConfirmMessage('비밀번호가 일치합니다.');
+      setPasswordConfirmMessage('Passwords match.');
       setIsPasswordConfirmValid(true);
     } else {
-      setPasswordConfirmMessage('비밀번호가 일치하지 않습니다.');
+      setPasswordConfirmMessage('Passwords do not match.');
       setIsPasswordConfirmValid(false);
     }
   };
 
   // 이메일 인증 확인
   const handleVerifyCode = async () => {
+    if (!verificationCode.trim()) {
+      setErrorMessage('Enter the verification code.');
+      return;
+    }
     const fullEmail = `${emailLocal}@${emailDomain}`;
-    const res = await fetch(apiUrl(`/api/email/verify?email=${encodeURIComponent(fullEmail)}&code=${verificationCode}`), { method: 'POST' });
-    if (res.ok) {
-      alert('이메일 인증 완료');
-      setIsEmailVerified(true);
-    } else {
-      alert('인증 실패. 코드를 확인해주세요.');
+    try {
+      const res = await fetch(apiUrl(`/api/email/verify?email=${encodeURIComponent(fullEmail)}&code=${verificationCode}`), { method: 'POST' });
+      if (res.ok) {
+        alert('Email verified.');
+        setErrorMessage('');
+        setIsEmailVerified(true);
+      } else {
+        setErrorMessage('Verification failed. Check the code and try again.');
+      }
+    } catch (error) {
+      console.error('Email verification failed:', error);
+      setErrorMessage('Network error. Check your connection and try again.');
     }
   };
 
@@ -240,21 +262,21 @@ useEffect(() => {
   // 아이디 중복 확인
   const checkDuplicateId = async () => {
     if (!idCheck.trim()) {
-      setIdMessage('아이디를 입력해주세요.');
+      setIdMessage('Enter a username.');
       setIsIdAvailable(false);
       return;
     }
     try {
       const res = await fetch(apiUrl(`/api/candidates/check-id?githubLogin=${idCheck}`));
       if (res.ok) {
-        setIdMessage('사용 가능한 아이디입니다.');
+        setIdMessage('Username is available.');
         setIsIdAvailable(true);
       } else {
-        setIdMessage('이미 사용 중인 아이디입니다.');
+        setIdMessage('Username is already in use.');
         setIsIdAvailable(false);
       }
     } catch (e) {
-      setIdMessage('확인 중 오류가 발생했습니다.');
+      setIdMessage('Could not check username availability.');
       setIsIdAvailable(false);
     }
   };
@@ -299,33 +321,33 @@ useEffect(() => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!idCheck || !isIdAvailable) {
-      setErrorMessage('아이디를 입력하고 중복 확인을 완료해주세요.');
+      setErrorMessage('Enter a username and check its availability.');
       return;
     }
 
     // [수정] 초대 링크가 아닐 때만 이메일 인증 검사
     if (!fromInvite && (!emailLocal || !emailDomain || !isEmailVerified)) {
-      setErrorMessage('이메일 인증을 완료해주세요.');
+      setErrorMessage('Verify your email before creating an account.');
       return;
     }
 
     if (!isPasswordValid) {
-      setErrorMessage('비밀번호 형식을 확인해주세요.');
+      setErrorMessage('Check the password requirements.');
       return;
     }
 
     if (!isPasswordConfirmValid) {
-      setErrorMessage('비밀번호가 일치하지 않습니다.');
+      setErrorMessage('Passwords do not match.');
       return;
     }
 
     if (!individualAgree.terms || !individualAgree.privacy) {
-      setErrorMessage('필수 항목에 동의해주세요.');
+      setErrorMessage('Agree to the required terms to continue.');
       return;
     }
 
     if (!document.getElementById('phone')?.value || !document.getElementById('candidate_name')?.value) {
-      setErrorMessage('모든 필수 입력 항목을 작성해주세요.');
+      setErrorMessage('Complete all required fields.');
       return;
     }
 
@@ -382,19 +404,19 @@ useEffect(() => {
         
         if (response.status === 400 || response.status === 500) {
           if (errorData.includes('이미 가입된 GitHub 계정입니다')) {
-            alert('이미 가입된 GitHub 계정입니다. 다른 계정으로 시도해주세요.');
+            alert('This GitHub account is already registered. Try another account.');
           } else if (errorData.includes('이미 가입된 이메일 주소입니다')) {
-            alert('이미 가입된 이메일 주소입니다. 다른 이메일로 시도해주세요.');
+            alert('This email address is already registered. Try another email.');
           } else {
-            alert('회원가입 중 오류가 발생했습니다: ' + errorData);
+            alert('Something went wrong while creating your account: ' + errorData);
           }
         } else {
-          alert('회원가입 실패: ' + errorData);
+          alert('Account creation failed: ' + errorData);
         }
       }
     } catch (error) {   // fetch요청 자체가 실패한 경우
       console.error('오류 발생:', error);
-      alert('네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.');
+      alert('Network error. Check your connection and try again.');
     }
   };
 
@@ -428,7 +450,7 @@ useEffect(() => {
               className={`flex-1 border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:border-sky-400 focus:ring-sky-200 transition-colors ${
                 fromInvite ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : ''
               }`}
-              placeholder="4~20자 영문, 숫자, _ 사용"
+              placeholder="4–20 letters, numbers, or underscores"
               disabled={fromInvite}
             />
             {!fromInvite && (
@@ -455,7 +477,7 @@ useEffect(() => {
             type="password"
             value={password}
             onChange={handlePasswordChange}
-            placeholder="영문자+숫자 조합, 최소 8자리 (특수문자 사용 가능)"
+            placeholder="At least 8 characters with letters and numbers"
             className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:border-sky-400 focus:ring-sky-200 transition-colors"
           />
           {passwordMessage && (
@@ -588,7 +610,7 @@ useEffect(() => {
             {Object.entries(individualAgree).map(([key, value]) => (
               <label key={key} className="block text-sm">
                 <input type="checkbox" name={key} checked={value} onChange={handleIndividualAgreeChange} className="mr-2" />
-                {(key === 'terms' || key === 'privacy') ? '(필수)' : '(선택)'} {
+                {(key === 'terms' || key === 'privacy') ? '(Required)' : '(Optional)'} {
                   key === 'terms' ? 'Candidate terms' :
                   key === 'privacy' ? 'Privacy collection and use' :
                   key === 'location' ? 'Location-based service terms' :

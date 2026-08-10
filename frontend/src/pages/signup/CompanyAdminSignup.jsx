@@ -29,18 +29,30 @@ export default function CompanyAdminSignup() {
   const companyId = location.state?.companyId;
 
   const handleSendCode = async () => {
+    if (!emailLocal.trim() || !emailDomain.trim()) {
+      setErrorMessage('Enter a complete email address before requesting a verification code.');
+      return;
+    }
     setIsSendingCode(true);
     const fullEmail = `${emailLocal}@${emailDomain}`;
-    const res = await fetch(apiUrl(`/api/email/send?email=${encodeURIComponent(fullEmail)}`), {
-      method: 'POST',
-    });
-    if (res.ok) {
-      alert('Verification code sent.');
-      setCodeSent(true);
-    } else {
-      alert('Could not send the verification code.');
+    try {
+      const res = await fetch(apiUrl(`/api/email/send?email=${encodeURIComponent(fullEmail)}`), {
+        method: 'POST',
+      });
+      if (res.ok) {
+        alert('Verification code sent.');
+        setErrorMessage('');
+        setCodeSent(true);
+        setResendTimer(300);
+      } else {
+        setErrorMessage('Could not send the verification code. Please try again.');
+      }
+    } catch (error) {
+      console.error('Email verification request failed:', error);
+      setErrorMessage('Network error. Check your connection and try again.');
+    } finally {
+      setIsSendingCode(false);
     }
-    setIsSendingCode(false);
   };
 
   useEffect(() => {
