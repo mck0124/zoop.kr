@@ -555,7 +555,6 @@ export default function InterviewEvaluation() {
                   <AIAnalysisSummary
                     analysis={analysisResult}
                     score={analysisResult.analysisScore}
-                    title="근거 기반 면접 분석 요약"
                   />
                 </div>
               ) : (

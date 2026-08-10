@@ -1614,7 +1614,6 @@ export default function CandidateList({ activeTab = 'all' }) {
                 <AIAnalysisSummary
                   analysis={selectedAnalysis}
                   score={modalScore}
-                  title="Evidence Ledger · 후보자 판단 기록"
                 />
                 {/* 1. 종합 역량 분석 섹션 */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>

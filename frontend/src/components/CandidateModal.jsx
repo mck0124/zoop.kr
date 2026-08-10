@@ -601,10 +601,9 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
                   <AIAnalysisSummary
                     analysis={portfolioAnalysis}
                     score={portfolioAnalysis.analysisScore}
-                    title="포트폴리오 근거 기반 분석"
                   />
                 ) : (
-                  <div className="text-gray-400">분석 결과가 없습니다.</div>
+                  <div className="text-gray-400">No analysis available.</div>
                 )}
               </div>
             )}
@@ -614,7 +613,6 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
               <AIAnalysisSummary
                 analysis={interviewAnalysis}
                 score={interviewAnalysis.analysisScore}
-                title="면접 답변 근거·일관성 분석"
               />
             </div>
           )}

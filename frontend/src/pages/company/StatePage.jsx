@@ -202,7 +202,6 @@ export default function StatePage() {
                       <AIAnalysisSummary
                         analysis={{ analysisData: r.analysisData }}
                         score={r.githubAnalysisScore}
-                        title="근거 기반 분석 요약"
                       />
                     </div>
                   </div>

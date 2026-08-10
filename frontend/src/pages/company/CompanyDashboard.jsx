@@ -430,7 +430,7 @@ export default function CompanyDashboard() {
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -439,7 +439,7 @@ export default function CompanyDashboard() {
   const formatDateTime = (dateTimeString) => {
     if (!dateTimeString) return '';
     const date = new Date(dateTimeString);
-    return date.toLocaleString('ko-KR', {
+    return date.toLocaleString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -2658,7 +2658,7 @@ export default function CompanyDashboard() {
                       <div key={cand.githubLogin + idx} style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                         <strong style={{ color: '#2d3748' }}>{cand.githubLogin}</strong>
                         {cand.interviewDate && (
-                          <span> – {new Date(cand.interviewDate).toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                          <span> – {new Date(cand.interviewDate).toLocaleString('en-US', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                         )}
                         <span style={{ color: '#30c59b', marginLeft: 8, fontWeight: 500, fontSize: '0.98em' }}>({cand.postTitle})</span>
                       </div>
@@ -2889,14 +2889,14 @@ export default function CompanyDashboard() {
                 fontWeight: 600,
                 marginBottom: '0.5rem'
               }}>
-                AI가 포트폴리오를 분석하고 있습니다
+                AI is analyzing the portfolio
               </p>
               <p style={{ 
                 color: '#718096', 
                 fontSize: '0.9rem',
                 margin: 0
               }}>
-                잠시만 기다려주세요...
+                Please wait a moment...
               </p>
             </div>
           </div>
@@ -2962,12 +2962,12 @@ export default function CompanyDashboard() {
                   position: 'relative',
                   zIndex: 1
                 }}>
-                  {currentAiAnalysis.analysisDate ? new Date(currentAiAnalysis.analysisDate).toLocaleString('ko-KR') : '분석 일시 없음'}
+                  {currentAiAnalysis.analysisDate ? new Date(currentAiAnalysis.analysisDate).toLocaleString('en-US') : 'Analysis date unavailable'}
                 </div>
               </div>
             )}
             
-            {/* 상세 분석 내용 */}
+            {/* Detailed analysis */}
             <div style={{
               background: '#fff',
               padding: '2rem',
@@ -2994,12 +2994,11 @@ export default function CompanyDashboard() {
                   </defs>
                   <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20ZM8 12H16V14H8V12ZM8 16H12V18H8V16Z" fill="url(#iconGradient)"/>
                 </svg>
-                상세 분석 내용
+                Detailed analysis
               </h3>
               <AIAnalysisSummary
                 analysis={currentAiAnalysis}
                 score={currentAiAnalysis.analysisScore}
-                title="포트폴리오 근거 기반 분석"
               />
             </div>
             
@@ -3036,7 +3035,7 @@ export default function CompanyDashboard() {
                     <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V8H19V19Z" fill="#718096"/>
                     <path d="M7 10H9V12H7V10ZM11 10H13V12H11V10ZM15 10H17V12H15V10Z" fill="#718096"/>
                   </svg>
-                  <strong>분석 일시:</strong> {new Date(currentAiAnalysis.analysisDate).toLocaleString('ko-KR')}
+                  <strong>Analyzed at:</strong> {new Date(currentAiAnalysis.analysisDate).toLocaleString('en-US')}
                 </div>
               )}
             </div>
