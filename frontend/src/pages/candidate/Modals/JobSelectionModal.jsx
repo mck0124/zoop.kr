@@ -43,12 +43,12 @@ function JobSelectionModal({ onClose, onSelectJob }) {
     <div className="modal-overlay">
       <div className="modal-content">
         <div className="modal-header">
-          <h2>직무·직업</h2>
+          <h2>Role and profession</h2>
           {/* You can add a close button here if needed */}
         </div>
         <div className="modal-body">
           <div className="selection-category">
-            <h3>직무·직업</h3>
+            <h3>Role and profession</h3>
             <div className="tags-container">
               {jobRoles.map((job) => (
                 <span
@@ -63,7 +63,7 @@ function JobSelectionModal({ onClose, onSelectJob }) {
           </div>
 
           <div className="selection-category">
-            <h3>전문분야</h3>
+            <h3>Specialty</h3>
             <div className="tags-container">
               {professionalFields.map((field) => (
                 <span
@@ -78,7 +78,7 @@ function JobSelectionModal({ onClose, onSelectJob }) {
           </div>
 
           <div className="selection-category">
-            <h3>기술스택</h3>
+            <h3>Tech stack</h3>
             <div className="tags-container">
               {techStacks.map((tech) => (
                 <span
@@ -95,14 +95,14 @@ function JobSelectionModal({ onClose, onSelectJob }) {
           <div className="search-input-container">
             <input
               type="text"
-              placeholder="직무를 검색 또는 추가할 수 있어요."
+              placeholder="Search or add a role"
               // You might want to implement a search/add functionality here
             />
           </div>
         </div>
         <div className="modal-footer">
-          <button className="cancel-button" onClick={onClose}>취소</button>
-          <button className="confirm-button" onClick={handleConfirm}>확인</button>
+          <button className="cancel-button" onClick={onClose}>Cancel</button>
+          <button className="confirm-button" onClick={handleConfirm}>Apply</button>
         </div>
       </div>
     </div>

@@ -47,7 +47,7 @@ function SalarySelectionModal({ onClose, onSelectSalary }) {
     <div className="modal-overlay"> {/* JobSelectionModal과 동일한 오버레이 사용 */}
       <div className="salary-modal-content"> {/* 연봉 모달 전용 클래스 */}
         <div className="salary-modal-header">
-          <h3>연봉</h3>
+          <h3>Salary</h3>
         </div>
         <div className="salary-modal-body">
           <ul className="salary-list">
@@ -63,8 +63,8 @@ function SalarySelectionModal({ onClose, onSelectSalary }) {
           </ul>
         </div>
         <div className="salary-modal-footer">
-          <button className="cancel-button" onClick={onClose}>취소</button>
-          <button className="confirm-button" onClick={handleConfirm}>확인</button>
+          <button className="cancel-button" onClick={onClose}>Cancel</button>
+          <button className="confirm-button" onClick={handleConfirm}>Apply</button>
         </div>
       </div>
     </div>

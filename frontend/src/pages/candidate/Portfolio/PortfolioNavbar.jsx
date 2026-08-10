@@ -293,7 +293,7 @@ function PortfolioNavbar() {
                     </svg>
                     알림
                   </h3>
-                  <span className="notification-subtitle">최근 30일간의 알림 내역</span>
+                  <span className="notification-subtitle">Notifications from the last 30 days</span>
                 </div>
               </div>
               
@@ -311,12 +311,12 @@ function PortfolioNavbar() {
                       />
                     </svg>
                   </div>
-                  <p style={{ fontWeight: '600', color: '#374151' }}>알림을 불러오는 중...</p>
-                  <p style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>잠시만 기다려주세요</p>
+                  <p style={{ fontWeight: '600', color: '#374151' }}>Loading notifications...</p>
+                  <p style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>Please wait</p>
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="notification-section">
-                  <h4>오늘의 알림</h4>
+                  <h4>Today</h4>
                   <div className="notification-empty">
                     <div className="notification-illustration">
                       <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
@@ -330,8 +330,8 @@ function PortfolioNavbar() {
                         </defs>
                       </svg>
                     </div>
-                    <p>새로운 알림이 없습니다</p>
-                    <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', opacity: 0.7 }}>새로운 활동이 있을 때 알려드릴게요</p>
+                    <p>No new notifications</p>
+                    <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', opacity: 0.7 }}>We will notify you when there is new activity</p>
                   </div>
                 </div>
               ) : (
@@ -511,7 +511,7 @@ function PortfolioNavbar() {
                   )}
                   
                   <div className="notification-section">
-                    <h4>최근 알림</h4>
+                    <h4>Recent notifications</h4>
                     <div className="notification-list">
                       {notifications
                         .sort((a, b) => {

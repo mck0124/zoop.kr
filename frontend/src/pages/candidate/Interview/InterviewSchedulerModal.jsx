@@ -383,7 +383,7 @@ function InterviewSchedulerModal({ isOpen, onClose, onSchedule, postId, candidat
             <rect x="3" y="4" width="18" height="18" rx="2"/>
             <path d="M16 2v4M8 2v4M3 10h18"/>
           </svg>
-          <span style={{ fontWeight: 600, fontSize: 20, color: '#333' }}>면접 일정 정하기</span>
+          <span style={{ fontWeight: 600, fontSize: 20, color: '#333' }}>Schedule interview</span>
           <button 
             className="close-button" 
             onClick={handleClose}
@@ -431,7 +431,7 @@ function InterviewSchedulerModal({ isOpen, onClose, onSchedule, postId, candidat
           <div className="scheduler-layout">
             {/* 왼쪽: 달력 */}
             <div className="calendar-section">
-              <h3>날짜 선택</h3>
+              <h3>Select a date</h3>
               <div style={{ margin: '8px 0 16px 0', color: '#388e3c', fontSize: '15px', fontWeight: 500 }}>
                 면접은 선택하신 날짜로부터 1주일 이내에 진행하실 수 있습니다.
               </div>
@@ -460,13 +460,13 @@ function InterviewSchedulerModal({ isOpen, onClose, onSchedule, postId, candidat
                 
                 <div className="calendar-grid">
                   <div className="calendar-weekdays">
-                    <div>일</div>
-                    <div>월</div>
-                    <div>화</div>
-                    <div>수</div>
-                    <div>목</div>
-                    <div>금</div>
-                    <div>토</div>
+                    <div>Sun</div>
+                    <div>Mon</div>
+                    <div>Tue</div>
+                    <div>Wed</div>
+                    <div>Thu</div>
+                    <div>Fri</div>
+                    <div>Sat</div>
                   </div>
                   <div className="calendar-days">
                     {renderCalendar()}
@@ -477,7 +477,7 @@ function InterviewSchedulerModal({ isOpen, onClose, onSchedule, postId, candidat
 
             {/* 오른쪽: 시간대 선택 */}
             <div className="time-section">
-              <h3>시간 선택</h3>
+              <h3>Select a time</h3>
               <div className="time-slots-scroll">
                 {timeSlots.map((time) => {
                   const isDisabled = !selectedDate || isTimeDisabled(time);

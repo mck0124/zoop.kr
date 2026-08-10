@@ -28,7 +28,7 @@ function CompanySizeSelectionModal({ onClose, onSelectCompanySize }) {
     <div className="modal-overlay">
       <div className="company-size-modal-content">
         <div className="company-size-modal-header">
-          <h3>기업규모</h3>
+          <h3>Company size</h3>
         </div>
         <div className="company-size-modal-body">
           <ul className="company-size-list">
@@ -44,8 +44,8 @@ function CompanySizeSelectionModal({ onClose, onSelectCompanySize }) {
           </ul>
         </div>
         <div className="company-size-modal-footer">
-          <button className="cancel-button" onClick={onClose}>취소</button>
-          <button className="confirm-button" onClick={handleConfirm}>확인</button>
+          <button className="cancel-button" onClick={onClose}>Cancel</button>
+          <button className="confirm-button" onClick={handleConfirm}>Apply</button>
         </div>
       </div>
     </div>

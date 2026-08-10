@@ -26,7 +26,7 @@ function RegionSelectionModal({ onClose, onSelectRegion }) {
     <div className="modal-overlay">
       <div className="region-modal-content"> {/* 지역 모달 전용 클래스 */}
         <div className="region-modal-header">
-          <h3>지역</h3>
+          <h3>Location</h3>
         </div>
         <div className="region-modal-body">
           <ul className="region-list">
@@ -42,8 +42,8 @@ function RegionSelectionModal({ onClose, onSelectRegion }) {
           </ul>
         </div>
         <div className="region-modal-footer">
-          <button className="cancel-button" onClick={onClose}>취소</button>
-          <button className="confirm-button" onClick={handleConfirm}>확인</button>
+          <button className="cancel-button" onClick={onClose}>Cancel</button>
+          <button className="confirm-button" onClick={handleConfirm}>Apply</button>
         </div>
       </div>
     </div>

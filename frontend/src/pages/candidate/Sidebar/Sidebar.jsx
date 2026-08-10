@@ -141,7 +141,7 @@ function Sidebar({ setActiveSection }) {
             }
           }}
         >
-          <span className="icon"><HomeIcon /></span> My 홈
+          <span className="icon"><HomeIcon /></span> My home
           <span className="arrow" aria-hidden="true">
             <svg className={`arrow-icon ${expandedMenuId === 'myHome' ? 'open' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -149,11 +149,11 @@ function Sidebar({ setActiveSection }) {
           </span>
           {expandedMenuId === 'myHome' && (
             <ul className="sub-menu" role="menu">
-              <li className="sub-menu-item" role="menuitem">계정정보 설정</li>
-              <li className="sub-menu-item" role="menuitem">비밀번호 변경</li>
-              <li className="sub-menu-item" role="menuitem">로그인 관리</li>
-              <li className="sub-menu-item" role="menuitem">알림설정</li>
-              <li className="sub-menu-item" role="menuitem">로그아웃</li>
+              <li className="sub-menu-item" role="menuitem">Account details</li>
+              <li className="sub-menu-item" role="menuitem">Change password</li>
+              <li className="sub-menu-item" role="menuitem">Login management</li>
+              <li className="sub-menu-item" role="menuitem">Notifications</li>
+              <li className="sub-menu-item" role="menuitem">Log out</li>
             </ul>
           )}
         </li>
@@ -172,7 +172,7 @@ function Sidebar({ setActiveSection }) {
             }
           }}
         >
-          <span className="icon"><ProposalIcon /></span> 받은 제안
+          <span className="icon"><ProposalIcon /></span> Received offers
           <span className="arrow" aria-hidden="true">
             <svg className={`arrow-icon ${expandedMenuId === 'receivedProposals' ? 'open' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -180,8 +180,8 @@ function Sidebar({ setActiveSection }) {
           </span>
           {expandedMenuId === 'receivedProposals' && (
             <ul className="sub-menu" role="menu">
-              <li className="sub-menu-item" role="menuitem">포지션 제안 현황</li>
-              <li className="sub-menu-item" role="menuitem">이력서 열람 현황</li>
+              <li className="sub-menu-item" role="menuitem">Job offers</li>
+              <li className="sub-menu-item" role="menuitem">Resume views</li>
             </ul>
           )}
         </li>
@@ -200,7 +200,7 @@ function Sidebar({ setActiveSection }) {
             }
           }}
         >
-          <span className="icon"><ResumeIcon /></span> 이력서/자소서
+          <span className="icon"><ResumeIcon /></span> Resume / cover letter
           <span className="arrow" aria-hidden="true">
             <svg className={`arrow-icon ${expandedMenuId === 'resumeCoverLetter' ? 'open' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -213,16 +213,16 @@ function Sidebar({ setActiveSection }) {
                 role="menuitem"
                 onClick={() => navigate('/candidate/resume/ResumeSubmissionPage')}
               >
-                이력서 등록
+                Build resume
               </li>
-              <li className="sub-menu-item" role="menuitem">이력서 관리</li>
-              <li className="sub-menu-item" role="menuitem">자소서 관리</li>
+              <li className="sub-menu-item" role="menuitem">Manage resume</li>
+              <li className="sub-menu-item" role="menuitem">Manage cover letter</li>
             </ul>
           )}
         </li>
 
         <li className="menu-item" onClick={() => navigate('/candidate/bookmarks')}>
-          <span className="icon"><BookmarkIcon /></span> 스크랩/관심기업
+          <span className="icon"><BookmarkIcon /></span> Bookmarks / companies
         </li>
 
         {/* '지원한 공고' 메뉴 아이템 */}
@@ -239,7 +239,7 @@ function Sidebar({ setActiveSection }) {
             }
           }}
         >
-          <span className="icon"><SearchIcon /></span> 지원한 공고
+          <span className="icon"><SearchIcon /></span> Applied jobs
           <span className="arrow" aria-hidden="true">
             <svg className={`arrow-icon ${expandedMenuId === 'appliedJobs' ? 'open' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -247,14 +247,14 @@ function Sidebar({ setActiveSection }) {
           </span>
           {expandedMenuId === 'appliedJobs' && (
             <ul className="sub-menu" role="menu">
-              <li className="sub-menu-item" role="menuitem">내 지원 현황</li>
-              <li className="sub-menu-item" role="menuitem">기업별 지원 내역</li>
+              <li className="sub-menu-item" role="menuitem">My applications</li>
+              <li className="sub-menu-item" role="menuitem">Applications by company</li>
             </ul>
           )}
         </li>
 
         <li className="menu-item">
-          <span className="icon"><SettingsIcon /></span> 제안받기 설정
+          <span className="icon"><SettingsIcon /></span> Offer preferences
         </li>
 
         {/* '지원내역' 메뉴 아이템 */}
@@ -271,7 +271,7 @@ function Sidebar({ setActiveSection }) {
             }
           }}
         >
-          <span className="icon"><HistoryIcon /></span> 지원내역
+          <span className="icon"><HistoryIcon /></span> Application history
           <span className="arrow" aria-hidden="true">
             <svg className={`arrow-icon ${expandedMenuId === 'applicationHistory' ? 'open' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -279,22 +279,22 @@ function Sidebar({ setActiveSection }) {
           </span>
           {expandedMenuId === 'applicationHistory' && (
             <ul className="sub-menu" role="menu">
-              <li className="sub-menu-item" role="menuitem">지원 현황 보기</li>
-              <li className="sub-menu-item" role="menuitem">지원 이력 관리</li>
+              <li className="sub-menu-item" role="menuitem">View applications</li>
+              <li className="sub-menu-item" role="menuitem">Manage application history</li>
             </ul>
           )}
         </li>
         
         <li className="menu-item">
-          <span className="icon"><InterviewIcon /></span> 면접관리
+          <span className="icon"><InterviewIcon /></span> Interviews
         </li>
         
         <li className="menu-item">
-          <span className="icon"><PaymentIcon /></span> 결제 내역
+          <span className="icon"><PaymentIcon /></span> Payments
         </li>
         
         <li className="menu-item">
-          <span className="icon"><CouponIcon /></span> 내 쿠폰
+          <span className="icon"><CouponIcon /></span> My coupons
         </li>
 
         {/* '커리어 마일리지' 메뉴 아이템 */}
@@ -311,7 +311,7 @@ function Sidebar({ setActiveSection }) {
             }
           }}
         >
-          <span className="icon"><MileageIcon /></span> 커리어 마일리지
+          <span className="icon"><MileageIcon /></span> Career mileage
           <span className="arrow" aria-hidden="true">
             <svg className={`arrow-icon ${expandedMenuId === 'careerMileage' ? 'open' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -319,9 +319,9 @@ function Sidebar({ setActiveSection }) {
           </span>
           {expandedMenuId === 'careerMileage' && (
             <ul className="sub-menu" role="menu">
-              <li className="sub-menu-item" role="menuitem">마일리지 적립 내역</li>
-              <li className="sub-menu-item" role="menuitem">마일리지 사용 내역</li>
-              <li className="sub-menu-item" role="menuitem">마일리지 교환</li>
+              <li className="sub-menu-item" role="menuitem">Earned mileage</li>
+              <li className="sub-menu-item" role="menuitem">Used mileage</li>
+              <li className="sub-menu-item" role="menuitem">Exchange mileage</li>
             </ul>
           )}
         </li>

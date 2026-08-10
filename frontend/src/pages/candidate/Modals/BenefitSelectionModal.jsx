@@ -192,7 +192,7 @@ const BenefitSelectionModal = ({ isOpen, onClose, onSave, selectedBenefits = [] 
     <div className="benefit-modal-overlay">
       <div className="benefit-modal">
         <div className="benefit-modal-header">
-          <h3>복리후생 선택</h3>
+          <h3>Select benefits</h3>
           <button className="close-button" onClick={handleCancel}>×</button>
         </div>
         
@@ -239,10 +239,10 @@ const BenefitSelectionModal = ({ isOpen, onClose, onSave, selectedBenefits = [] 
 
         <div className="benefit-modal-footer">
           <button type="button" className="btn-cancel" onClick={handleCancel}>
-            취소
+              Cancel
           </button>
           <button type="button" className="btn-save" onClick={handleSave}>
-            확인
+              Apply
           </button>
         </div>
       </div>
@@ -250,4 +250,4 @@ const BenefitSelectionModal = ({ isOpen, onClose, onSave, selectedBenefits = [] 
   );
 };
 
-export default BenefitSelectionModal; 
+export default BenefitSelectionModal;

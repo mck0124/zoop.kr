@@ -27,7 +27,7 @@ function CommuteTimeSelectionModal({ onClose, onSelectCommuteTime }) {
     <div className="modal-overlay">
       <div className="commute-time-modal-content">
         <div className="commute-time-modal-header">
-          <h3>출근소요시간</h3>
+          <h3>Commute time</h3>
         </div>
         <div className="commute-time-modal-body">
           <ul className="commute-time-list">
@@ -43,8 +43,8 @@ function CommuteTimeSelectionModal({ onClose, onSelectCommuteTime }) {
           </ul>
         </div>
         <div className="commute-time-modal-footer">
-          <button className="cancel-button" onClick={onClose}>취소</button>
-          <button className="confirm-button" onClick={handleConfirm}>확인</button>
+          <button className="cancel-button" onClick={onClose}>Cancel</button>
+          <button className="confirm-button" onClick={handleConfirm}>Apply</button>
         </div>
       </div>
     </div>

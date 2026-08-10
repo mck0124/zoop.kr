@@ -390,7 +390,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
             <div className="text-lg font-bold text-gray-800">{score} <span className="text-xs text-gray-400">/ {max}</span></div>
           </>
         ) : (
-          <div className="text-gray-400 font-medium">미제출</div>
+          <div className="text-gray-400 font-medium">Not submitted</div>
         )}
       </div>
     );
@@ -403,7 +403,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
       <div className="flex-1 bg-white rounded-2xl shadow p-6 flex flex-col items-center justify-center border border-gray-100">
         <div className="flex items-center mb-2">
           <span className="text-2xl mr-2">{icon}</span>
-          <span className="font-semibold text-gray-700">포트폴리오 분석점수</span>
+          <span className="font-semibold text-gray-700">Portfolio analysis score</span>
         </div>
         {score ? (
           <>
@@ -416,7 +416,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
             <div className="text-lg font-bold text-gray-800">{score} <span className="text-xs text-gray-400">/ {max}</span></div>
           </>
         ) : (
-          <div className="text-gray-400 font-medium">미제출</div>
+          <div className="text-gray-400 font-medium">Not submitted</div>
         )}
       </div>
     );
@@ -429,7 +429,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
       <div className="flex-1 bg-white rounded-2xl shadow p-6 flex flex-col items-center justify-center border border-gray-100">
         <div className="flex items-center mb-2">
           <span className="text-2xl mr-2">{icon}</span>
-          <span className="font-semibold text-gray-700">면접 분석점수</span>
+          <span className="font-semibold text-gray-700">Interview analysis score</span>
         </div>
         {score ? (
           <>
@@ -442,7 +442,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
             <div className="text-lg font-bold text-gray-800">{score} <span className="text-xs text-gray-400">/ {max}</span></div>
           </>
         ) : (
-          <div className="text-gray-400 font-medium">미응시</div>
+          <div className="text-gray-400 font-medium">Not completed</div>
         )}
       </div>
     );
@@ -474,7 +474,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
         ref={modalRef}
         role="dialog"
         aria-modal="true"
-        aria-label="후보자 상세 정보"
+        aria-label="Candidate details"
         tabIndex={-1}
         className="bg-white p-8 rounded-3xl shadow-2xl border border-gray-100 w-[85%] max-w-[900px] max-h-[90%] relative overflow-y-auto flex flex-col"
         onClick={(e) => e.stopPropagation()}
@@ -499,19 +499,19 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
               </div>
             </div>
             <div>
-              <span className="text-sm text-gray-500">아이디</span>
+              <span className="text-sm text-gray-500">Username</span>
               <div className="font-semibold text-lg">{candidate.githubLogin}</div>
             </div>
             <div>
-              <span className="text-sm text-gray-500">이메일</span>
+              <span className="text-sm text-gray-500">Email</span>
               <div className="font-semibold text-lg">{candidate.candidateEmail}</div>
             </div>
             <div>
-              <span className="text-sm text-gray-500">포트폴리오 제출</span>
+              <span className="text-sm text-gray-500">Portfolio submitted</span>
               <div className="font-semibold text-lg">{formatKoreanDateTime(portfolioDate)}</div>
             </div>
             <div>
-              <span className="text-sm text-gray-500">면접 일정</span>
+              <span className="text-sm text-gray-500">Interview schedule</span>
               <div className="font-semibold text-lg">{formatKoreanDateTime(interviewSchedule?.aiInterviewScheduledTime)}</div>
             </div>
           </div>
@@ -539,7 +539,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
 
         {/* 하단: 포트폴리오 미리보기 (확대) */}
         <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 shadow-inner">
-          <h4 className="font-bold text-lg mb-4 text-emerald-700">📄 포트폴리오 미리보기</h4>
+          <h4 className="font-bold text-lg mb-4 text-emerald-700">📄 Portfolio preview</h4>
           {/* 확대/축소 버튼 (진한 초록색) */}
           <div className="flex justify-end gap-2 mb-2">
             <button onClick={() => setZoom(z => Math.max(z - 0.1, 0.2))} className="w-8 h-8 bg-[#166534] hover:bg-[#14532d] text-white text-2xl rounded flex items-center justify-center">-</button>
@@ -570,8 +570,8 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
             ) : (
               <div className="flex flex-col items-center justify-center w-full h-[350px] bg-gray-100 bg-opacity-60 rounded-2xl border-2 border-dashed border-gray-300">
                 <span className="text-6xl mb-4">📁</span>
-                <div className="text-lg font-semibold mb-2 text-gray-500">아직 제출된 포트폴리오가 없습니다.</div>
-                <div className="text-sm text-gray-400">포트폴리오를 제출하면 이곳에서 미리보기가 가능합니다.</div>
+                <div className="text-lg font-semibold mb-2 text-gray-500">No portfolio submitted yet.</div>
+                <div className="text-sm text-gray-400">A preview will appear here after submission.</div>
               </div>
             )}
             {/* 다음(>) 버튼 */}
@@ -593,7 +593,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
               <div className={`w-4 h-4 rounded-full border-2 transition-colors ${portfolioAnalysisOpen ? 'bg-blue-500 border-blue-500' : 'border-gray-300'}`}>
                 {portfolioAnalysisOpen && <div className="w-2 h-2 bg-white rounded-full m-0.5" />}
               </div>
-              <span className="font-medium text-gray-700">포트폴리오 분석결과</span>
+              <span className="font-medium text-gray-700">Portfolio analysis</span>
             </button>
             {portfolioAnalysisOpen && (
               <div className="mt-4 p-4 bg-white rounded-lg border border-blue-100">
