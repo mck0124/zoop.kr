@@ -38,9 +38,7 @@ export function AuthProvider({ children }) {
     const autoLogout = (showAlert = true) => {
       console.log('토큰이 만료되어 자동 로그아웃을 실행합니다.');
       
-      if (showAlert) {
-        alert('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
-      }
+      if (showAlert) sessionStorage.setItem('zoopAuthMessage', 'Your session expired. Please sign in again.');
       
       // 로컬 스토리지에서 인증 관련 정보 제거
       localStorage.removeItem('jwtToken');
@@ -59,7 +57,7 @@ export function AuthProvider({ children }) {
       });
 
       // 로그인 페이지로 리다이렉트
-      window.location.href = '/auth/login';
+      window.location.href = showAlert ? '/auth/login?error=session_expired' : '/auth/login';
     };
 
     useEffect(() => {
@@ -147,7 +145,7 @@ export function AuthProvider({ children }) {
     const toggleBookmark = async (postId) => {
       const userId = authState.userId;
       if (!userId) {
-        alert('로그인이 필요합니다.');
+        window.location.href = '/auth/login?error=auth_required';
         return;
       }
 

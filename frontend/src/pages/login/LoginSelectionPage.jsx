@@ -74,7 +74,14 @@ function LoginSelectionPage() {
     if (authError) {
         // URL 디코딩하여 에러 메시지 상태에 저장
         // 에러 메시지는 사용자에게 보여줄 적절한 형태로 가공하는 것이 좋습니다.
-        setError(`Sign-in error: ${decodeURIComponent(authError)}`);
+        const storedMessage = sessionStorage.getItem('zoopAuthMessage');
+        const errorMessage = authError === 'session_expired'
+          ? 'Your session expired. Please sign in again.'
+          : authError === 'auth_required'
+            ? 'Please sign in to continue.'
+            : `Sign-in error: ${decodeURIComponent(authError)}`;
+        setError(storedMessage || errorMessage);
+        sessionStorage.removeItem('zoopAuthMessage');
         // 에러 정보가 표시된 후에는 URL에서 해당 파라미터를 제거하여 새로고침 시 중복 표시 방지
         // navigate 함수에 { replace: true } 옵션을 사용하여 현재 히스토리 항목을 대체합니다.
         navigate(window.location.pathname, { replace: true }); // 현재 경로로 이동하며 기록 대체

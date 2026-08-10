@@ -135,6 +135,7 @@ export default function IncidentReportPage() {
   const [role, setRole] = useState('회사 관리자');
   const [report, setReport] = useState({ email: '', content: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState({ type: '', message: '' });
   const { authState } = useAuth();
   const navigate = useNavigate();
 
@@ -185,12 +186,13 @@ export default function IncidentReportPage() {
     
     // 로그인 상태 확인
     if (!authState.userType) {
-      alert('로그인이 필요합니다. 로그인 후 신고해주세요.');
+      setFeedback({ type: 'error', message: '로그인이 필요합니다. 로그인 후 신고해주세요.' });
       navigate('/auth/login');
       return;
     }
-    
+
     setIsSubmitting(true);
+    setFeedback({ type: '', message: '' });
     
     try {
       // 로그인 상태에 따른 신고자 타입 설정
@@ -219,29 +221,25 @@ export default function IncidentReportPage() {
       if (result.success) {
         const userTypeText = authState.userType === 'candidate' ? '지원자' : 
                            authState.userType === 'company' ? '회사관리자' : '익명';
-        alert(`${userTypeText} 신고가 접수되었습니다. 검토 후 연락드리겠습니다.`);
+        setFeedback({ type: 'success', message: `${userTypeText} 신고가 접수되었습니다. 검토 후 연락드리겠습니다.` });
         
         // 신고 접수 후 신고내용 비우기
         setReport(prev => ({ ...prev, content: '' }));
       } else {
-        alert('신고 접수 실패: ' + result.message);
+        setFeedback({ type: 'error', message: '신고 접수 실패: ' + (result.message || '잠시 후 다시 시도해주세요.') });
       }
     } catch (error) {
       if (error.response) {
         if (error.response.status === 401) {
-          alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+          setFeedback({ type: 'error', message: '로그인이 필요합니다. 로그인 페이지로 이동합니다.' });
           navigate('/auth/login');
           return;
         }
-        alert('신고 접수 실패: ' + (error.response.data.message || `서버 오류 (${error.response.status})`));
+        setFeedback({ type: 'error', message: '신고 접수 실패: ' + (error.response.data.message || `서버 오류 (${error.response.status})`) });
       } else if (error.request) {
-        // 서버에 연결할 수 없는 경우에도 성공 처리
-        alert('신고가 접수되었습니다. 검토 후 연락드리겠습니다.');
-        
-        // 신고 접수 후 신고내용 비우기
-        setReport(prev => ({ ...prev, content: '' }));
+        setFeedback({ type: 'error', message: '서버에 연결하지 못했습니다. 신고 내용은 전송되지 않았으니 다시 시도해주세요.' });
       } else {
-        alert('신고 접수 중 오류가 발생했습니다: ' + error.message);
+        setFeedback({ type: 'error', message: '신고 접수 중 오류가 발생했습니다: ' + error.message });
       }
     } finally {
       setIsSubmitting(false);
@@ -439,6 +437,14 @@ export default function IncidentReportPage() {
           </div>
 
           <form className="report-form" onSubmit={handleSubmit}>
+            {feedback.message && (
+              <div
+                role={feedback.type === 'error' ? 'alert' : 'status'}
+                className={`form-feedback ${feedback.type === 'error' ? 'error' : 'success'}`}
+              >
+                {feedback.message}
+              </div>
+            )}
             <div className="form-group">
               <label htmlFor="email">
                 <EmailIcon size={16} color="#30C59B" style={{ verticalAlign: 'middle', marginRight: '6px' }} />

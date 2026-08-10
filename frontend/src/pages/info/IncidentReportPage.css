@@ -373,6 +373,26 @@ a.login-link:hover > svg {
   margin: 60px 0px 60px 0px;
 }
 
+.form-feedback {
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.form-feedback.error {
+  color: #9b1c1c;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+}
+
+.form-feedback.success {
+  color: #087f5b;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+
 .form-group {
   margin-bottom: 2rem;
 }
@@ -542,7 +562,7 @@ label > svg {
 
 .incident-report-page > *:nth-child(5) {
   animation-delay: 0.4s;
-} 
+}
 
 .incident-title, .notice-header, .form-group label {
   display: flex;

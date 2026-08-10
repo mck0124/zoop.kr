@@ -29,12 +29,16 @@ instance.interceptors.response.use(
   },
   (error) => {
     // 401 Unauthorized 에러 (토큰 만료 또는 유효하지 않은 토큰)
-    if (error.response && error.response.status === 401) {
+    if (error.response && error.response.status === 401 && !window.location.pathname.startsWith('/auth/login')) {
       console.log('JWT 토큰이 만료되었습니다. 자동 로그아웃을 실행합니다.');
       
-      // 사용자에게 알림 표시
-      const message = error.response.data || '로그인 세션이 만료되었습니다. 다시 로그인해주세요.';
-      alert(message);
+      // Persist the message for the login screen instead of blocking the user
+      // with a browser alert from an interceptor.
+      const responseMessage = error.response.data?.message || error.response.data;
+      sessionStorage.setItem(
+        'zoopAuthMessage',
+        typeof responseMessage === 'string' ? responseMessage : 'Your session expired. Please sign in again.'
+      );
       
       // 로컬 스토리지에서 인증 정보 제거
       localStorage.removeItem('jwtToken');
@@ -43,7 +47,7 @@ instance.interceptors.response.use(
       localStorage.removeItem('loginId');
       
       // 로그인 페이지로 리다이렉트
-      window.location.href = '/auth/login';
+      window.location.href = '/auth/login?error=session_expired';
     }
     
     return Promise.reject(error);
