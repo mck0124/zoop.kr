@@ -1200,17 +1200,17 @@ export default function CandidateList({ activeTab = 'all' }) {
   // 6. 메일 전송 함수 (템플릿 기반)
   const handleBulkMailSend = async () => {
     if (!bulkEmailSubject.trim() || !bulkCustomGreeting.trim() || !bulkCustomMessage.trim()) {
-      alert('제목, 인사말, 메시지를 모두 입력해주세요.');
+      alert('Please enter a subject, greeting, and message.');
       return;
     }
     if (selected.length === 0) return;
     if (!companyAdminId) {
-      alert('회사 관리자 정보를 확인하지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+      alert('We could not verify the company administrator. Refresh the page and try again.');
       return;
     }
     const candidatesToSend = candidates.filter(c => selected.includes(c.githubLogin || c.login) && c.candidateEmail);
     if (candidatesToSend.length === 0) {
-      alert('이메일이 있는 후보자를 선택하세요.');
+      alert('Select candidates with email addresses.');
       return;
     }
     setBulkEmailSending(true);
@@ -1234,7 +1234,7 @@ export default function CandidateList({ activeTab = 'all' }) {
         })
       });
       if (res.ok) {
-        alert(`📨 ${candidatesToSend.length}명에게 메일을 전송했습니다!`);
+        alert(`📨 Email sent to ${candidatesToSend.length} candidate(s).`);
         setShowBulkEmailModal(false);
         setBulkEmailSubject('');
         setBulkCustomGreeting('');
@@ -1243,11 +1243,11 @@ export default function CandidateList({ activeTab = 'all' }) {
         setBulkEmailSending(false);
         navigate('/company/dashboard');
       } else {
-        alert('❌ 메일 전송 실패');
+        alert('❌ Email delivery failed.');
         setBulkEmailSending(false);
       }
     } catch (err) {
-      alert('⚠️ 서버 오류로 전송에 실패했습니다.');
+      alert('⚠️ A server error prevented email delivery.');
       setBulkEmailSending(false);
     }
   };
@@ -1991,7 +1991,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                   type="text"
                   value={bulkEmailSubject}
                   onChange={(e) => setBulkEmailSubject(e.target.value)}
-                  placeholder="메일 제목을 입력하세요"
+                placeholder="Enter an email subject"
                   style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '2px solid #e2e8f0', fontSize: '1rem', transition: 'border-color 0.2s', outline: 'none' }}
                   onFocus={e => e.target.style.borderColor = emailTemplates[bulkSelectedTemplate].color}
                   onBlur={e => e.target.style.borderColor = '#e2e8f0'}
@@ -2006,7 +2006,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                   type="text"
                   value={bulkCustomGreeting}
                   onChange={(e) => setBulkCustomGreeting(e.target.value)}
-                  placeholder="인사말을 입력하세요 (예: 안녕하세요, Hello)"
+                placeholder="Enter a greeting (for example, Hello)"
                   style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '2px solid #e2e8f0', fontSize: '1rem', transition: 'border-color 0.2s', outline: 'none' }}
                   onFocus={e => e.target.style.borderColor = emailTemplates[bulkSelectedTemplate].color}
                   onBlur={e => e.target.style.borderColor = '#e2e8f0'}
@@ -2020,7 +2020,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                 <textarea
                   value={bulkCustomMessage}
                   onChange={(e) => setBulkCustomMessage(e.target.value)}
-                  placeholder="개인화된 메시지를 입력하세요"
+                placeholder="Enter a personalized message"
                   rows={4}
                   style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '2px solid #e2e8f0', fontSize: '1rem', resize: 'vertical', transition: 'border-color 0.2s', outline: 'none', fontFamily: 'inherit', lineHeight: '1.5' }}
                   onFocus={e => e.target.style.borderColor = emailTemplates[bulkSelectedTemplate].color}

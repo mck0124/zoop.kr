@@ -267,14 +267,20 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
 
 
 
-  const prev = () => setCurrentIdx(idx => (idx === 0 ? numPages - 1 : idx - 1));
-  const next = () => setCurrentIdx(idx => (idx === numPages - 1 ? 0 : idx + 1));
+  const prev = () => {
+    if (!numPages) return;
+    setCurrentIdx(idx => (idx === 0 ? numPages - 1 : idx - 1));
+  };
+  const next = () => {
+    if (!numPages) return;
+    setCurrentIdx(idx => (idx === numPages - 1 ? 0 : idx + 1));
+  };
   const onDocumentLoadSuccess = ({ numPages }) => setNumPages(numPages);
 
   // 면접초대 버튼 클릭시
   const handleInterviewInvitation = async () => {
     if (!jobCandidateId) {
-      alert('후보자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+      alert('Candidate details are still loading. Please try again shortly.');
       return;
     }
 
@@ -290,17 +296,17 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
 
 
       if (response.ok) {
-        alert('면접 초대가 성공적으로 처리되었습니다!');
+        alert('Interview invitation sent successfully.');
         // 로컬 상태 업데이트: 2y -> 2p로 변경
         setLocalStage('2p');
       } else {
         const errorText = await response.text();
         console.error('API 오류 응답:', errorText);
-        alert(`면접 초대 처리 실패: ${errorText}`);
+        alert(`Could not send the interview invitation: ${errorText}`);
       }
     } catch (error) {
       console.error('면접 초대 API 호출 오류:', error);
-      alert('면접 초대 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+      alert('Something went wrong while sending the interview invitation.');
     }
   };
 
@@ -356,7 +362,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
     const portfolioId = candidate.candPortfolioId || portfolioAnalysis?.candPortfolioId;
     const analysisId = portfolioAnalysis?.analysisId || null; // 실제 분석ID로 대체 필요
     if (!portfolioId) {
-      window.alert('이 후보자의 포트폴리오 매칭 결과가 아직 준비되지 않았습니다.');
+      window.alert('The portfolio matching result is not ready for this candidate yet.');
       return;
     }
     navigate(`/job/${postId}`, {
@@ -451,7 +457,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
   if (!isOpen || !candidate) return null;
 
   // 날짜 포맷 함수 (연. 월. 일. 오전/오후 시:분:초)
-  function formatKoreanDateTime(dateString) {
+  function formatDateTime(dateString) {
     if (!dateString) return '-';
     const date = new Date(dateString);
     if (isNaN(date)) return dateString;
@@ -461,7 +467,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
     let hour = date.getHours();
     const minute = date.getMinutes();
     const isPM = hour >= 12;
-    const ampm = isPM ? '오후' : '오전';
+    const ampm = isPM ? 'PM' : 'AM';
     let hour12 = hour % 12;
     if (hour12 === 0) hour12 = 12;
     return `${year}. ${month}. ${day}. ${ampm} ${hour12}:${minute.toString().padStart(2, '0')}`;
@@ -487,7 +493,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
                 {avatarUrl ? (
                   <img 
                     src={avatarUrl} 
-                    alt={`${candidate.githubLogin}의 프로필`}
+                    alt={`${candidate.githubLogin} profile`}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.target.style.display = 'none';
@@ -508,11 +514,11 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
             </div>
             <div>
               <span className="text-sm text-gray-500">Portfolio submitted</span>
-              <div className="font-semibold text-lg">{formatKoreanDateTime(portfolioDate)}</div>
+          <div className="font-semibold text-lg">{formatDateTime(portfolioDate)}</div>
             </div>
             <div>
               <span className="text-sm text-gray-500">Interview schedule</span>
-              <div className="font-semibold text-lg">{formatKoreanDateTime(interviewSchedule?.aiInterviewScheduledTime)}</div>
+          <div className="font-semibold text-lg">{formatDateTime(interviewSchedule?.aiInterviewScheduledTime)}</div>
             </div>
           </div>
         </div>
@@ -520,7 +526,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
         {/* 중간: 점수 카드 3개 */}
         <div className="flex flex-col md:flex-row gap-6 mb-10">
           <ScoreCard
-            title="Github 분석점수"
+            title="GitHub analysis score"
             score={candidate.analysisScore}
             color="#34d399"
             icon={<span>🐙</span>}
@@ -551,6 +557,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
             {/* 이전(<) 버튼 */}
             <button
               onClick={prev}
+              disabled={!numPages}
               className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-white border border-gray-200 rounded-full shadow flex items-center justify-center text-2xl text-emerald-600 hover:bg-emerald-50 z-10"
             >&lt;</button>
             {/* PDF 미리보기 or 안내 */}
@@ -577,6 +584,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
             {/* 다음(>) 버튼 */}
             <button
               onClick={next}
+              disabled={!numPages}
               className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-white border border-gray-200 rounded-full shadow flex items-center justify-center text-2xl text-emerald-600 hover:bg-emerald-50 z-10"
             >&gt;</button>
           </div>
@@ -625,7 +633,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
               onClick={handleGoToMatchingDetail}
               className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
             >
-              매칭 상세보기
+              View matching details
             </button>
           )}
           { ["2y"].includes(localStage) && (
@@ -633,14 +641,14 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
               onClick={handleInterviewInvitation}
               className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
             >
-              면접초대
+              Invite to interview
             </button>
           )}
           <button
             onClick={handleClose}
             className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-8 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
           >
-            닫기
+            Close
           </button>
         </div>
       </div>
