@@ -52,6 +52,12 @@ export default function StatePage() {
   useEffect(() => {
     fetch(apiUrl(`/api/github-search/${postId}/states`))
       .then((res) => {
+        if (res.status === 401 || res.status === 403) {
+          throw new Error('Your session has expired. Please sign in again.');
+        }
+        return res;
+      })
+      .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
@@ -62,11 +68,12 @@ export default function StatePage() {
         if (data.length > 0 && data[0].companyAdminId) {
           setCompanyAdminId(data[0].companyAdminId);
         }
-      })
-      .catch((err) => {
-        console.error('❌ 데이터 불러오기 실패:', err);
-        setSearchResults([]);
-      });
+  })
+  .catch((err) => {
+    console.error('❌ 데이터 불러오기 실패:', err);
+    setSearchResults([]);
+    setPageFeedback({ type: 'error', message: err.message || 'Could not load candidate status.' });
+  });
   }, [postId]);
 
   const handleCheck = (login) => {
@@ -98,6 +105,7 @@ export default function StatePage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('jwtToken')}`,
         },
         body: JSON.stringify(payloads),
       });
