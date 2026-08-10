@@ -143,7 +143,7 @@ export default function AIAnalysisSummary({ analysis, score, title }) {
   // Interview analysis is stored as { analysis: {...}, score, transcripts } while
   // portfolio/GitHub analysis is stored directly. Keep one evidence UI for both.
   const data = analysisRoot || payload;
-  const categories = asArray(analysisRoot?.categories);
+  const categories = asArray(analysisRoot?.categories || analysisRoot?.dimensions);
   const totalFeedback = analysisRoot?.total_feedback || analysisRoot?.totalFeedback;
   const summary = data?.summary || data?.overall_summary || data?.overallSummary || data?.conclusion || totalFeedback?.summary || data?.overallEvaluation;
   const coverage = data?.evidence_coverage ?? data?.evidenceCoverage;
@@ -154,7 +154,9 @@ export default function AIAnalysisSummary({ analysis, score, title }) {
   const risks = data?.risk_flags || data?.riskFlags;
   const verificationPlan = data?.verification_plan || data?.verificationPlan;
   const counterfactuals = data?.counterfactuals;
-  const evidence = data?.verified_evidence || data?.evidence || data?.claims || categories.flatMap(category => asArray(category.evidence).map(item => ({ ...item, claim: item.claim || category.name })));
+  const evidence = data?.verified_evidence || data?.evidence || (categories.length
+    ? categories.flatMap(category => asArray(category.evidence).map(item => ({ ...item, claim: item.claim || category.name })))
+    : data?.claims);
   const fairness = data?.fairness_guard || data?.fairnessGuard;
   const trace = data?.decision_trace || data?.decisionTrace;
   const audit = data?.audit || data?.evidence_audit || null;

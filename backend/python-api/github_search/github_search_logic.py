@@ -360,6 +360,7 @@ def get_github_candidate_details(username):
         'top_repos': [],
         'commit_activity': [],
         'contribution_stats': {},
+        'repository_signals': {},
         'profile_info': {},
         'skills_analysis': {}
     }
@@ -414,9 +415,50 @@ def get_github_candidate_details(username):
                 'size': repo.get('size', 0),
                 'created_at': repo.get('created_at', ''),
                 'updated_at': repo.get('updated_at', ''),
-                'topics': repo.get('topics', [])
+                'pushed_at': repo.get('pushed_at', ''),
+                'topics': repo.get('topics', []),
+                'fork': bool(repo.get('fork', False)),
+                'archived': bool(repo.get('archived', False)),
+                'has_issues': bool(repo.get('has_issues', False)),
+                'open_issues': repo.get('open_issues_count', 0),
+                'license': (repo.get('license') or {}).get('spdx_id'),
             }
             details['top_repos'].append(repo_info)
+
+        # Derive bounded, reproducible engineering signals from public repository
+        # metadata. These signals are evidence prompts, not hiring scores by themselves.
+        now = datetime.now(timezone.utc)
+        active_repos = 0
+        original_repos = 0
+        maintained_repos = 0
+        collaboration_repos = 0
+        documented_repos = len(details['repo_readmes'])
+        for repo in repos:
+            if not repo.get('archived', False):
+                active_repos += 1
+            if not repo.get('fork', False):
+                original_repos += 1
+            if repo.get('has_issues', False):
+                collaboration_repos += 1
+            pushed_at = repo.get('pushed_at') or repo.get('updated_at')
+            if pushed_at:
+                try:
+                    pushed_date = datetime.fromisoformat(str(pushed_at).replace('Z', '+00:00'))
+                    if (now - pushed_date).days <= 365:
+                        maintained_repos += 1
+                except (TypeError, ValueError):
+                    pass
+        public_repo_count = len(repos)
+        details['repository_signals'] = {
+            'public_repository_count': public_repo_count,
+            'original_repository_count': original_repos,
+            'original_repository_ratio': round(original_repos / max(1, public_repo_count), 2),
+            'active_repository_count': active_repos,
+            'maintained_within_12_months': maintained_repos,
+            'documented_top_repository_count': documented_repos,
+            'repositories_with_issue_tracking': collaboration_repos,
+            'data_quality': 'public_metadata_snapshot',
+        }
         
         # Get user profile info
         user_url = f"https://api.github.com/users/{username}"
@@ -474,6 +516,7 @@ def analyze_candidate_with_prompt(candidate, details, ideal_candidate=None, lang
         "skills_analysis": details.get("skills_analysis", {}),
         "recent_events": details.get("recent_events", []),
         "top_repos": details.get("top_repos", []),
+        "repository_signals": details.get("repository_signals", {}),
         "contribution_stats": details.get("contribution_stats", {}),
         "bio": details.get("profile_info", {}).get("bio", ""),
     }
@@ -493,6 +536,8 @@ def analyze_candidate_with_prompt(candidate, details, ideal_candidate=None, lang
             return reference in safe_details["contribution_stats"]
         if source in {"repo", "top_repos"}:
             return reference.isdigit() and 0 <= int(reference) < len(safe_details["top_repos"])
+        if source == "repository_signals":
+            return reference in safe_details["repository_signals"]
         return False
 
     def observed_evidence(source, reference):
@@ -512,6 +557,8 @@ def analyze_candidate_with_prompt(candidate, details, ideal_candidate=None, lang
             index = int(reference)
             if 0 <= index < len(safe_details["top_repos"]):
                 return safe_details["top_repos"][index]
+        if source == "repository_signals" and reference in safe_details["repository_signals"]:
+            return safe_details["repository_signals"].get(reference)
         return None
 
     def build_counterfactuals(dimensions, locale):
@@ -586,7 +633,7 @@ JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므
 - 위 인재상과 직접 연결되는 공개 기술·프로젝트 신호를 우선 평가하고, 연결되지 않는 신호는 점수에 과도하게 반영하지 마세요.
 - 모든 claim은 위 데이터의 구체적 필드에 근거해야 합니다.
 
-    evidence.source는 반드시 다음 중 하나만 사용하세요: languages, skills_analysis, repo, top_repos, recent_events, contribution_stats.
+    evidence.source는 반드시 다음 중 하나만 사용하세요: languages, skills_analysis, repo, top_repos, repository_signals, recent_events, contribution_stats.
     evidence.evidence_ref에는 실제 입력의 필드 위치를 적으세요: languages는 언어명, skills_analysis는 키, repo/top_repos/recent_events는 0부터 시작하는 배열 인덱스 문자열, contribution_stats는 통계 키입니다.
     아래 JSON만 반환하세요:
 {{
@@ -646,7 +693,7 @@ JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므
                     confidence = 0.0
                 source = str(evidence_item.get("source", "unknown"))
                 evidence_ref = str(evidence_item.get("evidence_ref", "")).strip()
-                supported_source = source in {"languages", "skills_analysis", "repo", "top_repos", "recent_events", "contribution_stats"}
+                supported_source = source in {"languages", "skills_analysis", "repo", "top_repos", "repository_signals", "recent_events", "contribution_stats"}
                 # A source label without a concrete field reference is not
                 # reproducible evidence. Keep it visible as a claim, but do
                 # not let it influence the calibrated hiring score.
