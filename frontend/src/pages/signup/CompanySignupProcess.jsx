@@ -15,6 +15,8 @@ export default function CompanySignupProcess() {
   const [isValidCert, setIsValidCert] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [nextTimeChecked, setNextTimeChecked] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const handleFileChange = async (e) => {
@@ -62,6 +64,9 @@ export default function CompanySignupProcess() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
+    setSubmitMessage('');
+    setSubmitting(true);
   
     const payload = {
       businessNumber: bizNum,
@@ -83,10 +88,13 @@ export default function CompanySignupProcess() {
           state: { companyId: data.companyId }
         });
       } else {
-        alert('Company registration failed.');
+        const data = await res.json().catch(() => ({}));
+        setSubmitMessage(data.message || 'Company registration failed. Please check your details and try again.');
       }
     } catch (err) {
-      alert('A server error occurred.');
+      setSubmitMessage('A server error occurred. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
   
@@ -205,8 +213,9 @@ export default function CompanySignupProcess() {
             <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} />
           </div>
 
-          <button className="submit-button" onClick={handleSubmit}>
-            Complete company registration
+          {submitMessage && <p role="alert" style={{ color: '#b42318', marginTop: '1rem' }}>{submitMessage}</p>}
+          <button className="submit-button" onClick={handleSubmit} disabled={submitting}>
+            {submitting ? 'Saving company…' : 'Complete company registration'}
           </button>
         </div>
       </div>
