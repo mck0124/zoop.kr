@@ -2,8 +2,103 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { useNavigate } from 'react-router-dom';
 import { apiUrl as buildApiUrl } from '../api/config';
-import AIAnalysisSummary from './AIAnalysisSummary';
+import AIAnalysisSummary, { parseAIAnalysisData } from './AIAnalysisSummary';
 pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL}/pdf.worker.min.mjs`;
+
+const FUSION_SOURCES = [
+  { key: 'github', label: 'GitHub', weight: 0.3 },
+  { key: 'portfolio', label: 'Portfolio', weight: 0.35 },
+  { key: 'interview', label: 'Interview', weight: 0.35 },
+];
+
+const finiteScore = (value) => {
+  const score = Number(value);
+  return Number.isFinite(score) && score >= 0 ? Math.min(100, score) : null;
+};
+
+const scoreIfAnalyzed = (value, payload) => {
+  const score = finiteScore(value);
+  return score === 0 && !payload ? null : score;
+};
+
+const evidenceCoverage = (payload) => {
+  const value = payload?.evidence_coverage ?? payload?.evidenceCoverage;
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return null;
+  return Math.max(0, Math.min(100, numeric <= 1 ? numeric * 100 : numeric));
+};
+
+function buildEvidenceFusion({ githubScore, portfolioAnalysis, interviewAnalysis }) {
+  const githubPayload = parseAIAnalysisData(githubScore?.analysisData ?? githubScore);
+  const portfolioPayload = parseAIAnalysisData(portfolioAnalysis?.analysisData ?? portfolioAnalysis);
+  const interviewPayload = parseAIAnalysisData(interviewAnalysis?.analysisData ?? interviewAnalysis);
+  const inputs = {
+    github: { score: scoreIfAnalyzed(githubScore?.analysisScore ?? githubScore, githubPayload), payload: githubPayload },
+    portfolio: { score: scoreIfAnalyzed(portfolioAnalysis?.analysisScore, portfolioPayload), payload: portfolioPayload },
+    interview: { score: scoreIfAnalyzed(interviewAnalysis?.analysisScore, interviewPayload), payload: interviewPayload },
+  };
+  const sources = FUSION_SOURCES.map(source => {
+    const input = inputs[source.key];
+    const coverage = evidenceCoverage(input.payload);
+    const reliability = coverage === null ? 0.5 : 0.35 + (0.65 * coverage / 100);
+    return { ...source, ...input, coverage, reliability };
+  }).filter(source => source.score !== null);
+  if (!sources.length) return null;
+
+  const denominator = sources.reduce((sum, source) => sum + source.weight * source.reliability, 0);
+  const score = denominator ? Math.round(sources.reduce((sum, source) => sum + source.score * source.weight * source.reliability, 0) / denominator) : null;
+  const confidence = Math.round(sources.reduce((sum, source) => sum + (source.coverage ?? 50) * source.weight, 0) / sources.reduce((sum, source) => sum + source.weight, 0));
+  const decision = sources.length < 2 || confidence < 50 ? 'not_enough_evidence' : score >= 75 && confidence >= 70 ? 'strong_match' : 'review';
+  return { sources, score, confidence, decision, independentSources: sources.length };
+}
+
+function EvidenceFusionCard({ candidate, portfolioAnalysis, interviewAnalysis }) {
+  const fusion = buildEvidenceFusion({
+    githubScore: {
+      analysisScore: candidate?.analysisScore,
+      analysisData: candidate?.analysis || candidate?.aiAnalysis?.analysisData || candidate?.aiAnalysis?.analysis,
+    },
+    portfolioAnalysis,
+    interviewAnalysis,
+  });
+  if (!fusion) return null;
+  const decisionLabel = fusion.decision === 'strong_match' ? 'Strong evidence' : fusion.decision === 'review' ? 'Review recommended' : 'More evidence needed';
+  return (
+    <section className="mb-10 rounded-2xl border border-slate-200 bg-slate-950 p-5 text-white shadow-lg" aria-label="Evidence fusion summary">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">ZOOP Evidence Fusion</div>
+          <h3 className="mt-1 text-lg font-bold">One decision, multiple verified signals</h3>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-300">Available sources are re-weighted by evidence coverage. Missing or weakly grounded sources cannot silently inflate the final signal.</p>
+        </div>
+        <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-right">
+          <div className="text-xs font-semibold text-emerald-200">Fused signal</div>
+          <div className="text-3xl font-black text-emerald-300">{fusion.score}<span className="text-sm font-semibold text-emerald-200">/100</span></div>
+          <div className="text-xs font-semibold text-slate-300">{decisionLabel}</div>
+        </div>
+      </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        {fusion.sources.map(source => (
+          <div key={source.key} className="rounded-xl border border-white/10 bg-white/5 p-3">
+            <div className="flex items-center justify-between text-sm font-semibold">
+              <span>{source.label}</span>
+              <span className="text-emerald-300">{Math.round(source.score)}/100</span>
+            </div>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+              <div className="h-full rounded-full bg-emerald-400" style={{ width: `${source.coverage ?? 50}%` }} />
+            </div>
+            <div className="mt-1 text-xs text-slate-400">{source.coverage === null ? 'Coverage unavailable' : `${Math.round(source.coverage)}% evidence coverage`} · {Math.round(source.reliability * 100)}% weight confidence</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
+        <span>{fusion.independentSources} independent source{fusion.independentSources === 1 ? '' : 's'}</span>
+        <span>Fusion confidence {fusion.confidence}%</span>
+        <span>Human review remains required</span>
+      </div>
+    </section>
+  );
+}
 
 /** */
 export default function CandidateModal({ candidate, isOpen, onClose, postId, avatarUrl, fromMatchingTab }) {
@@ -542,6 +637,12 @@ export default function CandidateModal({ candidate, isOpen, onClose, postId, ava
             icon={<span>🧠</span>}
           />
         </div>
+
+        <EvidenceFusionCard
+          candidate={candidate}
+          portfolioAnalysis={portfolioAnalysis}
+          interviewAnalysis={interviewAnalysis}
+        />
 
         {/* 하단: 포트폴리오 미리보기 (확대) */}
         <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 shadow-inner">
