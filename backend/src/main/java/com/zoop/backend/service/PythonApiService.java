@@ -133,21 +133,25 @@ public class PythonApiService {
     }
 
     /** Server-side support assistant proxy. The OpenAI credential never reaches the browser. */
-    public String answerSupportQuestion(String question) {
+    public String answerSupportQuestion(String question, String language) {
         try {
+            String normalizedLanguage = switch (language == null ? "en" : language) {
+                case "ko", "zh" -> language;
+                default -> "en";
+            };
             Map<String, Object> payload = Map.of(
                 "history", List.of(),
                 "user_input", question,
-                "lang", "ko"
+                "lang", normalizedLanguage
             );
             ResponseEntity<Map> response = restTemplate.postForEntity(
                 pythonApiUrl + "/chat", payload, Map.class);
-            if (response.getBody() == null) return "AI 답변을 불러오지 못했습니다.";
+            if (response.getBody() == null) return "We could not load an AI answer.";
             Object answer = response.getBody().get("answer");
-            return answer != null ? answer.toString() : "AI 답변을 불러오지 못했습니다.";
+            return answer != null ? answer.toString() : "We could not load an AI answer.";
         } catch (Exception e) {
             log.warn("고객센터 AI 호출 실패: {}", e.getMessage());
-            return "현재 AI 상담이 잠시 지연되고 있습니다. FAQ에서 먼저 확인해 주세요.";
+            return "AI support is temporarily unavailable. Please check the FAQ first.";
         }
     }
 }

@@ -5,6 +5,7 @@ import './CustomerServicePage.css';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom'; // Added Link import
 import { apiUrl } from '../../api/config';
+import { useLanguage } from '../../context/LanguageContext';
 
 const ICON_SIZE = 32;
 
@@ -73,6 +74,7 @@ function Support() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [matchedCategory, setMatchedCategory] = useState(null);
   const inputRef = useRef();
+  const { language } = useLanguage();
 
   // Keep search suggestions local. AI credentials must never be shipped to a browser.
   async function fetchSuggestions(prompt) {
@@ -91,7 +93,7 @@ function Support() {
       const res = await fetch(apiUrl('/api/ai/support'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: query })
+        body: JSON.stringify({ question: query, language })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'The AI support request failed.');

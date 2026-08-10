@@ -21,9 +21,10 @@ public class AiSupportController {
     @PostMapping("/support")
     public ResponseEntity<Map<String, String>> support(@RequestBody Map<String, String> request) {
         String question = request == null ? "" : request.getOrDefault("question", "").trim();
+        String language = request == null ? "en" : request.getOrDefault("language", "en");
         if (question.isBlank() || question.length() > 1000) {
-            return ResponseEntity.badRequest().body(Map.of("error", "질문은 1~1000자로 입력해 주세요."));
+            return ResponseEntity.badRequest().body(Map.of("error", "Enter a question between 1 and 1,000 characters."));
         }
-        return ResponseEntity.ok(Map.of("answer", pythonApiService.answerSupportQuestion(question)));
+        return ResponseEntity.ok(Map.of("answer", pythonApiService.answerSupportQuestion(question, language)));
     }
 }

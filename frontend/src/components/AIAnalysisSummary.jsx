@@ -50,6 +50,7 @@ export function createDecisionReceipt(payload, { title, score, language = 'en' }
     language,
     score: finiteNumber(score),
     decision: payload?.decision || null,
+    decision_gate: payload?.decision_gate || payload?.decisionGate || null,
     evidence_coverage: payload?.evidence_coverage ?? payload?.evidenceCoverage ?? null,
     confidence: payload?.confidence ?? null,
     score_calibration: payload?.score_calibration || payload?.scoreCalibration || null,

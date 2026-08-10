@@ -33,6 +33,16 @@ const analysisRoot = (value) => {
   return payload?.analysis && typeof payload.analysis === 'object' ? payload.analysis : payload;
 };
 
+const sourceNeedsReview = (payload) => {
+  const gate = payload?.decision_gate || payload?.decisionGate;
+  const integrity = payload?.source_integrity || payload?.sourceIntegrity || payload?.audit?.source_integrity;
+  const fairness = payload?.fairness_guard || payload?.fairnessGuard;
+  return gate?.final_decision === 'review'
+    || gate?.status === 'downgraded'
+    || integrity?.status === 'review'
+    || fairness?.status === 'review';
+};
+
 function buildEvidenceFusion({ githubScore, portfolioAnalysis, interviewAnalysis }) {
   const githubPayload = analysisRoot(githubScore?.analysisData ?? githubScore);
   const portfolioPayload = analysisRoot(portfolioAnalysis?.analysisData ?? portfolioAnalysis);
@@ -66,15 +76,29 @@ function buildEvidenceFusion({ githubScore, portfolioAnalysis, interviewAnalysis
         ? 'Sources show a meaningful difference that should be resolved with a focused verification.'
         : 'Independent sources are directionally aligned.',
   };
-  const fairnessReview = sources.some(source => source.payload?.fairness_guard?.status === 'review');
+  const fairnessReview = sources.some(source => {
+    const fairness = source.payload?.fairness_guard || source.payload?.fairnessGuard;
+    return fairness?.status === 'review';
+  });
+  const reviewSources = sources.filter(source => sourceNeedsReview(source.payload)).map(source => source.key);
   const confidencePenalty = spread > 15 ? Math.round((spread - 15) * 0.7) : 0;
   const confidence = Math.max(0, Math.min(100, baseConfidence - confidencePenalty));
   const decision = sources.length < 2 || confidence < 50
     ? 'not_enough_evidence'
-    : fairnessReview || consistency.status !== 'aligned'
+    : fairnessReview || reviewSources.length > 0 || consistency.status !== 'aligned'
       ? 'review'
       : score >= 75 && confidence >= 70 ? 'strong_match' : 'review';
-  return { sources, score, confidence, decision, independentSources: sources.length, consistency, fairnessReview };
+  return {
+    sources,
+    score,
+    confidence,
+    decision,
+    independentSources: sources.length,
+    consistency,
+    fairnessReview,
+    reviewSources,
+    reviewRequired: reviewSources.length > 0 || fairnessReview || consistency.status !== 'aligned',
+  };
 }
 
 function EvidenceFusionCard({ candidate, portfolioAnalysis, interviewAnalysis }) {
@@ -130,6 +154,11 @@ function EvidenceFusionCard({ candidate, portfolioAnalysis, interviewAnalysis })
       {fusion.fairnessReview && (
         <div className="mt-2 rounded-xl border border-rose-300/30 bg-rose-300/10 px-3 py-2 text-xs leading-5 text-rose-100">
           <strong>Fairness audit:</strong> one or more source decisions require human review.
+        </div>
+      )}
+      {fusion.reviewSources.length > 0 && (
+        <div className="mt-2 rounded-xl border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-xs leading-5 text-amber-100">
+          <strong>Safety gate:</strong> {fusion.reviewSources.map(source => source[0].toUpperCase() + source.slice(1)).join(', ')} signal{fusion.reviewSources.length === 1 ? '' : 's'} require review; the fused signal cannot override that decision.
         </div>
       )}
     </section>

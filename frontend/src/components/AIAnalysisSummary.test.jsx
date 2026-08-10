@@ -105,6 +105,24 @@ test('renders the evidence quality gate and reviewer action', () => {
   expect(screen.getByText((content, element) => element?.textContent === 'unsupported claim rate: 60%')).toBeInTheDocument();
 });
 
+test('renders and preserves the deterministic decision gate', () => {
+  const analysis = {
+    summary: 'A source requires review.',
+    decision: 'review',
+    decision_gate: {
+      status: 'downgraded',
+      final_decision: 'review',
+      reasons: ['Source integrity requires review'],
+      note: 'The final decision is bounded by deterministic evidence and safety checks.',
+    },
+  };
+  render(renderAnalysis(analysis));
+
+  expect(screen.getByText('Deterministic decision gate')).toBeInTheDocument();
+  expect(screen.getByText(/Review reasons:.*Source integrity requires review/)).toBeInTheDocument();
+  expect(createDecisionReceipt(analysis).decision_gate.final_decision).toBe('review');
+});
+
 test('reads interview analysis metadata from the nested analysis envelope', () => {
   render(renderAnalysis({
     analysisData: JSON.stringify({

@@ -47,3 +47,24 @@ test('routes a fairness-audited source to human review', () => {
   expect(fusion.fairnessReview).toBe(true);
   expect(fusion.decision).toBe('review');
 });
+
+test('does not hide a source decision-gate downgrade inside the fused score', () => {
+  const github = source(94);
+  const portfolio = source(93);
+  portfolio.analysisData = JSON.stringify({
+    evidence_coverage: 95,
+    decision_gate: {
+      status: 'downgraded',
+      final_decision: 'review',
+      reasons: ['Source integrity requires review']
+    }
+  });
+  const fusion = buildEvidenceFusion({
+    githubScore: github,
+    portfolioAnalysis: portfolio,
+    interviewAnalysis: source(95)
+  });
+
+  expect(fusion.reviewSources).toEqual(['portfolio']);
+  expect(fusion.decision).toBe('review');
+});
