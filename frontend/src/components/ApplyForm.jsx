@@ -15,6 +15,7 @@ function ApplyForm({ post, onSubmit, onCancel }) {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -68,6 +69,7 @@ function ApplyForm({ post, onSubmit, onCancel }) {
     }
 
     setIsSubmitting(true);
+    setSubmitError('');
     
     try {
       const submitData = {
@@ -79,7 +81,7 @@ function ApplyForm({ post, onSubmit, onCancel }) {
       await onSubmit(submitData);
     } catch (error) {
       console.error('Application submission error:', error);
-      alert('We could not submit your application. Please try again.');
+      setSubmitError('We could not submit your application. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -132,6 +134,7 @@ function ApplyForm({ post, onSubmit, onCancel }) {
         <h3>Apply for {post.postTitle}</h3>
         <p>Share a few details so the hiring team can review your application.</p>
       </div>
+      {submitError && <p role="alert" style={{ color: '#b42318', marginBottom: '1rem' }}>{submitError}</p>}
 
       <div className="form-section">
         <h4>Basic information</h4>

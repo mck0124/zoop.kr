@@ -117,11 +117,11 @@ export default function CandidateSettings() {
   // 비밀번호 변경
   const handlePasswordChange = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      alert('The new passwords do not match.');
+      setStatusMessage('The new passwords do not match.');
       return;
     }
     if (passwordForm.newPassword.length < 8) {
-      alert('The new password must be at least 8 characters.');
+      setStatusMessage('The new password must be at least 8 characters.');
       return;
     }
     setSaving(true);
