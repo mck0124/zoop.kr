@@ -132,8 +132,8 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                 return score !== undefined ? (
                   <div style={{ background: '#f8fafd', borderRadius: 10, padding: 18, fontSize: 16 }}>
                     <div style={{ display: 'flex', gap: 16, alignItems: 'baseline', flexWrap: 'wrap' }}>
-                      <span><b>현재 매칭 점수:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{score}</span></span>
-                      {selectedCounterfactuals.length > 0 && <span style={{ color: '#6d28d9', fontWeight: 800 }}>검증 후 예상: {projectedScore.toFixed(0)}점</span>}
+                      <span><b>Current match score:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{score}</span></span>
+                      {selectedCounterfactuals.length > 0 && <span style={{ color: '#6d28d9', fontWeight: 800 }}>Projected after verification: {projectedScore.toFixed(0)} points</span>}
                       <button
                         type="button"
                         onClick={() => {
@@ -168,9 +168,9 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                     <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, whiteSpace: 'pre-wrap', maxHeight: 240, overflow: 'auto' }}>{summary}</pre>
                     {calibration && (
                       <div style={{ marginTop: 12, padding: 12, background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 10, color: '#115e59', fontSize: 13 }}>
-                        <strong>근거 보정 점수</strong>
-                        <span style={{ marginLeft: 8 }}>AI 초안 {Number(calibration.model_score || 0).toFixed(0)}점 → 원문 근거 반영 {Number(calibration.calibrated_score || 0).toFixed(0)}점</span>
-                        <div style={{ marginTop: 5, color: '#0f766e' }}>{calibration.description || '후보자 원문 근거가 확인된 항목만 점수에 온전히 반영합니다.'}</div>
+                        <strong>Evidence-calibrated score</strong>
+                        <span style={{ marginLeft: 8 }}>AI draft {Number(calibration.model_score || 0).toFixed(0)} → evidence-grounded {Number(calibration.calibrated_score || 0).toFixed(0)} points</span>
+                        <div style={{ marginTop: 5, color: '#0f766e' }}>{calibration.description || 'Only claims grounded in the candidate source are fully reflected in the score.'}</div>
                       </div>
                     )}
                     {dimensions.length > 0 && (
@@ -183,18 +183,18 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                             </div>
                             {dimension.model_score !== undefined && (
                               <div style={{ marginTop: 4, color: '#0f766e', fontSize: 11 }}>
-                                AI 초안 {Number(dimension.model_score || 0).toFixed(0)}점 · 근거 지지율 {Math.round(Number(dimension.evidence_support || 0) * 100)}%
+                                AI draft {Number(dimension.model_score || 0).toFixed(0)} · evidence support {Math.round(Number(dimension.evidence_support || 0) * 100)}%
                               </div>
                             )}
                             {(dimension.evidence || []).slice(0, 2).map((item, evidenceIndex) => (
                               <div key={evidenceIndex} style={{ marginTop: 8, color: '#4b5563', fontSize: 14 }}>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
-                                  <span>· {item.claim || '확인된 근거 없음'}</span>
+                                  <span>· {item.claim || 'No verified evidence'}</span>
                                   <small style={{ color: item.verification_state === 'grounded' ? '#047857' : item.verification_state === 'context_only' ? '#1d4ed8' : '#b45309', fontWeight: 700 }}>
                                     {item.verification_state === 'grounded' ? 'Candidate source verified' : item.verification_state === 'context_only' ? 'Job context' : 'Needs verification'}
                                   </small>
                                 </div>
-                                {item.evidence_id && <small style={{ display: 'block', marginLeft: 12, marginTop: 2, color: '#9ca3af', fontFamily: 'monospace', fontSize: 10 }}>근거 ID {item.evidence_id}</small>}
+                                {item.evidence_id && <small style={{ display: 'block', marginLeft: 12, marginTop: 2, color: '#9ca3af', fontFamily: 'monospace', fontSize: 10 }}>Evidence ID {item.evidence_id}</small>}
                               </div>
                             ))}
                           </div>

@@ -503,7 +503,7 @@ export default function CompanySidebar({
                       fontWeight: '600',
                       zIndex: 10
                     }}>
-                      {post.postStatus === 'ACTIVE' ? '진행중' : '마감'}
+                      {post.postStatus === 'ACTIVE' ? 'Active' : 'Closed'}
                     </div>
                     <div style={{ 
                       fontWeight: '600', 
@@ -522,7 +522,7 @@ export default function CompanySidebar({
                           <path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/>
                           <circle cx="12" cy="11" r="2.5"/>
                         </svg>
-                        {post.postLocation || '지역 미정'}
+                        {post.postLocation || 'Location not specified'}
                       </span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         {/* 머니백 SVG */}
@@ -541,7 +541,7 @@ export default function CompanySidebar({
                           <circle cx="17" cy="10" r="3"/>
                           <path d="M7 13c-2.67 0-8 1.34-8 4v3h22v-3c0-2.66-5.33-4-8-4"/>
                         </svg>
-                        {post.postHeadcount || 0}명 모집
+                        {post.postHeadcount || 0} openings
                       </span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         {/* 달력 SVG */}

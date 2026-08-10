@@ -23,7 +23,8 @@ const BookIcon = ({size=28, color='#bbb'}) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><path d="M16 2v4"/><path d="M8 2v4"/></svg>
 );
 const CATEGORY_SVGS = {
-  '전문성': <LightbulbIcon color="#bbb" />, '의사소통': <ChatIcon color="#bbb" />, '의사소통 능력': <ChatIcon color="#bbb" />, '문제해결': <WrenchIcon color="#bbb" />, '문제해결 능력': <WrenchIcon color="#bbb" />, '자신감': <StarIcon color="#bbb" />, '자신감과 태도': <StarIcon color="#bbb" />, '경험의 구체성': <BookIcon color="#bbb" />
+  '전문성': <LightbulbIcon color="#bbb" />, '의사소통': <ChatIcon color="#bbb" />, '의사소통 능력': <ChatIcon color="#bbb" />, '문제해결': <WrenchIcon color="#bbb" />, '문제해결 능력': <WrenchIcon color="#bbb" />, '자신감': <StarIcon color="#bbb" />, '자신감과 태도': <StarIcon color="#bbb" />, '경험의 구체성': <BookIcon color="#bbb" />,
+  'Technical expertise': <LightbulbIcon color="#bbb" />, Communication: <ChatIcon color="#bbb" />, 'Communication skills': <ChatIcon color="#bbb" />, 'Problem solving': <WrenchIcon color="#bbb" />, 'Problem-solving ability': <WrenchIcon color="#bbb" />, Confidence: <StarIcon color="#bbb" />, 'Confidence and attitude': <StarIcon color="#bbb" />, 'Specificity of experience': <BookIcon color="#bbb" />
 };
 
 export default function InterviewEvaluation() {
@@ -178,6 +179,17 @@ export default function InterviewEvaluation() {
           }
         } else if (line.includes('종합평가:')) {
           overallEvaluation = line.replace('종합평가:', '').trim();
+        } else {
+          const englishCategory = line.match(/^(.+?):\s*(\d+)\s*[-–]\s*(.+)$/);
+          const englishScore = line.match(/^(?:Total score|Overall score):\s*(\d+)/i);
+          const englishSummary = line.match(/^(?:Overall evaluation|Overall assessment):\s*(.+)$/i);
+          if (englishCategory) {
+            categories.push({ category: englishCategory[1].trim(), score: parseInt(englishCategory[2], 10), reason: englishCategory[3].trim() });
+          } else if (englishScore) {
+            totalScore = parseInt(englishScore[1], 10);
+          } else if (englishSummary) {
+            overallEvaluation = englishSummary[1].trim();
+          }
         }
       }
       return {
@@ -215,17 +227,17 @@ export default function InterviewEvaluation() {
       });
 
       if (response.ok) {
-        alert('면접 평가가 성공적으로 저장되었습니다.');
+        alert('Interview evaluation saved successfully.');
         // 기존 평가 데이터를 새로고침하여 완료된 평가 표시
         await fetchExistingEvaluation();
         // 후보자 데이터도 새로고침하여 업데이트된 stage 정보 반영
         await fetchCandidateData();
       } else {
-        alert('면접 평가 저장에 실패했습니다.');
+        alert('We could not save the interview evaluation.');
       }
     } catch (error) {
       console.error('면접 평가 저장 실패:', error);
-      alert('면접 평가 저장 중 오류가 발생했습니다.');
+      alert('An error occurred while saving the interview evaluation.');
     } finally {
       setSubmitting(false);
     }
@@ -236,7 +248,7 @@ export default function InterviewEvaluation() {
       <div style={{ fontFamily: 'SUIT, Apple SD Gothic Neo, sans-serif' }}>
         <Navbar />
         <div style={{ padding: '7rem 3rem', textAlign: 'center' }}>
-          <p>면접 정보를 불러오는 중...</p>
+          <p>Loading interview information...</p>
         </div>
       </div>
     );
@@ -246,14 +258,14 @@ export default function InterviewEvaluation() {
     <div style={{ fontFamily: 'SUIT, Apple SD Gothic Neo, sans-serif', backgroundColor: '#ffffff', minHeight: '100vh' }}>
       <Navbar />
       <SEO
-        title="면접 평가"
-        description="후보자의 면접 평가를 작성하고 분석 결과를 확인할 수 있는 페이지입니다."
-        keywords="면접 평가, AI 분석, 후보자 평가, 면접 결과, 면접 분석"
+        title="Interview evaluation"
+        description="Review interview evidence and record a structured candidate evaluation."
+        keywords="interview evaluation, AI analysis, candidate review, interview results"
       />
       <div style={{ padding: '7rem 3rem' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <h1 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '2rem', color: '#2d3748' }}>
-            면접 평가
+            Interview evaluation
           </h1>
 
           {candidate && (
@@ -265,14 +277,14 @@ export default function InterviewEvaluation() {
               border: '1px solid #e2e8f0'
             }}>
               <h2 style={{ fontSize: '1.3rem', fontWeight: '600', marginBottom: '1rem', color: '#2d3748' }}>
-                후보자 정보
+                Candidate information
               </h2>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                 <div>
                   <strong>GitHub:</strong> {candidate.githubLogin}
                 </div>
                 <div>
-                  <strong>이메일:</strong> {candidate.candidateEmail}
+                  <strong>Email:</strong> {candidate.candidateEmail}
                 </div>
               </div>
             </div>
@@ -287,11 +299,11 @@ export default function InterviewEvaluation() {
               border: '1px solid #e2e8f0'
             }}>
               <h2 style={{ fontSize: '1.3rem', fontWeight: '600', marginBottom: '1rem', color: '#2d3748' }}>
-                면접 영상
+                Interview recordings
               </h2>
               {videos.length === 0 ? (
                 <p style={{ color: '#718096', textAlign: 'center', padding: '2rem' }}>
-                  면접 영상이 없습니다.
+                  No interview recordings are available.
                 </p>
               ) : (
                 <div style={{ display: 'grid', gap: '1rem' }}>
@@ -305,7 +317,7 @@ export default function InterviewEvaluation() {
                         padding: '1rem' 
                       }}>
                         <h3 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                          질문 {video.questionNumber}
+                          Question {video.questionNumber}
                         </h3>
                         <p style={{ color: '#4a5568', marginBottom: '1rem' }}>
                           {video.questionContent}
@@ -315,7 +327,7 @@ export default function InterviewEvaluation() {
                           style={{ width: '100%', borderRadius: '8px' }}
                           src={video.videoFilePath}
                         >
-                          브라우저가 비디오를 지원하지 않습니다.
+                          Your browser does not support video playback.
                         </video>
                       </div>
                     ))}
@@ -331,7 +343,7 @@ export default function InterviewEvaluation() {
               border: '1px solid #e2e8f0'
             }}>
               <h2 style={{ fontSize: '1.3rem', fontWeight: '600', marginBottom: '1rem', color: '#2d3748' }}>
-                AI 면접 분석 결과
+                AI interview analysis
               </h2>
               {parsedAnalysis && parsedAnalysis.categories ? (
                 <div>
@@ -362,7 +374,7 @@ export default function InterviewEvaluation() {
                       marginBottom: 4
                     }}>
                       <StarIcon size={26} color="#fff" />
-                      {parsedAnalysis.totalScore}점
+                      {parsedAnalysis.totalScore} points
                     </div>
                     <div style={{
                       fontSize: '1rem',
@@ -370,7 +382,7 @@ export default function InterviewEvaluation() {
                       color: '#22c55e',
                       letterSpacing: '-0.5px'
                     }}>
-                      AI 면접 종합 평가
+                      AI interview assessment
                     </div>
                   </div>
 
@@ -384,23 +396,23 @@ export default function InterviewEvaluation() {
                       color: '#1e3a8a'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-                        <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0 }}>근거 보정 점수</h3>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0 }}>Evidence-calibrated score</h3>
                         <span style={{ background: '#dbeafe', borderRadius: 999, padding: '4px 10px', fontSize: 12, fontWeight: 700 }}>
-                          답변 원문 검증 적용
+                          Answer evidence verified
                         </span>
                       </div>
                       <p style={{ margin: '0.65rem 0 0.9rem', fontSize: '0.92rem', lineHeight: 1.55 }}>
-                        AI가 먼저 산출한 점수와 실제 답변에서 확인된 인용 근거를 분리합니다. 검증된 근거가 부족한 항목은 최종 점수에 보수적으로 반영됩니다.
+                        The draft score is separated from evidence found in the candidate's answers. Areas with limited evidence are calibrated conservatively.
                       </p>
                       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                         <span style={{ background: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 13 }}>
-                          모델 초안 <b>{parsedAnalysis.scoreCalibration.model_score ?? '-'}점</b>
+                          Model draft <b>{parsedAnalysis.scoreCalibration.model_score ?? '-'} points</b>
                         </span>
                         <span style={{ background: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 13 }}>
-                          검증 후 <b>{parsedAnalysis.scoreCalibration.calibrated_score ?? parsedAnalysis.totalScore ?? '-'}점</b>
+                          Calibrated <b>{parsedAnalysis.scoreCalibration.calibrated_score ?? parsedAnalysis.totalScore ?? '-'} points</b>
                         </span>
                         <span style={{ background: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 13 }}>
-                          루브릭 <b>{parsedAnalysis.scoreCalibration.max_score ?? 100}점</b>
+                          Rubric <b>{parsedAnalysis.scoreCalibration.max_score ?? 100} points</b>
                         </span>
                       </div>
                     </div>
@@ -436,17 +448,17 @@ export default function InterviewEvaluation() {
                           <span style={{ fontWeight: 800, fontSize: '1.18rem', color: '#22c55e' }}>{cat.name}</span>
                           <span style={{ color: '#222', fontWeight: 700, fontSize: '1.08rem', marginLeft: 8, background: '#f0fdf4', borderRadius: 12, padding: '4px 16px' }}>{cat.score}/{cat.max_score}</span>
                         </div>
-                        <div style={{ fontSize: '1.01rem', color: '#333', marginBottom: 2 }}><b>근거:</b> {cat.reason}</div>
-                        <div style={{ fontSize: '1.01rem', color: '#444' }}><b>좋은 예시:</b> {cat.good_example}</div>
-                        <div style={{ fontSize: '1.01rem', color: '#888' }}><b>아쉬운 예시:</b> {cat.bad_example}</div>
-                        <div style={{ fontSize: '1.01rem', color: '#444' }}><b>개선점:</b> {cat.improvement}</div>
-                        <div style={{ fontSize: '1.01rem', color: '#444' }}><b>확신도:</b> {typeof cat.confidence === 'number' ? `${Math.round(cat.confidence * 100)}%` : '확인 필요'}</div>
+                        <div style={{ fontSize: '1.01rem', color: '#333', marginBottom: 2 }}><b>Evidence:</b> {cat.reason}</div>
+                        <div style={{ fontSize: '1.01rem', color: '#444' }}><b>Strong example:</b> {cat.good_example}</div>
+                        <div style={{ fontSize: '1.01rem', color: '#888' }}><b>Weak example:</b> {cat.bad_example}</div>
+                        <div style={{ fontSize: '1.01rem', color: '#444' }}><b>Improvement:</b> {cat.improvement}</div>
+                        <div style={{ fontSize: '1.01rem', color: '#444' }}><b>Confidence:</b> {typeof cat.confidence === 'number' ? `${Math.round(cat.confidence * 100)}%` : 'Needs review'}</div>
                         {Array.isArray(cat.evidence) && cat.evidence.length > 0 && (
                           <div style={{ fontSize: '0.94rem', color: '#4b5563', background: '#f8fafc', borderRadius: 10, padding: '10px 12px' }}>
-                            <b>답변에서 확인한 근거</b>
+                            <b>Evidence found in answers</b>
                             {cat.evidence.slice(0, 3).map((item, evidenceIndex) => (
                               <div key={`${cat.name}-evidence-${evidenceIndex}`} style={{ marginTop: 5 }}>
-                                · {item.claim || '확인된 근거 없음'} <span style={{ color: item.source === 'unverified' ? '#dc2626' : '#9ca3af' }}>({item.source || 'missing'}{item.answer_index ? ` · 답변 ${item.answer_index}` : ''})</span>
+                                · {item.claim || 'No verified evidence'} <span style={{ color: item.source === 'unverified' ? '#dc2626' : '#9ca3af' }}>({item.source || 'missing'}{item.answer_index ? ` · answer ${item.answer_index}` : ''})</span>
                                 {item.quote && <div style={{ margin: '4px 0 0 12px', color: item.source === 'unverified' ? '#b91c1c' : '#64748b', fontStyle: 'italic' }}>“{item.quote}”</div>}
                               </div>
                             ))}
@@ -477,7 +489,7 @@ export default function InterviewEvaluation() {
                   {parsedAnalysis.visualization && parsedAnalysis.visualization.category_scores && (
                     <>
                       <div style={{ width: '100%', maxWidth: 520, margin: '0 auto 1.2rem auto', background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px #22c55e11', border: '1.5px solid #e2e8f0', padding: '1.5rem', overflow: 'visible' }}>
-                        <h3 style={{ fontSize: '1.13rem', fontWeight: '700', marginBottom: '1.2rem', color: '#22c55e', letterSpacing: '-0.5px', textAlign: 'center' }}>카테고리별 점수 레이더 차트</h3>
+                        <h3 style={{ fontSize: '1.13rem', fontWeight: '700', marginBottom: '1.2rem', color: '#22c55e', letterSpacing: '-0.5px', textAlign: 'center' }}>Category score radar</h3>
                         <ResponsiveContainer width="100%" height={340}>
                           <RadarChart cx="50%" cy="50%" outerRadius="80%" data={parsedAnalysis.visualization.category_labels.map((label, i) => ({
                             category: label,
@@ -486,12 +498,12 @@ export default function InterviewEvaluation() {
                           }))}>
                             <PolarGrid stroke="#e0e0e0" />
                             <PolarAngleAxis dataKey="category" tick={{ fill: '#888', fontWeight: 600, fontSize: 15 }} tickLine={false} tickMargin={18} />
-                            <Radar name="점수" dataKey="score" stroke="#22c55e" fill="#22c55e" fillOpacity={0.18} />
+                            <Radar name="Score" dataKey="score" stroke="#22c55e" fill="#22c55e" fillOpacity={0.18} />
                           </RadarChart>
                         </ResponsiveContainer>
                       </div>
                       <div style={{ margin: '0 auto 2.5rem auto', maxWidth: 520, background: '#f8fafc', borderRadius: 14, padding: '1.1rem 1.5rem', boxShadow: '0 2px 8px #22c55e11', border: '1.5px solid #e2e8f0', fontSize: '0.92rem', color: '#64748b', textAlign: 'center' }}>
-                        현재 점수는 이 지원자의 답변에서 확인된 항목별 점수 합계입니다. 비교 모집단이 없어 평균·상위권 수치는 표시하지 않습니다.
+                        This score is the sum of category scores grounded in the candidate's answers. Population benchmarks are not shown because no comparison sample is available.
                       </div>
                     </>
                   )}
@@ -499,12 +511,12 @@ export default function InterviewEvaluation() {
                   {/* After radar chart and 평균/상위10% info, render 전체 요약 if available */}
                   {parsedAnalysis.totalFeedback && (
                     <div style={{ background: 'linear-gradient(90deg,#f0fdf4 60%,#e6f9f3 100%)', padding: '1.5rem', borderRadius: '14px', border: '1.5px solid #bbf7d0', marginBottom: '2rem', boxShadow: '0 2px 12px #30c59b11' }}>
-                      <h3 style={{ fontSize: '1.13rem', fontWeight: '700', marginBottom: '0.7rem', color: '#166534', letterSpacing: '-0.5px' }}>전체 요약</h3>
+                      <h3 style={{ fontSize: '1.13rem', fontWeight: '700', marginBottom: '0.7rem', color: '#166534', letterSpacing: '-0.5px' }}>Overall summary</h3>
                       <div style={{ fontSize: '1.01rem', color: '#14532d', marginBottom: 8 }}><b>요약:</b> {parsedAnalysis.totalFeedback.summary}</div>
                       <div style={{ fontSize: '1.01rem', color: '#14532d', marginBottom: 8 }}><b>헤드헌팅 추천 포인트:</b> {parsedAnalysis.totalFeedback.headhunting_point}</div>
                       <div style={{ fontSize: '1.01rem', color: '#14532d', marginBottom: 8 }}><b>추천/코멘트:</b> {parsedAnalysis.totalFeedback.recommendation}</div>
                       {parsedAnalysis.totalFeedback.limitations?.length > 0 && (
-                        <div style={{ fontSize: '0.94rem', color: '#4b5563', marginBottom: 8 }}><b>분석의 한계:</b> {parsedAnalysis.totalFeedback.limitations.join(' ')}</div>
+                        <div style={{ fontSize: '0.94rem', color: '#4b5563', marginBottom: 8 }}><b>Analysis limitations:</b> {parsedAnalysis.totalFeedback.limitations.join(' ')}</div>
                       )}
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
                         {parsedAnalysis.totalFeedback.tags && parsedAnalysis.totalFeedback.tags.length > 0 ? parsedAnalysis.totalFeedback.tags.map((tag, i) => (
@@ -528,17 +540,17 @@ export default function InterviewEvaluation() {
                   {parsedAnalysis.consistencyAudit && (
                     <div style={{ background: '#f5f3ff', borderRadius: 14, padding: '1.35rem 1.5rem', border: '1.5px solid #ddd6fe', marginBottom: '2rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-                        <h3 style={{ fontSize: '1.13rem', fontWeight: 700, margin: 0, color: '#6d28d9' }}>답변 간 일관성 감사</h3>
+                        <h3 style={{ fontSize: '1.13rem', fontWeight: 700, margin: 0, color: '#6d28d9' }}>Answer consistency audit</h3>
                         <span style={{ borderRadius: 999, padding: '5px 10px', background: parsedAnalysis.consistencyAudit.status === 'consistent' ? '#dcfce7' : parsedAnalysis.consistencyAudit.status === 'mixed' ? '#fef3c7' : '#e2e8f0', color: '#4c1d95', fontWeight: 700, fontSize: 12 }}>
-                          {parsedAnalysis.consistencyAudit.status === 'consistent' ? '일관된 신호' : parsedAnalysis.consistencyAudit.status === 'mixed' ? '추가 검증 필요' : '근거 부족'}
+                          {parsedAnalysis.consistencyAudit.status === 'consistent' ? 'Consistent signal' : parsedAnalysis.consistencyAudit.status === 'mixed' ? 'Needs verification' : 'Limited evidence'}
                         </span>
                       </div>
                       {parsedAnalysis.consistencyAudit.checks?.length > 0 ? parsedAnalysis.consistencyAudit.checks.map((check, index) => (
                         <div key={index} style={{ marginTop: 10, background: '#fff', borderRadius: 10, padding: 11, color: '#4c1d95', fontSize: 13 }}>
                           <b>{check.topic}</b> · {check.observation}
-                          <div style={{ marginTop: 4, color: '#64748b' }}>답변 {check.answer_indices?.join(', ') || '-'} · 근거: {check.evidence || '확인되지 않음'} · 확신도 {Math.round((check.confidence || 0) * 100)}%</div>
+                          <div style={{ marginTop: 4, color: '#64748b' }}>Answers {check.answer_indices?.join(', ') || '-'} · Evidence: {check.evidence || 'Not verified'} · Confidence {Math.round((check.confidence || 0) * 100)}%</div>
                         </div>
-                      )) : <p style={{ color: '#64748b', marginBottom: 0 }}>서로 다른 답변을 비교할 만큼 충분한 근거가 없습니다.</p>}
+                      )) : <p style={{ color: '#64748b', marginBottom: 0 }}>There is not enough evidence to compare different answers.</p>}
                     </div>
                   )}
                 </div>
@@ -550,7 +562,7 @@ export default function InterviewEvaluation() {
                   border: '1px solid #e2e8f0'
                 }}>
                   <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: '#2d3748' }}>
-                    상세 분석
+                    Detailed analysis
                   </h3>
                   <AIAnalysisSummary
                     analysis={analysisResult}
@@ -566,9 +578,9 @@ export default function InterviewEvaluation() {
                   borderRadius: '8px',
                   border: '1px solid #e2e8f0'
                 }}>
-                  <p>AI 면접 분석 결과가 없습니다.</p>
+                  <p>No AI interview analysis is available yet.</p>
                   <p style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>
-                    분석이 진행 중이거나 아직 완료되지 않았습니다.
+                    Analysis may still be running or has not been completed.
                   </p>
                 </div>
               )}
@@ -584,7 +596,7 @@ export default function InterviewEvaluation() {
             marginTop: '2rem'
           }}>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '600', marginBottom: '1rem', color: '#2d3748' }}>
-              면접 평가
+              Manual evaluation
             </h2>
             
             {existingEvaluation ? (
@@ -597,10 +609,10 @@ export default function InterviewEvaluation() {
                   marginBottom: '1.5rem'
                 }}>
                   <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: '#166534' }}>
-                    평가 완료
+                    Evaluation completed
                   </h3>
                   <p style={{ fontSize: '0.9rem', color: '#14532d', margin: 0 }}>
-                    이 후보자에 대한 면접 평가가 이미 완료되었습니다.
+                    An interview evaluation has already been recorded for this candidate.
                   </p>
                 </div>
                 
@@ -613,7 +625,7 @@ export default function InterviewEvaluation() {
                   boxShadow: '0 2px 12px #22c55e11',
                 }}>
                   <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1.2rem', color: '#22c55e', letterSpacing: '-0.5px' }}>
-                    기존 평가 결과
+                    Existing evaluation
                   </h3>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', marginBottom: '1.2rem' }}>
                     <span style={{
@@ -628,7 +640,7 @@ export default function InterviewEvaluation() {
                       display: 'flex',
                       alignItems: 'center',
                       gap: 8,
-                    }}>{existingEvaluation.adminIntrvwScore}점</span>
+                    }}>{existingEvaluation.adminIntrvwScore} points</span>
                     <span style={{ 
                       color: existingEvaluation.adminIntrvwSlctStatus === 'selected' ? '#22c55e' : existingEvaluation.adminIntrvwSlctStatus === 'rejected' ? '#dc2626' : '#a3a3a3',
                       background: existingEvaluation.adminIntrvwSlctStatus === 'selected' ? '#f0fdf4' : existingEvaluation.adminIntrvwSlctStatus === 'rejected' ? '#fef2f2' : '#f3f4f6',
@@ -640,13 +652,13 @@ export default function InterviewEvaluation() {
                       boxShadow: '0 1px 4px #22c55e11',
                       marginLeft: 4,
                     }}>
-                      {existingEvaluation.adminIntrvwSlctStatus === 'selected' ? '선정' : 
-                       existingEvaluation.adminIntrvwSlctStatus === 'rejected' ? '미선정' : '검토 중'}
+                      {existingEvaluation.adminIntrvwSlctStatus === 'selected' ? 'Selected' :
+                       existingEvaluation.adminIntrvwSlctStatus === 'rejected' ? 'Rejected' : 'Pending'}
                     </span>
                   </div>
                   {existingEvaluation.adminIntrvwNotes && (
                     <div style={{ marginBottom: '1.2rem' }}>
-                      <strong style={{ color: '#22c55e', fontWeight: 600 }}>평가 의견</strong>
+                      <strong style={{ color: '#22c55e', fontWeight: 600 }}>Evaluation notes</strong>
                       <p style={{ 
                         margin: '0.5rem 0 0 0', 
                         padding: '0.85rem', 
@@ -662,7 +674,7 @@ export default function InterviewEvaluation() {
                     </div>
                   )}
                   <div style={{ color: '#888', fontSize: '0.98rem', fontWeight: 500 }}>
-                    평가일: {new Date(existingEvaluation.adminIntrvwEvaluationDate).toLocaleDateString('ko-KR')}
+                    Evaluated: {new Date(existingEvaluation.adminIntrvwEvaluationDate).toLocaleDateString('en-US')}
                   </div>
                 </div>
               </div>
@@ -670,7 +682,7 @@ export default function InterviewEvaluation() {
               <form onSubmit={handleSubmit}>
                 <div style={{ marginBottom: '1.5rem' }}>
                   <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.5rem', color: '#2d3748' }}>
-                    점수 (0-100)
+                    Score (0-100)
                   </label>
                   <input
                     type="number"
@@ -702,7 +714,7 @@ export default function InterviewEvaluation() {
 
                 <div style={{ marginBottom: '1.5rem' }}>
                   <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.5rem', color: '#2d3748' }}>
-                    평가 의견
+                    Notes
                   </label>
                   <textarea
                     value={evaluation.adminIntrvwNotes}
@@ -718,7 +730,7 @@ export default function InterviewEvaluation() {
                       transition: 'border-color 0.18s, box-shadow 0.18s',
                       outline: 'none',
                     }}
-                    placeholder="면접 평가 의견을 작성해주세요..."
+                    placeholder="Add structured notes about the interview..."
                     onFocus={e => {
                       e.currentTarget.style.borderColor = '#22c55e';
                       e.currentTarget.style.boxShadow = '0 0 0 2px #22c55e33';
@@ -732,7 +744,7 @@ export default function InterviewEvaluation() {
 
                 <div style={{ marginBottom: '1.5rem' }}>
                   <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.5rem', color: '#2d3748' }}>
-                    선정 상태
+                    Decision
                   </label>
                   <select
                     value={evaluation.adminIntrvwSlctStatus}
@@ -755,9 +767,9 @@ export default function InterviewEvaluation() {
                       e.currentTarget.style.boxShadow = 'none';
                     }}
                   >
-                    <option value="pending">검토 중</option>
-                    <option value="selected">선정</option>
-                    <option value="rejected">미선정</option>
+                    <option value="pending">Pending</option>
+                    <option value="selected">Selected</option>
+                    <option value="rejected">Rejected</option>
                   </select>
                 </div>
 
@@ -776,7 +788,7 @@ export default function InterviewEvaluation() {
                       cursor: 'pointer'
                     }}
                   >
-                    취소
+                    Cancel
                   </button>
                   {/* 면접 평가 버튼 Toss-style로 변경 */}
                   <button
@@ -823,7 +835,7 @@ export default function InterviewEvaluation() {
                       <path d="M9 15h2" />
                       <path d="M15 19l2 2 4-4" stroke="#22c55e" strokeWidth="2" fill="none"/>
                     </svg>
-                    면접 평가
+                    Save evaluation
                   </button>
                 </div>
               </form>

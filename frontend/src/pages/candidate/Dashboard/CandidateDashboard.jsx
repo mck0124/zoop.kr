@@ -150,7 +150,7 @@ function CandidateDashboard() {
         const userResponse = await fetch(apiUrl(`/api/candidates/${candidateId}`));
         if (userResponse.ok) {
           const userData = await userResponse.json();
-          setUserName(userData.candidateName || '사용자');
+          setUserName(userData.candidateName || 'Candidate');
         }
 
         // 2. 공고 목록 가져오기
@@ -168,7 +168,7 @@ function CandidateDashboard() {
         
       } catch (error) {
         console.error('데이터 가져오기 오류:', error);
-        setUserName('오류 발생'); // 사용자 이름 로딩 오류 처리
+        setUserName('Unable to load profile');
         setJobPostings([]); // 공고 목록 로딩 오류 시 빈 배열로 설정
       }
     };
@@ -282,7 +282,7 @@ function CandidateDashboard() {
       // 1. 현재 로그인한 사용자의 candidateId 가져오기
       const candidateId = localStorage.getItem('userId');
       if (!candidateId) {
-        alert('사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
+        alert('We could not find your profile. Please sign in again.');
         return;
       }
 
@@ -292,7 +292,7 @@ function CandidateDashboard() {
         const interviewDateTime = new Date(interview.iso);
         const now = new Date();
         if (interviewDateTime > now) {
-          alert('아직 면접 시작 시간이 되지 않았습니다.');
+          alert('The interview has not started yet.');
           return;
         }
       }
@@ -304,20 +304,20 @@ function CandidateDashboard() {
         console.error("API 응답 오류:", response.status, errorText);
         try {
           const errorData = JSON.parse(errorText);
-          throw new Error(errorData.message || '면접 일정을 조회하는데 실패했습니다.');
+          throw new Error(errorData.message || 'We could not load the interview schedule.');
         } catch (parseError) {
-          throw new Error(`면접 일정을 조회하는데 실패했습니다. (HTTP ${response.status}: ${errorText.substring(0, 100)}...)`);
+          throw new Error(`We could not load the interview schedule (HTTP ${response.status}: ${errorText.substring(0, 100)}...)`);
         }
       }
       const data = await response.json();
       if (data && data.scheduleId) {
         navigate(`/interview/${data.scheduleId}`);
       } else {
-        alert('해당 공고에 대한 면접 일정을 찾을 수 없습니다.');
+        alert('No interview schedule was found for this job posting.');
       }
     } catch (error) {
       console.error('면접 페이지로 이동 중 오류 발생:', error);
-      alert(`면접 페이지로 이동할 수 없습니다: ${error.message}`);
+      alert(`We could not open the interview page: ${error.message}`);
     }
   };
 
