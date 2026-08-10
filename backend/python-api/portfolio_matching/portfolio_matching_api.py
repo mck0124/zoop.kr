@@ -109,14 +109,6 @@ def _evidence_id(*parts: Any) -> str:
 def _audit_metadata(source_text: str, source_type: str, evidence_count: int) -> Dict[str, Any]:
     """AI 결과가 언제/어떤 입력 계열/정책으로 만들어졌는지 추적 가능한 메타데이터."""
     integrity = source_integrity_audit(source_text, source_type="portfolio_submission")
-    fairness_audit = fairness_guard_audit([
-        raw_analysis.get("summary"),
-        *claims,
-        *risks,
-        *gaps,
-        *verification_plan,
-        raw_analysis.get("seniority_signal"),
-    ])
     return {
         "ledger_version": "zoop-evidence-ledger-v1",
         "policy_version": "grounded-hiring-v1",
@@ -183,6 +175,14 @@ def _normalize_portfolio_analysis(raw_analysis: Dict[str, Any], source_text: str
     gaps = [str(item) for item in raw_analysis.get("gaps", []) if item][:8]
     verification_plan = [str(item) for item in raw_analysis.get("verification_plan", []) if item][:8]
     integrity = source_integrity_audit(source_text, source_type="portfolio_submission")
+    fairness_audit = fairness_guard_audit([
+        raw_analysis.get("summary"),
+        *claims,
+        *risks,
+        *gaps,
+        *verification_plan,
+        raw_analysis.get("seniority_signal"),
+    ])
 
     return {
         "version": "portfolio-evidence-v1",
