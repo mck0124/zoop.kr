@@ -1163,18 +1163,20 @@ export default function CompanyDashboard() {
   // 후보자 목록이 바뀔 때 candPortfolioId별 매칭 정보 불러오기
   useEffect(() => {
     const fetchAllMatches = async () => {
-      const map = {};
-      for (const candidate of githubCandidates) {
-        if (candidate.candPortfolioId) {
-          try {
-            const res = await authenticatedFetch(apiUrl(`/api/portfolio-job-matches/portfolio/${candidate.candPortfolioId}`));
-            const data = await res.json();
-            map[candidate.candPortfolioId] = data;
-          } catch (e) {
-            map[candidate.candPortfolioId] = [];
-          }
+      const portfolioIds = [...new Set(
+        githubCandidates.map(candidate => candidate.candPortfolioId).filter(Boolean)
+      )];
+      const entries = await Promise.all(portfolioIds.map(async (portfolioId) => {
+        try {
+          const res = await authenticatedFetch(apiUrl(`/api/portfolio-job-matches/portfolio/${portfolioId}`));
+          if (!res.ok) throw new Error(`Match lookup failed: ${res.status}`);
+          return [portfolioId, await res.json()];
+        } catch (e) {
+          console.warn('Portfolio match lookup failed:', portfolioId, e);
+          return [portfolioId, []];
         }
-      }
+      }));
+      const map = Object.fromEntries(entries);
       setPortfolioMatchesMap(map);
     };
     if (githubCandidates.length > 0) fetchAllMatches();
