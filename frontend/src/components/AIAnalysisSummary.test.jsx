@@ -54,3 +54,18 @@ test('does not render invalid numeric AI metadata as NaN', () => {
   expect(screen.queryByText(/NaN/)).not.toBeInTheDocument();
   expect(screen.getByText('legacy result')).toBeInTheDocument();
 });
+
+test('renders the evidence that could change a hiring decision', () => {
+  render(renderAnalysis({
+    summary: 'Review recommended',
+    counterfactuals: [{
+      missing_signal: 'Actual ownership of the deployment pipeline',
+      validation_action: 'Ask for the repository change and incident timeline',
+      expected_score_delta: 12,
+    }],
+  }));
+
+  expect(screen.getByText('What could change this decision?')).toBeInTheDocument();
+  expect(screen.getByText('Actual ownership of the deployment pipeline')).toBeInTheDocument();
+  expect(screen.getByText(/Potential score change: \+12/)).toBeInTheDocument();
+});
