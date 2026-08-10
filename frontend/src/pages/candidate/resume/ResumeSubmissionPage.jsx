@@ -12,6 +12,14 @@ import { Sidebar } from '../Sidebar';
 import PortfolioNavbar from '../Portfolio/PortfolioNavbar';
 import { apiUrl } from '../../../api/config';
 
+const authenticatedFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+    ...(options.headers || {}),
+  },
+});
+
 const RESUME_OFFER_OPTIONS = [
   { value: 'active', label: '적극 구직 중이에요\n제안 받을래요' },
   { value: 'open', label: '좋은 포지션이 있다면\n제안 받을래요' },
@@ -33,6 +41,7 @@ const ResumeSubmissionPage = () => {
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState({ type: '', message: '' });
   const [agreementChecked, setAgreementChecked] = useState(false);
   const [offerOption, setOfferOption] = useState('active');
 
@@ -54,7 +63,7 @@ const ResumeSubmissionPage = () => {
       let originalFileName = null;
       // 1. 사용자 정보는 무조건 세팅
       try {
-        const res = await fetch(apiUrl(`/api/candidates/${authState.userId}`));
+        const res = await authenticatedFetch(apiUrl(`/api/candidates/${authState.userId}`));
         if (res.ok) {
           userData = await res.json();
         }
@@ -63,7 +72,7 @@ const ResumeSubmissionPage = () => {
       }
       // 2. 이력서 정보는 실패해도 무시
       try {
-        const resumeRes = await fetch(apiUrl(`/api/resumes/candidate/${authState.userId}`));
+        const resumeRes = await authenticatedFetch(apiUrl(`/api/resumes/candidate/${authState.userId}`));
         if (resumeRes.ok) {
           const resumes = await resumeRes.json();
           if (Array.isArray(resumes) && resumes.length > 0) {
@@ -75,7 +84,7 @@ const ResumeSubmissionPage = () => {
       }
       // 3. 최근 첨부 이력서 파일 fetch
       try {
-        const pfRes = await fetch(apiUrl(`/api/portfolios/candidate-portfolio/recent/${authState.userId}`));
+        const pfRes = await authenticatedFetch(apiUrl(`/api/portfolios/candidate-portfolio/recent/${authState.userId}`));
         if (pfRes.ok) {
           const pf = await pfRes.json();
           if (pf.hasPortfolio && pf.portfolioFilePath) {
@@ -105,9 +114,10 @@ const ResumeSubmissionPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.file) {
-      alert('Please attach your resume file.');
+      setFeedback({ type: 'error', message: 'Please attach your resume file.' });
       return;
     }
+    setFeedback({ type: '', message: '' });
     setLoading(true);
     setLoadingMessage('제출 중...');
     try {
@@ -131,7 +141,7 @@ const ResumeSubmissionPage = () => {
           Object.keys(ex).forEach(k => { if (ex[k] === undefined || ex[k] === null) ex[k] = ''; });
           return ex;
         });
-      const resumeRes = await fetch(apiUrl('/api/resumes'), {
+      const resumeRes = await authenticatedFetch(apiUrl('/api/resumes'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -163,7 +173,7 @@ const ResumeSubmissionPage = () => {
         const fd = new FormData();
         fd.append('candidateId', authState.userId);
         fd.append('portfolioFile', form.file);
-        const portRes = await fetch(apiUrl('/api/portfolios/resume-upload'), {
+        const portRes = await authenticatedFetch(apiUrl('/api/portfolios/resume-upload'), {
           method: 'POST',
           body: fd,
         });
@@ -188,14 +198,14 @@ const ResumeSubmissionPage = () => {
           throw new Error('포트폴리오 업로드 응답에 cand_portfolio_id 또는 file_url이 없습니다.');
         }
         // 분석 API 호출 및 폴링 부분 제거
-        alert('Resume and portfolio saved successfully!\nAnalysis will begin automatically shortly.');
+        setFeedback({ type: 'success', message: 'Resume and portfolio saved successfully. Analysis will begin automatically shortly.' });
         navigate('/candidate/dashboard');
         setLoading(false);
         setLoadingMessage('');
         return;
       }
     } catch (err) {
-      alert('Unable to save: ' + err.message);
+      setFeedback({ type: 'error', message: `Unable to save: ${err.message}` });
       setLoading(false);
       setLoadingMessage('');
     }
@@ -206,9 +216,9 @@ const ResumeSubmissionPage = () => {
     setSaving(true);
     try {
       localStorage.setItem('resumeDraft', JSON.stringify(form));
-      alert('Draft saved!');
+      setFeedback({ type: 'success', message: 'Draft saved locally on this device.' });
     } catch (e) {
-      alert('Unable to save draft: ' + e.message);
+      setFeedback({ type: 'error', message: 'Unable to save draft: ' + e.message });
     } finally {
       setSaving(false);
     }
@@ -241,6 +251,25 @@ const ResumeSubmissionPage = () => {
         <div className="main-content-area">
           <div style={{ marginTop: '72px' }}>
             <h1 className="page-title">Build your resume</h1>
+
+            {feedback.message && (
+              <div
+                role={feedback.type === 'error' ? 'alert' : 'status'}
+                aria-live="polite"
+                style={{
+                  margin: '0 auto 1rem',
+                  maxWidth: '1200px',
+                  padding: '0.85rem 1rem',
+                  borderRadius: 12,
+                  border: `1px solid ${feedback.type === 'error' ? '#fecaca' : '#bbf7d0'}`,
+                  background: feedback.type === 'error' ? '#fff7f7' : '#effcf7',
+                  color: feedback.type === 'error' ? '#991b1b' : '#166534',
+                  fontWeight: 700
+                }}
+              >
+                {feedback.message}
+              </div>
+            )}
         
             <form onSubmit={handleSubmit} style={{ paddingBottom: '100px' }}>
               <div style={{maxWidth: '1200px', margin: '0 auto'}}>

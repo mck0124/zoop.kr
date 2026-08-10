@@ -7,6 +7,14 @@ import './PortfolioSubmissionPage.css';
 import { apiUrl } from '../../../api/config';
 import { useLanguage } from '../../../context/LanguageContext';
 
+const authenticatedFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+    ...(options.headers || {}),
+  },
+});
+
 function PortfolioSubmissionPage() {
   const MAX_FILE_SIZE = 50 * 1024 * 1024;
   const { postId } = useParams();
@@ -80,7 +88,7 @@ function PortfolioSubmissionPage() {
       
       try {
         // 공고 정보 가져오기
-        const response = await fetch(apiUrl(`/api/postings/info/${postId}`));
+        const response = await authenticatedFetch(apiUrl(`/api/postings/info/${postId}`));
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -230,7 +238,7 @@ function PortfolioSubmissionPage() {
     formData.append('source', 'dashboard');
 
     try {
-        const response = await fetch(apiUrl('/api/portfolios'), {
+        const response = await authenticatedFetch(apiUrl('/api/portfolios'), {
             method: 'POST',
             body: formData,
         });
