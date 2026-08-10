@@ -25,6 +25,9 @@ const Container = styled.div`
   margin: 0 auto;
   padding: 7rem 2rem 3rem 2rem;
   position: relative;
+  @media (max-width: 640px) {
+    padding: 5.5rem 1rem 2rem;
+  }
 `;
 
 const PostInfoCard = styled.div`
@@ -37,6 +40,11 @@ const PostInfoCard = styled.div`
   position: relative;
   min-width: 350px;
   animation: ${fadeIn} 0.7s cubic-bezier(.35,.97,.46,1.01);
+  @media (max-width: 640px) {
+    min-width: 0;
+    padding: 1.5rem 1.1rem;
+    border-radius: 20px;
+  }
 `;
 
 const PostInfoHeader = styled.h1`
@@ -107,6 +115,10 @@ const PosterScrollWrap = styled.div`
   scroll-behavior: smooth;
   &::-webkit-scrollbar { height: 10px; background: #fff;}
   &::-webkit-scrollbar-thumb { background: #e5edf7; border-radius: 8px;}
+  @media (max-width: 640px) {
+    padding: 1rem 0.25rem 1.5rem;
+    margin: 0 -0.25rem;
+  }
 `;
 
 const PostersRow = styled.div`
@@ -215,6 +227,12 @@ const TossCard = styled.div`
       opacity: 1;
     }
   }
+  @media (max-width: 640px) {
+    width: 290px;
+    min-width: 290px;
+    min-height: 440px;
+    padding: 1.35rem 1rem;
+  }
 `;
 
 // Liquid glass glow behind avatar
@@ -276,7 +294,7 @@ const ModalCard = styled.div`
   border-radius: 24px;
   max-width: 800px;
   width: 95vw;
-  min-width: 520px;
+  min-width: 0;
   padding: 3rem 2.5rem 0 2.5rem;
   box-shadow: 0 25px 100px rgba(0, 0, 0, 0.25);
   position: relative;
@@ -285,6 +303,14 @@ const ModalCard = styled.div`
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
   max-height: 90vh;
+  @media (max-width: 640px) {
+    width: calc(100vw - 1rem);
+    max-width: calc(100vw - 1rem);
+    min-width: 0;
+    max-height: 92vh;
+    border-radius: 18px;
+    padding: 1.5rem 0.9rem 0;
+  }
 `;
 
 const ModalCloseBtn = styled.button`
@@ -1516,7 +1542,7 @@ export default function CandidateList({ activeTab = 'all' }) {
       {/* --- AI 분석 모달 --- */}
       {showAnalysisModal && selectedAnalysis && selectedCandidate && (
         <ModalOverlay onClick={closeAnalysisModal}>
-          <ModalCard onClick={e => e.stopPropagation()} style={{ maxWidth: '1200px', width: '95vw', minWidth: '800px' }}>
+          <ModalCard onClick={e => e.stopPropagation()} style={{ maxWidth: '1200px', width: '95vw' }}>
             <ModalCloseBtn onClick={closeAnalysisModal}>
               <FaTimes />
             </ModalCloseBtn>
