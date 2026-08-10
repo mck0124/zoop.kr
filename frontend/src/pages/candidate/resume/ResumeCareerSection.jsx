@@ -69,85 +69,85 @@ const ResumeCareerSection = ({ form, setForm }) => {
 
   return (
     <section className="resume-section">
-      <h3>경력</h3>
+      <h3>Work experience</h3>
       {(form.career || []).map((car, idx) => (
         <div className="career-card" key={idx}>
           <div className="career-form-grid">
             {/* 1행: 회사명, 직무, 부서, 직급 */}
             <div className="career-row career-row-1">
               <div className="career-field flex2">
-                <label>회사명</label>
+                <label>Company</label>
                 <div className="company-input-wrapper">
                   <input 
                     type="text"
                     value={car.company} 
                     onChange={e => handleChange(idx, 'company', e.target.value)}
-                    placeholder="회사명을 입력하세요"
+                    placeholder="Enter company name"
                     className={car.isCompanyHidden ? 'hidden-company' : ''}
                   />
                   <button
                     type="button"
                     className="company-hide-toggle"
                     onClick={() => handleChange(idx, 'isCompanyHidden', !car.isCompanyHidden)}
-                    title={car.isCompanyHidden ? '회사명 표시' : '회사명 숨김'}
+                    title={car.isCompanyHidden ? 'Show company name' : 'Hide company name'}
                   >
                     {car.isCompanyHidden ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
               </div>
               <div className="career-field flex2">
-                <label>직무</label>
+                <label>Role</label>
                 <input 
                   type="text"
                   value={car.jobTitle} 
                   onChange={e => handleChange(idx, 'jobTitle', e.target.value)}
-                  placeholder="직무를 입력하세요"
+                  placeholder="Enter role"
                 />
               </div>
               <div className="career-field">
-                <label>부서</label>
+                <label>Department</label>
                 <input 
                   type="text"
                   value={car.department}
                   onChange={e => handleChange(idx, 'department', e.target.value)}
-                  placeholder="부서를 입력하세요"
+                  placeholder="Enter department"
                 />
               </div>
               <div className="career-field">
-                <label>직급</label>
+                <label>Level</label>
                 <input 
                   type="text"
                   value={car.position}
                   onChange={e => handleChange(idx, 'position', e.target.value)}
-                  placeholder="직급을 입력하세요"
+                  placeholder="Enter level"
                 />
               </div>
             </div>
             {/* 2행: 시작년월, 종료년월, 삭제버튼 */}
             <div className="career-row career-row-2">
               <div className="career-field">
-                <label>시작년월</label>
+                <label>Start month</label>
                 <DatePicker
                   selected={parseYearMonth(car.startDate)}
                   onChange={date => handleChange(idx, 'startDate', date)}
                   dateFormat="yyyy-MM"
                   showMonthYearPicker
                   showFullMonthYearPicker
-                  placeholderText="시작년월 선택"
+                  placeholderText="Select start month"
                   className="datepicker-input"
                   maxDate={new Date()}
                   isClearable
                 />
               </div>
               <div className="career-field">
-                <label>종료년월</label>
+                <label>End month</label>
                 <DatePicker
                   selected={parseYearMonth(car.endDate)}
                   onChange={date => handleChange(idx, 'endDate', date)}
                   dateFormat="yyyy-MM"
                   showMonthYearPicker
                   showFullMonthYearPicker
-                  placeholderText="종료년월 선택"
+                  placeholderText="Select end month"
                   className="datepicker-input"
                   maxDate={new Date()}
                   isClearable
@@ -164,7 +164,7 @@ const ResumeCareerSection = ({ form, setForm }) => {
                     checked={car.current} 
                     onChange={e => handleChange(idx, 'current', e.target.checked)}
                   />
-                  <span className="career-checkbox-text">재직중</span>
+                  <span className="career-checkbox-text">Currently working</span>
                 </label>
               </div>
               <div className="career-field career-delete-wrap" style={{}}>
@@ -216,4 +216,4 @@ const ResumeCareerSection = ({ form, setForm }) => {
   );
 };
 
-export default ResumeCareerSection; 
+export default ResumeCareerSection;

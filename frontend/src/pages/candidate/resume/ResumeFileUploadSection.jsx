@@ -41,7 +41,7 @@ const ResumeFileUploadSection = ({ form, setForm }) => {
   return (
     <div style={{maxWidth: '1200px', margin: '0 auto'}}>
       <section className="resume-section">
-        <h3>이력서 파일 첨부</h3>
+        <h3>Resume file</h3>
         <div className="file-upload-container">
           <div 
             className="file-upload-area"
@@ -85,8 +85,8 @@ const ResumeFileUploadSection = ({ form, setForm }) => {
               <div className="file-upload-placeholder">
                 <FaUpload className="upload-icon" />
                 <div className="upload-text">
-                  <span className="upload-title">파일을 선택하거나 여기에 드래그하세요</span>
-                  <span className="upload-subtitle">PDF, DOC, DOCX, TXT 파일만 지원됩니다 (최대 10MB)</span>
+                  <span className="upload-title">Choose a file or drag it here</span>
+                  <span className="upload-subtitle">PDF, DOC, DOCX, and TXT only (max 10MB)</span>
                 </div>
               </div>
             ) : (
@@ -124,4 +124,4 @@ const ResumeFileUploadSection = ({ form, setForm }) => {
   );
 };
 
-export default ResumeFileUploadSection; 
+export default ResumeFileUploadSection;

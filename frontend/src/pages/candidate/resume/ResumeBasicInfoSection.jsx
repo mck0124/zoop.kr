@@ -50,7 +50,7 @@ const ResumeBasicInfoSection = ({ form }) => {
 
   return (
     <section className="resume-section">
-      <h3>기본 정보</h3>
+      <h3>Basic information</h3>
       <div style={{ position: 'relative', paddingLeft: '2.5rem', paddingRight: '2.5rem' }}>
         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', marginTop: 12 }}>
           {/* 좌측: 기본 정보 */}
@@ -61,7 +61,7 @@ const ResumeBasicInfoSection = ({ form }) => {
                 <div style={labelStyle}>
                   {/* User SVG */}
                   <svg style={iconStyle} fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.3 2.7-6 6-6h4c3.3 0 6 2.7 6 6"/></svg>
-                  <span>이름</span>
+                  <span>Name</span>
                 </div>
                 <div style={valueStyle}>{form.name || '-'}</div>
               </div>
@@ -70,7 +70,7 @@ const ResumeBasicInfoSection = ({ form }) => {
                 <div style={labelStyle}>
                   {/* Mail SVG */}
                   <svg style={iconStyle} fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 7l9 6 9-6"/></svg>
-                  <span>이메일</span>
+                  <span>Email</span>
                 </div>
                 <div style={valueStyle}>{form.email || '-'}</div>
               </div>
@@ -79,7 +79,7 @@ const ResumeBasicInfoSection = ({ form }) => {
                 <div style={labelStyle}>
                   {/* Phone SVG */}
                   <svg style={iconStyle} fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.86 19.86 0 0 1 3.08 5.18 2 2 0 0 1 5 3h3a2 2 0 0 1 2 1.72c.13.81.36 1.6.7 2.34a2 2 0 0 1-.45 2.11l-1.27 1.27a16 16 0 0 0 6.29 6.29l1.27-1.27a2 2 0 0 1 2.11-.45c.74.34 1.53.57 2.34.7A2 2 0 0 1 22 16.92z"/></svg>
-                  <span>전화번호</span>
+                  <span>Phone</span>
                 </div>
                 <div style={valueStyle}>{form.phone || '-'}</div>
               </div>
@@ -97,14 +97,14 @@ const ResumeBasicInfoSection = ({ form }) => {
             <div
               style={{ width: 110, height: 140, borderRadius: 12, background: '#f4f4f4', border: '1.5px solid #e2e8f0', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8, cursor: 'pointer', position: 'relative' }}
               onClick={() => photoInputRef.current?.click()}
-              title="증명사진 업로드"
+              title="Upload profile photo"
             >
               {photo ? (
-                <img src={photo} alt="증명사진 미리보기" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={photo} alt="Candidate profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
                   <FaPlus style={{ fontSize: 32, color: '#bbb', marginBottom: 6 }} />
-                  <span style={{ color: '#bbb', fontSize: 13 }}>증명사진 업로드</span>
+                  <span style={{ color: '#bbb', fontSize: 13 }}>Upload profile photo</span>
                 </div>
               )}
               {/* 오버레이 플러스(이미지 있을 때, 마우스 오버 시) */}
@@ -149,4 +149,4 @@ const ResumeBasicInfoSection = ({ form }) => {
   );
 };
 
-export default ResumeBasicInfoSection; 
+export default ResumeBasicInfoSection;

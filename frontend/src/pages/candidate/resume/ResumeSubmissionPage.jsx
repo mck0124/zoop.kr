@@ -105,7 +105,7 @@ const ResumeSubmissionPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.file) {
-      alert('이력서 파일을 첨부해 주세요.');
+      alert('Please attach your resume file.');
       return;
     }
     setLoading(true);
@@ -188,14 +188,14 @@ const ResumeSubmissionPage = () => {
           throw new Error('포트폴리오 업로드 응답에 cand_portfolio_id 또는 file_url이 없습니다.');
         }
         // 분석 API 호출 및 폴링 부분 제거
-        alert('이력서 및 포트폴리오가 성공적으로 등록되었습니다!\n분석은 잠시 후 자동으로 진행됩니다.');
+        alert('Resume and portfolio saved successfully!\nAnalysis will begin automatically shortly.');
         navigate('/candidate/dashboard');
         setLoading(false);
         setLoadingMessage('');
         return;
       }
     } catch (err) {
-      alert('등록 중 오류 발생: ' + err.message);
+      alert('Unable to save: ' + err.message);
       setLoading(false);
       setLoadingMessage('');
     }
@@ -206,9 +206,9 @@ const ResumeSubmissionPage = () => {
     setSaving(true);
     try {
       localStorage.setItem('resumeDraft', JSON.stringify(form));
-      alert('임시저장 되었습니다!');
+      alert('Draft saved!');
     } catch (e) {
-      alert('임시저장 중 오류 발생: ' + e.message);
+      alert('Unable to save draft: ' + e.message);
     } finally {
       setSaving(false);
     }
@@ -227,7 +227,7 @@ const ResumeSubmissionPage = () => {
       <div className="portfolio-submission-container">
         <div className="loading-container">
           <div className="loading-spinner" style={{ marginBottom:'1.5rem', width:'48px', height:'48px', border:'6px solid #e2e8f0', borderTop:'6px solid #38a169', borderRadius:'50%', animation:'spin 1s linear infinite' }}></div>
-          <p>{loadingMessage || '공고 정보를 불러오는 중입니다...'}</p>
+          <p>{loadingMessage || 'Loading job details...'}</p>
         </div>
       </div>
     );
@@ -240,7 +240,7 @@ const ResumeSubmissionPage = () => {
         <Sidebar />
         <div className="main-content-area">
           <div style={{ marginTop: '72px' }}>
-            <h1 className="page-title">이력서 등록</h1>
+            <h1 className="page-title">Build your resume</h1>
         
             <form onSubmit={handleSubmit} style={{ paddingBottom: '100px' }}>
               <div style={{maxWidth: '1200px', margin: '0 auto'}}>
@@ -262,7 +262,7 @@ const ResumeSubmissionPage = () => {
               {/* 기업 제안 수신 여부 UI + 개인정보 동의 UI 너비 통일 */}
               <div className="resume-section-wrapper">
                 <div className="resume-offer-section" style={{ padding: 0 }}>
-                  <div className="resume-offer-title">기업으로부터 제안을 받으시겠어요?</div>
+                  <div className="resume-offer-title">Would you like to receive opportunities from companies?</div>
                   <div style={{ display: 'flex', gap: '1rem', margin: '18px 0 8px 0', justifyContent: 'flex-start' }}>
                     {RESUME_OFFER_OPTIONS.map(opt => (
                       <label
@@ -311,7 +311,7 @@ const ResumeSubmissionPage = () => {
                       className="resume-agreement-checkbox"
                     />
                     <span className="resume-agreement-text" style={{ fontSize: '0.93rem', color: '#888', fontWeight: 400 }}>
-                      이력서 제출 시 개인정보 제공 및 이용에 동의합니다. (필수)
+                      I agree to the collection and use of my personal data when submitting this resume. (Required)
                     </span>
                   </label>
                 </div>
@@ -323,29 +323,29 @@ const ResumeSubmissionPage = () => {
                 type="button"
                 onClick={handleCancel}
                 className="resume-cancel-btn styled-action-btn"
-                aria-label="이력서 등록 취소"
+                aria-label="Cancel resume"
                 style={{ background: '#30C59B', color: '#fff' }}
               >
-                <FaTimes style={{ marginRight: 8 }} /> 취소
+                <FaTimes style={{ marginRight: 8 }} /> Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={saving}
                 className="resume-save-btn styled-action-btn"
-                aria-label="임시저장"
+                aria-label="Save draft"
                 style={{ background: '#30C59B', color: '#fff' }}
               >
-                <FaSave style={{ marginRight: 8 }} /> {saving ? '저장 중...' : '임시저장'}
+                <FaSave style={{ marginRight: 8 }} /> {saving ? 'Saving...' : 'Save draft'}
               </button>
               <button
                 type="submit"
                 disabled={loading || !agreementChecked || !form.file}
                 className="resume-submit-btn styled-action-btn"
-                aria-label="이력서 제출"
+                aria-label="Submit resume"
                 style={{ background: '#30C59B', color: '#fff' }}
               >
-                <FaCheck style={{ marginRight: 8 }} /> {loading ? '제출 중...' : '제출'}
+                <FaCheck style={{ marginRight: 8 }} /> {loading ? 'Submitting...' : 'Submit'}
               </button>
             </div>
             </form>

@@ -117,11 +117,11 @@ export default function CandidateSettings() {
   // 비밀번호 변경
   const handlePasswordChange = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      alert('새 비밀번호가 일치하지 않습니다.');
+      alert('The new passwords do not match.');
       return;
     }
     if (passwordForm.newPassword.length < 8) {
-      alert('새 비밀번호는 8자 이상이어야 합니다.');
+      alert('The new password must be at least 8 characters.');
       return;
     }
     setSaving(true);
@@ -358,22 +358,22 @@ export default function CandidateSettings() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <TabButton
                 id="profile"
-                label="내 정보"
+                label="Profile"
                 icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/></svg>}
               />
               <TabButton
                 id="security"
-                label="보안"
+                label="Security"
                 icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><circle cx="12" cy="16" r="1"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>}
               />
               <TabButton
                 id="notifications"
-                label="알림 설정"
+                label="Notifications"
                 icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>}
               />
               <TabButton
                 id="danger"
-                label="계정 삭제"
+                label="Delete account"
                 icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3,6 5,6 21,6"/><path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/></svg>}
               />
             </div>
@@ -387,28 +387,28 @@ export default function CandidateSettings() {
                   내 정보
                 </h2>
                 <InputField
-                  label="이름"
+                  label="Name"
                   value={profileForm.candidateName}
                   onChange={handleCandidateNameChange}
-                  placeholder="이름을 입력하세요"
+                  placeholder="Enter your name"
                   required
                 />
                 <InputField
-                  label="이메일"
+                  label="Email"
                   type="email"
                   value={profileForm.candidateEmail}
                   onChange={handleCandidateEmailChange}
-                  placeholder="이메일을 입력하세요"
+                  placeholder="Enter your email"
                   required
                 />
                 <InputField
-                  label="아이디"
+                  label="Username"
                   value={profileForm.nickname}
                   onChange={handleNicknameChange}
-                  placeholder="아이디를 입력하세요"
+                  placeholder="Enter your username"
                 />
                 <div style={{ marginTop: '2rem' }}>
-                  <SaveButton onClick={handleProfileSave}>내 정보 저장</SaveButton>
+                  <SaveButton onClick={handleProfileSave}>Save profile</SaveButton>
                 </div>
               </motion.div>
             )}
@@ -472,20 +472,20 @@ export default function CandidateSettings() {
                     }}>
                       <div>
                         <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#2d3748', marginBottom: '0.25rem' }}>
-                          {key === 'emailNotifications' && '이메일 알림'}
-                          {key === 'pushNotifications' && '푸시 알림'}
-                          {key === 'autoMatching' && 'AI 자동 매칭'}
-                          {key === 'interviewSchedule' && '면접 일정 알림'}
-                          {key === 'resultNotification' && '합격/불합격 결과 알림'}
-                          {key === 'marketingEmails' && '마케팅/이벤트 메일'}
+                          {key === 'emailNotifications' && 'Email notifications'}
+                          {key === 'pushNotifications' && 'Push notifications'}
+                          {key === 'autoMatching' && 'AI job matching'}
+                          {key === 'interviewSchedule' && 'Interview schedule alerts'}
+                          {key === 'resultNotification' && 'Hiring result alerts'}
+                          {key === 'marketingEmails' && 'Marketing and event emails'}
                         </h4>
                         <p style={{ fontSize: '0.9rem', color: '#4a5568' }}>
-                          {key === 'emailNotifications' && '이메일로 주요 알림을 받습니다'}
-                          {key === 'pushNotifications' && '브라우저 푸시 알림을 받습니다'}
-                          {key === 'autoMatching' && 'AI가 적합한 공고를 추천합니다'}
-                          {key === 'interviewSchedule' && '면접 일정이 잡히면 알림을 받습니다'}
-                          {key === 'resultNotification' && '최종 결과(합격/불합격)를 알림으로 받습니다'}
-                          {key === 'marketingEmails' && '이벤트, 프로모션 등 마케팅 메일을 받습니다'}
+                          {key === 'emailNotifications' && 'Receive important updates by email'}
+                          {key === 'pushNotifications' && 'Receive browser push notifications'}
+                          {key === 'autoMatching' && 'Let AI recommend relevant job postings'}
+                          {key === 'interviewSchedule' && 'Get notified when an interview is scheduled'}
+                          {key === 'resultNotification' && 'Get notified of the final hiring result'}
+                          {key === 'marketingEmails' && 'Receive event and promotional emails'}
                         </p>
                       </div>
                       <button
@@ -517,7 +517,7 @@ export default function CandidateSettings() {
                   ))}
                 </div>
                 <div style={{ marginTop: '2rem' }}>
-                  <SaveButton onClick={handleNotificationSave}>알림 설정 저장</SaveButton>
+                  <SaveButton onClick={handleNotificationSave}>Save notification settings</SaveButton>
                 </div>
               </motion.div>
             )}
@@ -671,31 +671,31 @@ export default function CandidateSettings() {
               비밀번호 변경
             </h3>
             <InputField
-              label="현재 비밀번호"
+              label="Current password"
               type="password"
               value={passwordForm.currentPassword}
               onChange={handleCurrentPasswordChange}
-              placeholder="현재 비밀번호를 입력하세요"
+              placeholder="Enter your current password"
               required
             />
             <InputField
-              label="새 비밀번호"
+              label="New password"
               type="password"
               value={passwordForm.newPassword}
               onChange={handleNewPasswordChange}
-              placeholder="새 비밀번호를 입력하세요 (8자 이상)"
+              placeholder="Enter a new password (8+ characters)"
               required
             />
             <InputField
-              label="새 비밀번호 확인"
+              label="Confirm new password"
               type="password"
               value={passwordForm.confirmPassword}
               onChange={handleConfirmPasswordChange}
-              placeholder="새 비밀번호를 다시 입력하세요"
+              placeholder="Re-enter your new password"
               required
             />
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-              <SaveButton onClick={handlePasswordChange}>비밀번호 변경</SaveButton>
+              <SaveButton onClick={handlePasswordChange}>Change password</SaveButton>
               <button
                 onClick={() => setShowPasswordModal(false)}
                 style={{ background: '#e2e8f0', color: '#4a5568', padding: '0.75rem 2rem', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: '600', cursor: 'pointer', transition: 'all 0.3s ease' }}

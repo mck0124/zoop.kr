@@ -65,14 +65,14 @@ const ResumeEducationSection = ({ form, setForm }) => {
   return (
     <div style={{maxWidth: '1200px', margin: '0 auto'}}>
       <section className="resume-section">
-        <h3>학력</h3>
+        <h3>Education</h3>
         {(form.education || []).map((edu, idx) => (
           <div className="education-card" key={idx}>
             <div className="education-form-row" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
               {/* 첫째 줄: 학교유형, 학교명, 전공(적당히), 졸업체크박스 */}
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'nowrap', width: '100%', alignItems: 'center' }}>
                 <div className="education-field" style={{ flex: 1, minWidth: 0 }}>
-                  <label>학교유형</label>
+                  <label>School type</label>
                   <select 
                     value={edu.schoolType || '대학교'} 
                     onChange={e => handleChange(idx, 'schoolType', e.target.value)}
@@ -84,21 +84,21 @@ const ResumeEducationSection = ({ form, setForm }) => {
                   </select>
                 </div>
                 <div className="education-field" style={{ flex: 1.5, minWidth: 0 }}>
-                  <label>학교명</label>
+                  <label>School</label>
                   <input 
                     type="text" 
                     value={edu.school} 
                     onChange={e => handleChange(idx, 'school', e.target.value)}
-                    placeholder="학교명을 입력하세요"
+                    placeholder="Enter school name"
                   />
                 </div>
                 <div className="education-field" style={{ flex: 1.5, minWidth: 0 }}>
-                  <label>전공</label>
+                  <label>Major</label>
                   <input 
                     type="text" 
                     value={edu.major} 
                     onChange={e => handleChange(idx, 'major', e.target.value)}
-                    placeholder="전공을 입력하세요"
+                    placeholder="Enter major"
                   />
                 </div>
                 <div className="education-field" style={{ width: '90px', minWidth: '90px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
@@ -108,14 +108,14 @@ const ResumeEducationSection = ({ form, setForm }) => {
                       checked={edu.isGraduated} 
                       onChange={e => handleChange(idx, 'isGraduated', e.target.checked)}
                     />
-                    <span className="checkbox-text">졸업</span>
+                    <span className="checkbox-text">Graduated</span>
                   </label>
                 </div>
               </div>
               {/* 둘째 줄: 입학년월, 졸업년월, 졸업상태, 지역, 삭제버튼(오른쪽 끝) */}
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', width: '100%', alignItems: 'flex-end' }}>
                 <div className="education-field" style={{ flex: 1, minWidth: 0 }}>
-                  <label>입학년월</label>
+                  <label>Enrollment month</label>
                   <DatePicker
                     selected={parseYearMonth(edu.admissionDate)}
                     onChange={date => handleChange(idx, 'admissionDate', date)}
@@ -129,7 +129,7 @@ const ResumeEducationSection = ({ form, setForm }) => {
                   />
                 </div>
                 <div className="education-field" style={{ flex: 1, minWidth: 0 }}>
-                  <label>졸업년월</label>
+                  <label>Graduation month</label>
                   <DatePicker
                     selected={parseYearMonth(edu.graduationDate)}
                     onChange={date => handleChange(idx, 'graduationDate', date)}
@@ -143,12 +143,12 @@ const ResumeEducationSection = ({ form, setForm }) => {
                   />
                 </div>
                 <div className="education-field" style={{ flex: 1, minWidth: 0 }}>
-                  <label>졸업상태</label>
+                  <label>Graduation status</label>
                   <select
                     value={edu.graduationStatus || ''}
                     onChange={e => handleChange(idx, 'graduationStatus', e.target.value)}
                   >
-                    <option value="">선택</option>
+                    <option value="">Select</option>
                     <option value="졸업">졸업</option>
                     <option value="재학">재학</option>
                     <option value="중퇴">중퇴</option>
@@ -156,12 +156,12 @@ const ResumeEducationSection = ({ form, setForm }) => {
                   </select>
                 </div>
                 <div className="education-field" style={{ flex: 1, minWidth: 0 }}>
-                  <label>지역</label>
+                  <label>Location</label>
                   <input 
                     type="text"
                     value={edu.region}
                     onChange={e => handleChange(idx, 'region', e.target.value)}
-                    placeholder="지역을 입력하세요"
+                    placeholder="Enter location"
                   />
                 </div>
                 <div style={{ flex: 1 }} />
@@ -214,4 +214,4 @@ const ResumeEducationSection = ({ form, setForm }) => {
   );
 };
 
-export default ResumeEducationSection; 
+export default ResumeEducationSection;
