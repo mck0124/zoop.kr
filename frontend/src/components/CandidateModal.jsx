@@ -28,10 +28,15 @@ const evidenceCoverage = (payload) => {
   return Math.max(0, Math.min(100, numeric <= 1 ? numeric * 100 : numeric));
 };
 
+const analysisRoot = (value) => {
+  const payload = parseAIAnalysisData(value);
+  return payload?.analysis && typeof payload.analysis === 'object' ? payload.analysis : payload;
+};
+
 function buildEvidenceFusion({ githubScore, portfolioAnalysis, interviewAnalysis }) {
-  const githubPayload = parseAIAnalysisData(githubScore?.analysisData ?? githubScore);
-  const portfolioPayload = parseAIAnalysisData(portfolioAnalysis?.analysisData ?? portfolioAnalysis);
-  const interviewPayload = parseAIAnalysisData(interviewAnalysis?.analysisData ?? interviewAnalysis);
+  const githubPayload = analysisRoot(githubScore?.analysisData ?? githubScore);
+  const portfolioPayload = analysisRoot(portfolioAnalysis?.analysisData ?? portfolioAnalysis);
+  const interviewPayload = analysisRoot(interviewAnalysis?.analysisData ?? interviewAnalysis);
   const inputs = {
     github: { score: scoreIfAnalyzed(githubScore?.analysisScore ?? githubScore, githubPayload), payload: githubPayload },
     portfolio: { score: scoreIfAnalyzed(portfolioAnalysis?.analysisScore, portfolioPayload), payload: portfolioPayload },
@@ -47,9 +52,29 @@ function buildEvidenceFusion({ githubScore, portfolioAnalysis, interviewAnalysis
 
   const denominator = sources.reduce((sum, source) => sum + source.weight * source.reliability, 0);
   const score = denominator ? Math.round(sources.reduce((sum, source) => sum + source.score * source.weight * source.reliability, 0) / denominator) : null;
-  const confidence = Math.round(sources.reduce((sum, source) => sum + (source.coverage ?? 50) * source.weight, 0) / sources.reduce((sum, source) => sum + source.weight, 0));
-  const decision = sources.length < 2 || confidence < 50 ? 'not_enough_evidence' : score >= 75 && confidence >= 70 ? 'strong_match' : 'review';
-  return { sources, score, confidence, decision, independentSources: sources.length };
+  const baseConfidence = Math.round(sources.reduce((sum, source) => sum + (source.coverage ?? 50) * source.weight, 0) / sources.reduce((sum, source) => sum + source.weight, 0));
+  const sourceScores = sources.map(source => source.score);
+  const spread = sourceScores.length > 1 ? Math.round(Math.max(...sourceScores) - Math.min(...sourceScores)) : 0;
+  const consistency = {
+    status: spread > 30 ? 'conflicting' : spread > 15 ? 'mixed' : 'aligned',
+    spread,
+    lowest: Math.min(...sourceScores),
+    highest: Math.max(...sourceScores),
+    note: spread > 30
+      ? 'Independent sources disagree materially; do not average the conflict away.'
+      : spread > 15
+        ? 'Sources show a meaningful difference that should be resolved with a focused verification.'
+        : 'Independent sources are directionally aligned.',
+  };
+  const fairnessReview = sources.some(source => source.payload?.fairness_guard?.status === 'review');
+  const confidencePenalty = spread > 15 ? Math.round((spread - 15) * 0.7) : 0;
+  const confidence = Math.max(0, Math.min(100, baseConfidence - confidencePenalty));
+  const decision = sources.length < 2 || confidence < 50
+    ? 'not_enough_evidence'
+    : fairnessReview || consistency.status !== 'aligned'
+      ? 'review'
+      : score >= 75 && confidence >= 70 ? 'strong_match' : 'review';
+  return { sources, score, confidence, decision, independentSources: sources.length, consistency, fairnessReview };
 }
 
 function EvidenceFusionCard({ candidate, portfolioAnalysis, interviewAnalysis }) {
@@ -94,11 +119,24 @@ function EvidenceFusionCard({ candidate, portfolioAnalysis, interviewAnalysis })
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
         <span>{fusion.independentSources} independent source{fusion.independentSources === 1 ? '' : 's'}</span>
         <span>Fusion confidence {fusion.confidence}%</span>
+        {fusion.consistency && <span className={fusion.consistency.status === 'aligned' ? 'text-emerald-300' : 'text-amber-300'}>Signal consistency: {fusion.consistency.status} ({fusion.consistency.spread}-point spread)</span>}
         <span>Human review remains required</span>
       </div>
+      {fusion.consistency && fusion.consistency.status !== 'aligned' && (
+        <div className="mt-3 rounded-xl border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-xs leading-5 text-amber-100">
+          <strong>Conflict audit:</strong> {fusion.consistency.note}
+        </div>
+      )}
+      {fusion.fairnessReview && (
+        <div className="mt-2 rounded-xl border border-rose-300/30 bg-rose-300/10 px-3 py-2 text-xs leading-5 text-rose-100">
+          <strong>Fairness audit:</strong> one or more source decisions require human review.
+        </div>
+      )}
     </section>
   );
 }
+
+export { buildEvidenceFusion };
 
 /** */
 export default function CandidateModal({ candidate, isOpen, onClose, postId, avatarUrl, fromMatchingTab }) {
