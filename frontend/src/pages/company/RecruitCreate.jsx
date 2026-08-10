@@ -68,6 +68,9 @@ const chipStyle = (selected) => ({
   boxSizing: "border-box",
   letterSpacing: "-0.5px",
   userSelect: "none",
+  appearance: "none",
+  fontFamily: "inherit",
+  textAlign: "center",
 });
 
 const sliderStyle = {
@@ -450,8 +453,10 @@ export default function RecruitCreate() {
 
         <Section title={copy.role}>
           {ROLE_OPTIONS.map((role) => (
-            <motion.div
+            <motion.button
+              type="button"
               key={role.value}
+              aria-pressed={filters.roles.includes(role.value)}
               whileHover={{
                 scale: 1.07,
                 boxShadow: "0 2px 14px #2ed99224",
@@ -461,7 +466,7 @@ export default function RecruitCreate() {
               style={chipStyle(filters.roles.includes(role.value))}
             >
               {role.label}
-            </motion.div>
+            </motion.button>
           ))}
         </Section>
 
@@ -488,8 +493,10 @@ export default function RecruitCreate() {
             };
             const iconSrc = `/languages/${langToFile[lang]}`;
             return (
-              <motion.div
+              <motion.button
+                type="button"
                 key={lang}
+                aria-pressed={filters.languages.includes(lang)}
                 whileHover={{
                   scale: 1.07,
                   boxShadow: "0 2px 14px #3ee1a820",
@@ -502,15 +509,17 @@ export default function RecruitCreate() {
                   <img src={iconSrc} alt={lang} style={{ width: 24, height: 24, marginRight: 6, verticalAlign: "middle" }} />
                   {lang}
                 </span>
-              </motion.div>
+              </motion.button>
             );
           })}
         </Section>
 
         <Section title={copy.region}>
           {REGION_OPTIONS.map((region) => (
-            <motion.div
+            <motion.button
+              type="button"
               key={region.value}
+              aria-pressed={filters.regions.includes(region.value)}
               whileHover={{
                 scale: 1.08,
                 boxShadow: "0 2px 14px #3ee1a815",
@@ -520,9 +529,11 @@ export default function RecruitCreate() {
               style={chipStyle(filters.regions.includes(region.value))}
             >
               {region.label}
-            </motion.div>
+            </motion.button>
           ))}
-          <motion.div
+          <motion.button
+            type="button"
+            aria-pressed={filters.nationwide}
             whileHover={{
               scale: 1.06,
               boxShadow: "0 2px 10px #3ee1a815",
@@ -532,7 +543,7 @@ export default function RecruitCreate() {
             style={chipStyle(filters.nationwide)}
           >
             {copy.nationwide}
-          </motion.div>
+          </motion.button>
         </Section>
 
         <Section title={copy.salary}>
