@@ -45,7 +45,10 @@ const InterviewPreparationModal = ({ isOpen, onClose, postId, candidateId }) => 
     try {
       const response = await fetch(
         apiUrl(`/api/interview-questions/generate/${postId}/${candidateId}?language=${encodeURIComponent(language)}`),
-        { method: 'GET' }
+        {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` },
+        }
       );
       
       if (response.ok) {

@@ -23,3 +23,27 @@ test('explains when evidence-grounded preparation questions are unavailable', as
   global.fetch = originalFetch;
   window.localStorage.removeItem('zoopLanguage');
 });
+
+test('sends the candidate session when loading protected preparation questions', async () => {
+  const originalFetch = global.fetch;
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ questions: ['[Evidence · EVID-1] Explain the design choice.'] }),
+  });
+  window.localStorage.setItem('jwtToken', 'test-token');
+
+  render(
+    <LanguageProvider>
+      <InterviewPreparationModal isOpen onClose={jest.fn()} postId={1} candidateId={2} />
+    </LanguageProvider>
+  );
+
+  await waitFor(() => expect(screen.getByText('Explain the design choice.')).toBeInTheDocument());
+  expect(global.fetch).toHaveBeenCalledWith(
+    expect.stringContaining('/api/interview-questions/generate/1/2'),
+    expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
+  );
+
+  global.fetch = originalFetch;
+  window.localStorage.removeItem('jwtToken');
+});

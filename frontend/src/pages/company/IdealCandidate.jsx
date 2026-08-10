@@ -73,7 +73,10 @@ export default function IdealCandidate() {
       // 1. 먼저 인재상을 공고에 저장
       const idealCandidateResponse = await fetch(apiUrl(`/api/postings/${filters.postId}/ideal-candidate`), {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('jwtToken')}`,
+        },
         body: JSON.stringify({ idealCandidate: summary }),
         signal: abortController.signal
       });
@@ -100,7 +103,10 @@ export default function IdealCandidate() {
       };
       const searchResponse = await fetch(apiUrl("/api/github-search"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('jwtToken')}`,
+        },
         body: JSON.stringify(searchPayload),
         signal: abortController.signal
       });
