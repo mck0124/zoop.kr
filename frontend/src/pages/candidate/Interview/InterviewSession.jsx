@@ -4,6 +4,14 @@ import { apiUrl } from '../../../api/config';
 import { useLanguage } from '../../../context/LanguageContext';
 import './InterviewSession.css';
 
+const authenticatedFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+    ...(options.headers || {}),
+  },
+});
+
 // InterviewSession.jsx: 2-column layout (left: question/timer, right: video), auto think/answer phase with timer and recording
 
 const THINK_TIME = 30;  // 30-second preparation window
@@ -84,7 +92,7 @@ const InterviewSession = () => {
     }
     
     setError('');
-    fetch(apiUrl(`/api/interview-videos/questions/${scheduleIdNum}?language=${encodeURIComponent(language)}`))
+    authenticatedFetch(apiUrl(`/api/interview-videos/questions/${scheduleIdNum}?language=${encodeURIComponent(language)}`))
       .then(res => {
         if (!res.ok) throw new Error(copy.loadFailed);
         return res.json();
@@ -226,7 +234,7 @@ const InterviewSession = () => {
     pendingCompletionRef.current = true;
     setUploading(true);
     try {
-      const completion = await fetch(apiUrl(`/api/interview-schedules/${scheduleId}/complete`), {
+      const completion = await authenticatedFetch(apiUrl(`/api/interview-schedules/${scheduleId}/complete`), {
         method: 'PUT',
       });
       if (!completion.ok) throw new Error(copy.completeFailed);
@@ -251,7 +259,7 @@ const InterviewSession = () => {
     formData.append('questionNumber', currentIdx + 1);
     formData.append('questionContent', questions[currentIdx]);
     try {
-      const res = await fetch(apiUrl('/api/interview-videos/upload'), {
+      const res = await authenticatedFetch(apiUrl('/api/interview-videos/upload'), {
         method: 'POST',
         body: formData,
       });

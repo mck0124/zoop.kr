@@ -2,6 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './InterviewSchedulerModal.css';
 import { apiUrl } from '../../../api/config';
 
+const authenticatedFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+    ...(options.headers || {}),
+  },
+});
+
 function InterviewSchedulerModal({ isOpen, onClose, onSchedule, postId, candidateId }) {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
@@ -65,7 +73,7 @@ function InterviewSchedulerModal({ isOpen, onClose, onSchedule, postId, candidat
     if (isOpen && postId) {
       const fetchJobPosting = async () => {
         try {
-          const response = await fetch(apiUrl(`/api/postings/info/${postId}`));
+          const response = await authenticatedFetch(apiUrl(`/api/postings/info/${postId}`));
           if (response.ok) {
             const data = await response.json();
             setJobPosting(data);
@@ -270,7 +278,7 @@ function InterviewSchedulerModal({ isOpen, onClose, onSchedule, postId, candidat
 
       console.log('면접 일정 등록 요청:', requestData);
 
-      const response = await fetch(apiUrl('/api/interview-schedules'), {
+      const response = await authenticatedFetch(apiUrl('/api/interview-schedules'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

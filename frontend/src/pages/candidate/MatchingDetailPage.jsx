@@ -3,6 +3,14 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { apiUrl } from '../../api/config';
 import AIAnalysisSummary, { parseAIAnalysisData } from '../../components/AIAnalysisSummary';
 
+const authenticatedFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+    ...(options.headers || {}),
+  },
+});
+
 export default function MatchingDetailPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -50,9 +58,9 @@ export default function MatchingDetailPage() {
     setAnalysis(null);
     setMatch(null);
     Promise.all([
-      fetch(apiUrl(`/api/portfolios/${candPortfolioId}`)).then(r => r.ok ? r.json() : null),
-      fetch(apiUrl(`/api/ai-analysis-results/${analysisId}`)).then(r => r.ok ? r.json() : null),
-      fetch(apiUrl(`/api/portfolio-job-matches/job-candidate/${jobCandidateId}`)).then(r => r.ok ? r.json() : null),
+      authenticatedFetch(apiUrl(`/api/portfolios/${candPortfolioId}`)).then(r => r.ok ? r.json() : null),
+      authenticatedFetch(apiUrl(`/api/ai-analysis-results/${analysisId}`)).then(r => r.ok ? r.json() : null),
+      authenticatedFetch(apiUrl(`/api/portfolio-job-matches/job-candidate/${jobCandidateId}`)).then(r => r.ok ? r.json() : null),
     ]).then(([portfolioData, analysisData, matchData]) => {
       setPortfolio(portfolioData);
       setAnalysis(analysisData);

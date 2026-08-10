@@ -7,6 +7,14 @@ import './InterviewPage.css';
 import { apiUrl } from '../../../api/config';
 import { useLanguage } from '../../../context/LanguageContext';
 
+const authenticatedFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+    ...(options.headers || {}),
+  },
+});
+
 const INTERVIEW_COPY = {
   en: { loading: 'Loading interview details...', error: 'Could not load the interview details.', title: 'Review before your AI interview', guide: 'Please confirm the information below before you begin.', jobInfo: 'Job posting', company: 'Company', posting: 'Position', location: 'Location', stack: 'Tech stack', scheduleInfo: 'Schedule', startTime: 'Interview time', deadline: 'Interview deadline', noInfo: 'Not available', checklist: 'Before you start', items: ['Confirm that the job information is correct.', 'Make sure the interview window is still open.', 'Use a stable internet connection.', 'Close other programs during the interview.', 'Check that your camera and microphone work.'], start: 'Start AI interview' },
   ko: { loading: '면접 정보를 불러오는 중입니다...', error: '면접 정보를 불러오는데 실패했습니다.', title: 'AI 면접 시작 전 확인', guide: '아래 정보를 꼭 확인하고 AI 면접을 시작하세요!', jobInfo: '지원 공고 정보', company: '회사명', posting: '공고명', location: '근무지', stack: '기술 스택', scheduleInfo: '면접 일정 정보', startTime: '면접 일시', deadline: '면접 마감', noInfo: '정보 없음', checklist: '면접 시작 전 확인사항', items: ['위 공고 정보가 맞는지 확인해주세요', '면접 시간이 지나지 않았는지 확인해주세요', '안정적인 인터넷 환경에서 면접을 진행해주세요', '면접 중에는 다른 프로그램을 종료해주세요', '카메라와 마이크가 정상 작동하는지 확인해주세요'], start: 'AI 면접 시작하기' },
@@ -29,7 +37,7 @@ function InterviewPage() {
     const fetchInterviewDetails = async () => {
       try {
         // 1. 면접 일정 정보 조회
-        const response = await fetch(apiUrl(`/api/interviews/${id}`));
+        const response = await authenticatedFetch(apiUrl(`/api/interviews/${id}`));
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -45,13 +53,13 @@ function InterviewPage() {
         }
 
         // 3. 후보자의 공고 목록 조회
-        const postingsResponse = await fetch(apiUrl(`/api/candidates/${candidateId}/job-postings`));
+        const postingsResponse = await authenticatedFetch(apiUrl(`/api/candidates/${candidateId}/job-postings`));
         if (!postingsResponse.ok) {
           throw new Error('공고 정보 조회 실패');
         }
         const postings = await postingsResponse.json();
         // 일정의 jobCandidateId로 진행 상태를 조회해 정확한 공고를 선택한다.
-        const progressResponse = await fetch(apiUrl(`/api/progress/job-cand-progress/${data.jobCandidateId}`));
+        const progressResponse = await authenticatedFetch(apiUrl(`/api/progress/job-cand-progress/${data.jobCandidateId}`));
         const progress = progressResponse.ok ? await progressResponse.json() : null;
         const progressPostId = progress?.post?.postId || progress?.postId;
         setJobPosting(postings.find(post => String(post.postId) === String(progressPostId)) || null);
