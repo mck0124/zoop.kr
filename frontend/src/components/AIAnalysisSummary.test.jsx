@@ -69,3 +69,18 @@ test('renders the evidence that could change a hiring decision', () => {
   expect(screen.getByText('Actual ownership of the deployment pipeline')).toBeInTheDocument();
   expect(screen.getByText(/Potential score change: \+12/)).toBeInTheDocument();
 });
+
+test('renders evidence diversity as a separate reliability signal', () => {
+  render(renderAnalysis({
+    summary: 'Evidence-backed review',
+    evidence_diversity: {
+      source_count: 3,
+      distinct_sources: ['repo', 'languages', 'recent_events'],
+      description: 'Independent signals reduce overreliance on one public metric.',
+    },
+  }));
+
+  expect(screen.getByText('Evidence diversity')).toBeInTheDocument();
+  expect(screen.getByText('3 source type(s)')).toBeInTheDocument();
+  expect(screen.getByText('recent_events')).toBeInTheDocument();
+});

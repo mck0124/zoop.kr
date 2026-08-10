@@ -183,12 +183,12 @@ def enhanced_search_github_candidates(filters, post_id=None):
     except (TypeError, ValueError):
         headcount = 5
     ideal = getattr(filters, 'idealCandidate', None)
-    language = getattr(filters, 'language', 'en') if getattr(filters, 'language', 'en') in {'en', 'ko', 'zh'} else 'en'
+    response_language = getattr(filters, 'language', 'en') if getattr(filters, 'language', 'en') in {'en', 'ko', 'zh'} else 'en'
     for location in locations:
-        for language in filters.languages:
+        for programming_language in filters.languages:
             page = 1
             while len(email_results) < headcount and page <= 10:  # 최대 10페이지(500명)까지 반복
-                query = f"language:{language} location:{location}"
+                query = f"language:{programming_language} location:{location}"
                 url = f"https://api.github.com/search/users?q={query}&per_page=50&page={page}"
                 resp = requests.get(url, headers=get_headers(), timeout=20)
                 users = resp.json().get("items", [])
@@ -226,7 +226,7 @@ def enhanced_search_github_candidates(filters, post_id=None):
                             "public_repos": public_repos
                         }
                         try:
-                            analysis = analyze_candidate_with_prompt(candidate_obj, details, ideal_candidate=ideal, language=language)
+                            analysis = analyze_candidate_with_prompt(candidate_obj, details, ideal_candidate=ideal, language=response_language)
                         except Exception as e:
                             print(f"[WARN] 후보자 분석 실패로 결과에서 제외: {login} - {e}")
                             continue
@@ -513,6 +513,55 @@ def analyze_candidate_with_prompt(candidate, details, ideal_candidate=None, lang
             if 0 <= index < len(safe_details["top_repos"]):
                 return safe_details["top_repos"][index]
         return None
+
+    def build_counterfactuals(dimensions, locale):
+        """Turn missing evidence into concrete, decision-changing next checks."""
+        actions = {
+            "en": {
+                "technical": "Review the candidate's representative code and ask them to explain one architectural trade-off.",
+                "project": "Open the top repository and verify the candidate's authored contribution, tests, and shipped outcome.",
+                "activity": "Compare the recent activity timeline with a short explanation of what the candidate actually owned.",
+                "problem": "Use a structured technical prompt to test problem decomposition and debugging depth.",
+                "community": "Verify collaboration through pull requests, issue discussions, or a team-based work example.",
+            },
+            "ko": {
+                "technical": "대표 코드에서 한 가지 설계 트레이드오프를 설명하게 하여 기술 판단을 확인하세요.",
+                "project": "대표 저장소의 본인 기여·테스트·출시 결과를 원본과 대조하세요.",
+                "activity": "최근 활동 흐름과 실제 담당 범위를 함께 설명하게 하세요.",
+                "problem": "구조화된 기술 질문으로 문제 분해와 디버깅 깊이를 확인하세요.",
+                "community": "PR·이슈 토론 또는 팀 프로젝트 사례로 협업 근거를 확인하세요.",
+            },
+            "zh": {
+                "technical": "查看代表性代码，并请候选人解释一个架构取舍。",
+                "project": "打开代表仓库，核对候选人的实际贡献、测试和交付结果。",
+                "activity": "结合近期活动时间线，请候选人说明实际负责的范围。",
+                "problem": "用结构化技术问题验证问题拆解和调试深度。",
+                "community": "通过 PR、Issue 讨论或团队项目案例验证协作能力。",
+            },
+        }.get(locale, {})
+        keys = {
+            "기술 스택": "technical",
+            "프로젝트 품질": "project",
+            "활동 신호": "activity",
+            "문제 해결 깊이": "problem",
+            "커뮤니티·협업 신호": "community",
+        }
+        counterfactuals = []
+        for dimension in sorted(dimensions, key=lambda item: item.get("support_factor", 0)):
+            if len(counterfactuals) >= 3 or dimension.get("support_factor", 0) >= 0.7:
+                continue
+            name = dimension.get("name", "")
+            current = float(dimension.get("score", 0) or 0)
+            maximum = float(dimension.get("max", 20) or 20)
+            delta = round(max(5.0, min(20.0, maximum - current)), 1)
+            counterfactuals.append({
+                "dimension": name,
+                "missing_signal": name,
+                "validation_action": actions.get(keys.get(name, ""), actions.get("project", "")),
+                "expected_score_delta": delta,
+                "current_support": dimension.get("evidence_support", 0),
+            })
+        return counterfactuals
     language_instruction = {
         "en": "Write all human-readable values such as summary, claims, strengths, gaps, risks, roles, growth_signal, verification_plan, and fairness_guard status in English.",
         "ko": "summary, claims, strengths, gaps, risks, roles, growth_signal, verification_plan, fairness_guard status 등 사람이 읽는 값은 모두 한국어로 작성하세요.",
@@ -646,6 +695,8 @@ JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므
         grounded = [item for dimension in dimensions for item in dimension["evidence"] if item["verification_state"] == "grounded" and item["claim"] != "확인된 근거 없음"]
         score = round(min(100.0, sum(item["score"] for item in dimensions)), 1)
         decision = "strong_match" if score >= 75 and len(grounded) >= 3 else "review" if score >= 50 and grounded else "not_enough_evidence"
+        source_types = sorted({item.get("source") for item in grounded if item.get("source")})
+        counterfactuals = build_counterfactuals(dimensions, language)
         result.update({
             "version": "github-evidence-v1",
             "dimensions": dimensions,
@@ -662,11 +713,17 @@ JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므
             "evidence_count": len(grounded),
             "evidence_coverage": round(min(100.0, len(grounded) / max(1, len(dimensions)) * 100), 1),
             "confidence": round(sum(item["confidence"] for item in grounded) / max(1, len(grounded)), 2),
+            "counterfactuals": counterfactuals,
+            "evidence_diversity": {
+                "distinct_sources": source_types,
+                "source_count": len(source_types),
+                "description": "A stronger decision uses independent evidence types rather than repeating one public signal.",
+            },
             "gaps": [str(item) for item in result.get("gaps", []) if item][:6] or ["실제 코드 기여도와 협업 맥락은 GitHub 공개 데이터만으로 확인 불가"],
             "risk_flags": [str(item) for item in result.get("risk_flags", []) if item][:6] or ["공개 활동량을 실력의 직접 증거로 해석하지 않음"],
             "verification_plan": [str(item) for item in result.get("verification_plan", []) if item][:6] or ["대표 저장소의 실제 기여와 설계 선택을 면접에서 확인"],
             "fairness_guard": result.get("fairness_guard") if isinstance(result.get("fairness_guard"), dict) else {"status": "pass", "excluded_attributes": ["이름", "이메일", "위치", "회사"], "evaluated_attributes": ["공개 기술·프로젝트 근거"]},
-            "decision_trace": ["직무와 무관한 개인정보를 평가에서 제외", "공개 GitHub 신호를 5개 직무 관련 차원으로 분리", f"{len(grounded)}개 근거와 확인 불가 영역을 분리", f"근거 수준에 따른 판단: {decision}"],
+            "decision_trace": ["직무와 무관한 개인정보를 평가에서 제외", "공개 GitHub 신호를 5개 직무 관련 차원으로 분리", f"{len(grounded)}개 근거와 확인 불가 영역을 분리", f"독립 근거 유형 {len(source_types)}개를 확인", f"근거 수준에 따른 판단: {decision}"],
             "audit": {
                 "ledger_version": "zoop-evidence-ledger-v1",
                 "policy_version": "grounded-hiring-v1",
