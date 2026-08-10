@@ -75,6 +75,8 @@ export default function MatchingDetailPage() {
     </div>
   );
   const matchEvidence = getMatchEvidence();
+  const decisionGate = getEvidenceValue('decision_gate', null);
+  const sourceIntegrity = getEvidenceValue('source_integrity', null) || getEvidenceValue('audit', null)?.source_integrity;
 
   return (
     <div style={{ maxWidth: 800, margin: '40px auto', background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(48,197,155,0.10)', padding: '2.5rem 2.5rem 2rem 2.5rem' }}>
@@ -108,6 +110,21 @@ export default function MatchingDetailPage() {
         {match && (match.matchScore !== undefined || match.matchingScore !== undefined) ? (
           <div style={{ background: '#f8fafd', borderRadius: 10, padding: 18, fontSize: 16 }}>
           <div><b>Match score:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{match.matchScore ?? match.matchingScore}</span></div>
+          {decisionGate && (
+            <div style={{ marginTop: 12, padding: 12, borderRadius: 10, border: `1px solid ${decisionGate.final_decision === 'strong_match' ? '#a7f3d0' : '#fed7aa'}`, background: decisionGate.final_decision === 'strong_match' ? '#ecfdf5' : '#fff7ed', color: decisionGate.final_decision === 'strong_match' ? '#047857' : '#9a3412', fontSize: 13 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                <strong>ZOOP decision safety gate</strong>
+                <b>{decisionGate.final_decision === 'strong_match' ? 'Evidence supported' : decisionGate.final_decision === 'not_enough_evidence' ? 'More evidence needed' : 'Human review recommended'}</b>
+              </div>
+              <div style={{ marginTop: 5 }}>{decisionGate.note || 'The score is bounded by source evidence and safety checks.'}</div>
+              {decisionGate.reasons?.length > 0 && <div style={{ marginTop: 5, fontWeight: 700 }}>Why: {decisionGate.reasons.join(' · ')}</div>}
+            </div>
+          )}
+          {sourceIntegrity && (
+            <div style={{ marginTop: 9, color: sourceIntegrity.status === 'review' ? '#92400e' : '#1e3a8a', fontSize: 12 }}>
+              Source integrity: <strong>{sourceIntegrity.status}</strong>
+            </div>
+          )}
           <div style={{ marginTop: 10 }}><b>Rationale:</b></div>
             <div style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, color: '#475569', lineHeight: 1.6 }}>
               {matchEvidence?.summary || matchEvidence?.recommendation || match.matchReason || match.matchingReason || 'No match rationale is available.'}
