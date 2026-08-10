@@ -919,7 +919,10 @@ def auto_analyze_pending_portfolios():
                                         # 텍스트 파일은 바로 읽기
                                         file_response = requests.get(portfolio_file_path, timeout=SPRING_TIMEOUT_SECONDS)
                                         if file_response.status_code == 200:
-                                            portfolio_content = file_response.text[:2000]  # 최대 2000자
+                                            # Keep the same evidence budget as the interactive analysis path.
+                                            # Truncating automated submissions to 2,000 characters silently
+                                            # discarded later projects and their measurable outcomes.
+                                            portfolio_content = file_response.text[:12000]
                                         else:
                                             portfolio_content = "포트폴리오 파일을 읽을 수 없습니다."
                                 except Exception as e:
