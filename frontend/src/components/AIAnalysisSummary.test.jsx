@@ -105,6 +105,31 @@ test('renders the evidence quality gate and reviewer action', () => {
   expect(screen.getByText((content, element) => element?.textContent === 'unsupported claim rate: 60%')).toBeInTheDocument();
 });
 
+test('reads interview analysis metadata from the nested analysis envelope', () => {
+  render(renderAnalysis({
+    analysisData: JSON.stringify({
+      analysis: {
+        summary: 'Transcript-grounded interview review',
+        evidence_quality: {
+          grounded_evidence: 4,
+          needs_verification: 1,
+          coverage_percent: 80,
+          unsupported_claim_rate: 20,
+          review_priority: 'medium',
+          recommended_action: 'Verify the ownership details in answer 2.',
+        },
+        audit: { source_integrity: { status: 'pass', note: 'Transcript checked.' } },
+      },
+      score: 72,
+      transcripts: ['answer 1'],
+    }),
+  }, 72));
+
+  expect(screen.getByText('Transcript-grounded interview review')).toBeInTheDocument();
+  expect(screen.getByText('medium review priority')).toBeInTheDocument();
+  expect(screen.getByText('Verify the ownership details in answer 2.')).toBeInTheDocument();
+});
+
 test('creates a portable decision receipt with audit-critical fields', () => {
   const receipt = createDecisionReceipt({
     decision: 'review',

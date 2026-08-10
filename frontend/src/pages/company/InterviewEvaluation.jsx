@@ -386,6 +386,12 @@ export default function InterviewEvaluation() {
                     </div>
                   </div>
 
+                  <AIAnalysisSummary
+                    analysis={analysisResult}
+                    score={parsedAnalysis.totalScore ?? analysisResult.analysisScore}
+                    title="Evidence ledger and verification plan"
+                  />
+
                   {parsedAnalysis.scoreCalibration && (
                     <div style={{
                       background: '#eff6ff',

@@ -120,30 +120,33 @@ export default function AIAnalysisSummary({ analysis, score, title }) {
   const payload = parseAIAnalysisData(analysis?.analysisData ?? analysis);
   const legacyText = typeof analysis?.analysisData === 'string' && !payload ? analysis.analysisData : null;
   const analysisRoot = payload?.analysis && typeof payload.analysis === 'object' ? payload.analysis : payload;
+  // Interview analysis is stored as { analysis: {...}, score, transcripts } while
+  // portfolio/GitHub analysis is stored directly. Keep one evidence UI for both.
+  const data = analysisRoot || payload;
   const categories = asArray(analysisRoot?.categories);
   const totalFeedback = analysisRoot?.total_feedback || analysisRoot?.totalFeedback;
-  const summary = payload?.summary || payload?.overall_summary || payload?.overallSummary || payload?.conclusion || totalFeedback?.summary || payload?.overallEvaluation;
-  const coverage = payload?.evidence_coverage ?? payload?.evidenceCoverage;
-  const confidence = payload?.confidence;
-  const decision = payload?.decision;
-  const stack = payload?.stack || payload?.technical_stack || payload?.technicalStack;
-  const gaps = payload?.gaps || payload?.missing_evidence || payload?.missingEvidence;
-  const risks = payload?.risk_flags || payload?.riskFlags;
-  const verificationPlan = payload?.verification_plan || payload?.verificationPlan;
-  const counterfactuals = payload?.counterfactuals;
-  const evidence = payload?.verified_evidence || payload?.evidence || payload?.claims || categories.flatMap(category => asArray(category.evidence).map(item => ({ ...item, claim: item.claim || category.name })));
-  const fairness = payload?.fairness_guard || payload?.fairnessGuard;
-  const trace = payload?.decision_trace || payload?.decisionTrace;
-  const audit = payload?.audit || payload?.evidence_audit || null;
-  const sourceIntegrity = audit?.source_integrity || payload?.source_integrity || null;
-  const calibration = payload?.score_calibration || payload?.scoreCalibration || null;
-  const evidenceDiversity = payload?.evidence_diversity || payload?.evidenceDiversity || null;
-  const evidenceQuality = payload?.evidence_quality || payload?.evidenceQuality || null;
+  const summary = data?.summary || data?.overall_summary || data?.overallSummary || data?.conclusion || totalFeedback?.summary || data?.overallEvaluation;
+  const coverage = data?.evidence_coverage ?? data?.evidenceCoverage;
+  const confidence = data?.confidence;
+  const decision = data?.decision;
+  const stack = data?.stack || data?.technical_stack || data?.technicalStack;
+  const gaps = data?.gaps || data?.missing_evidence || data?.missingEvidence;
+  const risks = data?.risk_flags || data?.riskFlags;
+  const verificationPlan = data?.verification_plan || data?.verificationPlan;
+  const counterfactuals = data?.counterfactuals;
+  const evidence = data?.verified_evidence || data?.evidence || data?.claims || categories.flatMap(category => asArray(category.evidence).map(item => ({ ...item, claim: item.claim || category.name })));
+  const fairness = data?.fairness_guard || data?.fairnessGuard;
+  const trace = data?.decision_trace || data?.decisionTrace;
+  const audit = data?.audit || data?.evidence_audit || null;
+  const sourceIntegrity = audit?.source_integrity || data?.source_integrity || null;
+  const calibration = data?.score_calibration || data?.scoreCalibration || null;
+  const evidenceDiversity = data?.evidence_diversity || data?.evidenceDiversity || null;
+  const evidenceQuality = data?.evidence_quality || data?.evidenceQuality || null;
   const hasStructuredData = Boolean(payload);
   const safeScore = finiteNumber(score);
   const coveragePercent = formatPercent(coverage);
   const confidencePercent = formatPercent(confidence);
-  const handleDownloadReceipt = () => downloadDecisionReceipt(createDecisionReceipt(payload, { title: resolvedTitle, score: safeScore, language }));
+  const handleDownloadReceipt = () => downloadDecisionReceipt(createDecisionReceipt(data, { title: resolvedTitle, score: safeScore, language }));
 
   return (
     <section className="rounded-xl border border-blue-100 bg-white p-4" aria-label={resolvedTitle}>
