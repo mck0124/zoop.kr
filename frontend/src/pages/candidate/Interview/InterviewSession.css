@@ -1,0 +1,59 @@
+.interview-session-shell {
+  padding: 24px;
+}
+
+@media (max-width: 900px) {
+  .interview-session-shell {
+    align-items: flex-start !important;
+    padding: 12px;
+  }
+
+  .interview-session-card {
+    width: min(100%, 680px) !important;
+    min-height: auto !important;
+    flex-direction: column;
+    border-radius: 22px !important;
+  }
+
+  .interview-session-question-panel {
+    padding: 28px 22px !important;
+    order: 1;
+  }
+
+  .interview-session-video-panel {
+    min-height: 250px;
+    padding: 22px 16px;
+    order: 2;
+  }
+
+  .interview-session-video-frame {
+    width: min(100%, 420px) !important;
+    height: auto !important;
+    aspect-ratio: 4 / 3;
+  }
+}
+
+@media (max-width: 480px) {
+  .interview-session-shell {
+    padding: 0;
+  }
+
+  .interview-session-card {
+    width: 100% !important;
+    border-radius: 0 !important;
+  }
+
+  .interview-session-question-panel {
+    padding: 24px 16px !important;
+  }
+
+  .interview-session-video-panel {
+    min-height: 220px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interview-session-card * {
+    transition: none !important;
+  }
+}

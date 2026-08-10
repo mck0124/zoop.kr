@@ -2,11 +2,12 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiUrl } from '../../../api/config';
 import { useLanguage } from '../../../context/LanguageContext';
+import './InterviewSession.css';
 
 // InterviewSession.jsx: 2-column layout (left: question/timer, right: video), auto think/answer phase with timer and recording
 
-const THINK_TIME = 30;  // 생각시간: 30초
-const ANSWER_TIME = 60; // 답변시간: 2분 (120초)
+const THINK_TIME = 30;  // 30-second preparation window
+const ANSWER_TIME = 60; // 60-second answer window
 
 const SESSION_COPY = {
   en: { invalidId: 'This interview schedule ID is invalid.', loadFailed: 'Could not load the interview questions.', noQuestions: 'No interview questions were generated. Please ask the interviewer to try again.', unsupported: 'This browser cannot access the camera or microphone. Please use a modern browser.', denied: 'Camera and microphone access was denied. Allow access in your browser settings.', missing: 'No camera or microphone was found. Check that your devices are connected.', mediaFailed: 'Could not access your media devices: ', recorder: 'This browser does not support interview recording. Use the latest Chrome, Safari, or Edge.', recordingFailed: 'Could not start recording. Check your camera permission and browser settings.', uploadFailed: 'Upload failed.', retryUpload: 'Retry upload', retrySession: 'Retry session', preparing: 'Get ready to answer.', recordingStatus: 'Recording your answer...', preparingRecording: 'Preparing to record...', uploading: 'Uploading...', uploadReady: 'Preparing upload...', done: 'Interview complete!', progress: 'Question progress', loading: 'Loading question...', listen: 'Listen again', listening: 'Playing question', think: 'Preparation time', answer: 'Answer time', upload: 'Uploading', complete: 'Complete', seconds: 's', finish: 'Returning to your dashboard...' },
@@ -279,10 +280,10 @@ const InterviewSession = () => {
   else if (phase === 'done') statusMsg = copy.done;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f4f8fb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ display: 'flex', width: 1100, minHeight: 620, background: 'white', borderRadius: 32, boxShadow: '0 8px 32px rgba(48,197,155,0.10)', overflow: 'hidden' }}>
+    <div className="interview-session-shell" style={{ minHeight: '100vh', background: '#f4f8fb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="interview-session-card" style={{ display: 'flex', width: 1100, minHeight: 620, background: 'white', borderRadius: 32, boxShadow: '0 8px 32px rgba(48,197,155,0.10)', overflow: 'hidden' }}>
         {/* 왼쪽: 질문/타이머/진행 */}
-        <div style={{ flex: 1, padding: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f8f9fa', position: 'relative' }}>
+        <div className="interview-session-question-panel" style={{ flex: 1, padding: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f8f9fa', position: 'relative' }}>
           {/* 진행 바 */}
           <div style={{ width: '100%', marginBottom: 32 }}>
             <div style={{ fontWeight: 600, fontSize: 16, color: '#30C59B', marginBottom: 8, letterSpacing: 1 }}>{copy.progress}</div>
@@ -359,8 +360,8 @@ const InterviewSession = () => {
           )}
         </div>
         {/* 오른쪽: 비디오 */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#222', position: 'relative' }}>
-          <div style={{ width: 420, height: 320, background: '#111', borderRadius: 24, boxShadow: '0 4px 24px #0002', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '5px solid #30C59B' }}>
+        <div className="interview-session-video-panel" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#222', position: 'relative' }}>
+          <div className="interview-session-video-frame" style={{ width: 420, height: 320, background: '#111', borderRadius: 24, boxShadow: '0 4px 24px #0002', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '5px solid #30C59B' }}>
             <video
               ref={videoRef}
               autoPlay
