@@ -235,3 +235,16 @@ def decision_gate_report(
         "reasons": reasons,
         "note": "The final decision is bounded by deterministic evidence and safety checks.",
     }
+
+
+def grounded_response_status(retrieval: Optional[Dict[str, Any]], citation_audit: Optional[Dict[str, Any]], source_integrity: Optional[Dict[str, Any]]) -> bool:
+    """Require retrieval, citation, and source-integrity checks before claiming grounding."""
+
+    return bool(
+        isinstance(retrieval, dict)
+        and retrieval.get("status") == "grounded"
+        and isinstance(citation_audit, dict)
+        and citation_audit.get("status") == "pass"
+        and isinstance(source_integrity, dict)
+        and source_integrity.get("status") == "pass"
+    )

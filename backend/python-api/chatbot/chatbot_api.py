@@ -10,7 +10,7 @@ import PyPDF2
 import openai
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from common.ai_quality import source_integrity_audit
+from common.ai_quality import grounded_response_status, source_integrity_audit
 
 # .env에서 API 키와 PDF 경로, 모델명 등 로드
 load_dotenv()
@@ -119,6 +119,11 @@ def audit_guide_citations(answer, pages):
         "note": "Citations refer to retrieved guide pages." if status == "pass" else "The answer citation set needs human review.",
     }
 
+
+def chat_grounded_status(retrieval, citation_audit, source_integrity):
+    """Compatibility wrapper for callers of the chatbot module."""
+    return grounded_response_status(retrieval, citation_audit, source_integrity)
+
 def _history(history):
     """클라이언트가 보낸 대화를 안전하고 작은 형태로 정규화한다."""
     normalized = []
@@ -218,7 +223,7 @@ async def chat_endpoint(req: ChatRequest):
     integrity = source_integrity_audit(guide_text, source_type="zoop_guide_excerpt")
     return {
         "answer": answer,
-        "grounded": retrieval["status"] == "grounded" and citation_audit["status"] == "pass",
+        "grounded": chat_grounded_status(retrieval, citation_audit, integrity),
         "sources": [{"page": page["page"], "snippet": page["text"][:180]} for page in pages],
         "retrieval": retrieval,
         "citation_audit": citation_audit,

@@ -1,6 +1,6 @@
 import unittest
 
-from ai_quality import decision_gate_report, evidence_quality_report, fairness_guard_audit, source_integrity_audit
+from ai_quality import decision_gate_report, evidence_quality_report, fairness_guard_audit, grounded_response_status, source_integrity_audit
 
 
 class EvidenceQualityReportTests(unittest.TestCase):
@@ -70,6 +70,14 @@ class EvidenceQualityReportTests(unittest.TestCase):
         )
 
         self.assertEqual(gate["final_decision"], "not_enough_evidence")
+
+    def test_grounded_response_requires_retrieval_citation_and_integrity(self):
+        self.assertTrue(grounded_response_status(
+            {"status": "grounded"}, {"status": "pass"}, {"status": "pass"}
+        ))
+        self.assertFalse(grounded_response_status(
+            {"status": "grounded"}, {"status": "pass"}, {"status": "review"}
+        ))
 
 
 if __name__ == "__main__":
