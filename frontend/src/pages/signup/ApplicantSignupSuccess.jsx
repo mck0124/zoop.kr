@@ -9,9 +9,9 @@ export default function SignupSuccess() {
     <>
       <Navbar />
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '14rem' }}>
-        <h2 style={{ fontSize: '2rem', color: '#2dc997' }}>🎉 회원가입이 완료되었습니다!</h2>
+        <h2 style={{ fontSize: '2rem', color: '#2dc997' }}>🎉 Sign-up complete!</h2>
         <p style={{ marginTop: '1rem', fontSize: '1.1rem', color: '#333' }}>
-          개인인 계정이 성공적으로 등록되었습니다.
+          Your candidate account has been created successfully.
         </p>
         <button
           onClick={() => navigate('/auth/login')}
@@ -31,7 +31,7 @@ export default function SignupSuccess() {
             boxShadow: 'none'
           }}
         >
-          <span role="img" aria-label="arrow">👉</span> 로그인하러 가기
+          <span role="img" aria-label="arrow">👉</span> Go to log in
         </button>
       </div>
     </>

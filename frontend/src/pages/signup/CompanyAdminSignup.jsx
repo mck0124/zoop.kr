@@ -35,10 +35,10 @@ export default function CompanyAdminSignup() {
       method: 'POST',
     });
     if (res.ok) {
-      alert('인증 코드가 전송되었습니다.');
+      alert('Verification code sent.');
       setCodeSent(true);
     } else {
-      alert('코드 전송 실패');
+      alert('Could not send the verification code.');
     }
     setIsSendingCode(false);
   };
@@ -77,10 +77,10 @@ export default function CompanyAdminSignup() {
       method: 'POST',
     });
     if (res.ok) {
-      alert('이메일 인증 완료');
+      alert('Email verified.');
       setIsEmailVerified(true);
     } else {
-      alert('인증 실패. 코드를 확인해주세요.');
+      alert('Verification failed. Check the code and try again.');
     }
   };
 
@@ -88,11 +88,11 @@ export default function CompanyAdminSignup() {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      setErrorMessage('비밀번호가 일치하지 않습니다.');
+      setErrorMessage('Passwords do not match.');
       return;
     }
     if (!isEmailVerified) {
-      setErrorMessage('이메일 인증이 필요합니다.');
+      setErrorMessage('Email verification is required.');
       return;
     }
 
@@ -120,10 +120,10 @@ export default function CompanyAdminSignup() {
       if (res.ok) {
         navigate('/auth/company/signup/success');
       } else {
-        alert('회원가입 실패');
+        alert('Sign-up failed.');
       }
     } catch (err) {
-      alert('서버 오류');
+      alert('A server error occurred.');
     } finally {
       setIsSubmitting(false);
     }
@@ -134,11 +134,11 @@ export default function CompanyAdminSignup() {
       <Navbar />
       <div className="signup-layout" style={{ paddingTop: '10rem' }}>
         <div className="company-signup-container" style={{ maxWidth: '500px', margin: '0 auto' }}>
-          <h2 className="form-title">회사 관리자 등록</h2>
+          <h2 className="form-title">Register company administrator</h2>
 
           <form onSubmit={handleSubmit}>
           <div className="form-section">
-              <label>아이디</label>
+              <label>Username</label>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <input
                   type="text"
@@ -162,7 +162,7 @@ export default function CompanyAdminSignup() {
                   disabled={idChecked}
                   onClick={async () => {
                     if (loginId.length < 4 || loginId.length > 20) {
-                      alert('아이디는 4~20자리여야 합니다.');
+                  alert('Username must be 4–20 characters.');
                       return;
                     }
                     try {
@@ -170,14 +170,14 @@ export default function CompanyAdminSignup() {
                       if (res.ok) {
                         const data = await res.text();
                         alert(data);
-                        if (data.includes('사용 가능한')) {
+                        if (data.includes('사용 가능한') || data.toLowerCase().includes('available')) {
                           setIdChecked(true);
                         }
                       } else {
-                        alert('중복 확인 중 오류 발생');
+                        alert('Could not check username availability.');
                       }
                     } catch (err) {
-                      alert('서버 통신 실패');
+                      alert('Could not connect to the server.');
                     }
                   }}
                   style={{
@@ -190,13 +190,13 @@ export default function CompanyAdminSignup() {
                     opacity: idChecked ? 0.6 : 1
                   }}
                 >
-                  중복 확인
+                  Check availability
                 </button>
               </div>
             </div>
 
             <div className="form-section">
-              <label>비밀번호</label>
+              <label>Password</label>
               <input
                 type="password"
                 className="form-input"

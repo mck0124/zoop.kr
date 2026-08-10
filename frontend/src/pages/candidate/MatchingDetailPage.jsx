@@ -36,7 +36,7 @@ export default function MatchingDetailPage() {
 
   useEffect(() => {
     if (!candPortfolioId || !jobCandidateId || !analysisId) {
-      setError('필수 정보가 누락되었습니다.');
+      setError('Required information is missing.');
       setLoading(false);
       return;
     }
@@ -55,7 +55,7 @@ export default function MatchingDetailPage() {
       setMatch(matchData);
       setLoading(false);
     }).catch(e => {
-      setError('데이터를 불러오는 중 오류가 발생했습니다.');
+      setError('We could not load the match details.');
       setLoading(false);
     });
   }, [candPortfolioId, jobCandidateId, analysisId, reloadToken]);
@@ -107,21 +107,21 @@ export default function MatchingDetailPage() {
           <div style={{ background: '#f8fafd', borderRadius: 10, padding: 18, fontSize: 16 }}>
           <div><b>Match score:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{match.matchScore ?? match.matchingScore}</span></div>
           <div style={{ marginTop: 10 }}><b>Rationale:</b></div>
-            <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, maxHeight: 200, overflow: 'auto', whiteSpace: 'pre-wrap' }}>{match.matchReason || match.matchingReason || '매칭 이유 정보 없음'}</pre>
+            <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, maxHeight: 200, overflow: 'auto', whiteSpace: 'pre-wrap' }}>{match.matchReason || match.matchingReason || 'No match rationale is available.'}</pre>
             {matchEvidence && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 14 }}>
                 <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: 12 }}>
                   <b style={{ color: '#9a3412' }}>Why more verification is needed</b>
-                    <ul style={{ margin: '8px 0 0 18px', padding: 0, fontSize: 13 }}>{(Array.isArray(matchEvidence.gaps) && matchEvidence.gaps.length ? matchEvidence.gaps : ['확인된 부족 정보 없음']).slice(0, 4).map((item, i) => <li key={i}>{item}</li>)}</ul>
+                    <ul style={{ margin: '8px 0 0 18px', padding: 0, fontSize: 13 }}>{(Array.isArray(matchEvidence.gaps) && matchEvidence.gaps.length ? matchEvidence.gaps : ['No open evidence gap is recorded.']).slice(0, 4).map((item, i) => <li key={i}>{item}</li>)}</ul>
                 </div>
                 <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: 12 }}>
                   <b style={{ color: '#1d4ed8' }}>Next verification action</b>
-                    <ul style={{ margin: '8px 0 0 18px', padding: 0, fontSize: 13 }}>{(Array.isArray(matchEvidence.verification_plan) && matchEvidence.verification_plan.length ? matchEvidence.verification_plan : Array.isArray(matchEvidence.interview_focus) && matchEvidence.interview_focus.length ? matchEvidence.interview_focus : ['대표 프로젝트의 기여도 확인']).slice(0, 4).map((item, i) => <li key={i}>{item}</li>)}</ul>
+                    <ul style={{ margin: '8px 0 0 18px', padding: 0, fontSize: 13 }}>{(Array.isArray(matchEvidence.verification_plan) && matchEvidence.verification_plan.length ? matchEvidence.verification_plan : Array.isArray(matchEvidence.interview_focus) && matchEvidence.interview_focus.length ? matchEvidence.interview_focus : ['Verify ownership of a representative project.']).slice(0, 4).map((item, i) => <li key={i}>{item}</li>)}</ul>
                 </div>
                 <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 10, padding: 12 }}>
                   <b style={{ color: '#6d28d9' }}>Evidence that could change the decision</b>
                   <ul style={{ margin: '8px 0 0 18px', padding: 0, fontSize: 13 }}>
-                    {(Array.isArray(getEvidenceValue('counterfactuals', null)) && getEvidenceValue('counterfactuals', null).length ? getEvidenceValue('counterfactuals', null) : [{ missing_signal: '대표 프로젝트의 실제 기여도', validation_action: '면접에서 확인' }]).slice(0, 3).map((item, i) => <li key={i}><b>{item.missing_signal}</b><br />{item.validation_action}</li>)}
+                    {(Array.isArray(getEvidenceValue('counterfactuals', null)) && getEvidenceValue('counterfactuals', null).length ? getEvidenceValue('counterfactuals', null) : [{ missing_signal: 'Actual ownership of a representative project', validation_action: 'Verify during the interview.' }]).slice(0, 3).map((item, i) => <li key={i}><b>{item.missing_signal}</b><br />{item.validation_action}</li>)}
                   </ul>
                 </div>
                 <div style={{ background: '#ecfeff', border: '1px solid #a5f3fc', borderRadius: 10, padding: 12, fontSize: 13 }}>
@@ -137,7 +137,7 @@ export default function MatchingDetailPage() {
       </section>
       <div style={{ marginTop: 40, textAlign: 'center' }}>
         <button onClick={() => navigate(-1)} style={{ background: '#30c59b', color: '#fff', border: 'none', borderRadius: 8, padding: '0.7rem 2.2rem', fontWeight: 700, fontSize: '1.08rem', cursor: 'pointer', boxShadow: '0 2px 8px rgba(48,197,155,0.08)' }}>
-          목록으로 돌아가기
+          Back to applications
         </button>
       </div>
     </div>

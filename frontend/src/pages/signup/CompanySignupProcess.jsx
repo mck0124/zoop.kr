@@ -43,10 +43,10 @@ export default function CompanySignupProcess() {
         setCeoName(data.ceo_name || '');
         setAddress(data.address || '');
       } else {
-        setOcrMessage('⚠️ 사업자등록증명원 파일을 업로드해주세요.');
+        setOcrMessage('⚠️ Please upload a valid business registration certificate.');
       }
     } catch (err) {
-      setOcrMessage('⚠️ 파일 분석 중 오류가 발생했습니다.');
+      setOcrMessage('⚠️ We could not analyze that file. Please try again.');
     }
 
     setUploading(false);
@@ -83,10 +83,10 @@ export default function CompanySignupProcess() {
           state: { companyId: data.companyId }
         });
       } else {
-        alert('회사 등록 실패');
+        alert('Company registration failed.');
       }
     } catch (err) {
-      alert('서버 오류');
+      alert('A server error occurred.');
     }
   };
   
@@ -100,26 +100,26 @@ export default function CompanySignupProcess() {
         </div>
 
         <div className="company-signup-container">
-          <h2 className="form-title">기업회원 가입</h2>
+          <h2 className="form-title">Company sign-up</h2>
 
           <div className="form-section">
-            <p className="upload-instruction">기업 인증</p>
+            <p className="upload-instruction">Verify your company</p>
             <div className={`upload-box ${isValidCert ? 'upload-success' : ''}`}>
               {nextTimeChecked ? (
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                     <span style={{ display: 'inline-block', width: '20px', height: '20px', backgroundColor: '#468cff', color: 'white', fontSize: '0.9rem', lineHeight: '20px', textAlign: 'center', borderRadius: '4px' }}>✔</span>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#333' }}>다음에 인증할게요</h3>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#333' }}>Verify later</h3>
                   </div>
                   <p style={{ fontSize: '0.85rem', color: '#666', lineHeight: '1.5' }}>
-                    가입 후 서비스 이용에 제한이 있을 수 있으니 이용 전 반드시 기업 인증을 신청해 주세요.
+                    Some features may be limited until verification is complete. Please apply before using the service.
                   </p>
                 </div>
               ) : (
                 <>
                   <div className="upload-preview">
-                    <img src="/images/sample-correct.png" alt="정상 서류 예시" />
-                    <img src="/images/sample-wrong.png" alt="잘못된 서류 예시" />
+                    <img src="/images/sample-correct.png" alt="Example of an accepted document" />
+                    <img src="/images/sample-wrong.png" alt="Example of an invalid document" />
                   </div>
                   <input
                     type="file"
@@ -130,9 +130,9 @@ export default function CompanySignupProcess() {
                     disabled={isValidCert}
                   />
                   <label htmlFor="fileUpload" className={`file-label ${isValidCert ? 'disabled-label' : ''}`}>
-                    {uploadedFileName ? uploadedFileName : '파일 선택'}
+                    {uploadedFileName ? uploadedFileName : 'Choose a file'}
                   </label>
-                  {uploading && <p style={{ color: '#888' }}>분석 중입니다...</p>}
+                  {uploading && <p style={{ color: '#888' }}>Analyzing...</p>}
                   {ocrMessage && <p style={{ color: 'red', marginTop: '0.5rem' }}>{ocrMessage}</p>}
                   {isValidCert && (
                     <div className="checkmark-overlay">
@@ -179,7 +179,7 @@ export default function CompanySignupProcess() {
                           onChange={handleCheckboxChange}
                           disabled={isValidCert}
                         />
-                        <span>다음에 인증할게요</span>
+                        <span>Verify later</span>
                       </label>
                     </div>
                   )}
