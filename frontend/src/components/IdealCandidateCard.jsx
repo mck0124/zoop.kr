@@ -84,12 +84,11 @@ export default function IdealCandidateCard({ summary, onEditSummary, isEditing, 
             }}
             value={editValue}
             onChange={e => setEditValue(e.target.value)}
-            placeholder="- 직무 및 역할: 개발PM으로서 프로젝트를 주도하고 팀을 이끌어 나가는 역할
-- 필수 기술 스택: Python을 활용한 개발 및 프로젝트 관리 능력
-- 경력 및 경험: 도전적인 프로젝트 경험, 문제 해결을 위한 다양한 접근 방식 경험
-- 성격 및 소프트 스킬: 도전정신, 창의적 사고, 유연성, 팀원과의 소통 능력
-- 업무 스타일: 적극적이고 주도적인 업무 수행, 새로운 기술 및 방법론에 대한 학습 의지
-- 회사 문화 적합성: 혁신과 도전을 즐기는 문화에 적합"
+            placeholder="- Role mission: Own delivery of a developer platform and align the team around outcomes
+- Must-have capabilities: Practical Python experience and strong project execution
+- Experience: Challenging projects with multiple approaches to problem solving
+- Collaboration: Clear communication and constructive teamwork
+- Growth: Proactive learning of new tools and methods"
           />
           <div style={{ marginTop: 15, display: "flex", gap: 14, justifyContent: "center" }}>
             <button
@@ -108,7 +107,7 @@ export default function IdealCandidateCard({ summary, onEditSummary, isEditing, 
                 transition: "all 0.16s",
                 minWidth: 120
               }}
-            >저장</button>
+            >Save</button>
             <button
               onClick={handleCancel}
               style={{
@@ -122,7 +121,7 @@ export default function IdealCandidateCard({ summary, onEditSummary, isEditing, 
                 cursor: "pointer",
                 minWidth: 120
               }}
-            >취소</button>
+            >Cancel</button>
           </div>
         </div>
       ) : (
@@ -152,8 +151,8 @@ export default function IdealCandidateCard({ summary, onEditSummary, isEditing, 
             textAlign: "center",
             marginTop: "4rem"
           }}>
-            AI 어시스턴트와 대화해 인재상을 구체적으로 작성해보세요.<br />
-            작성 내용이 여기에 실시간으로 나타납니다.
+            Describe the ideal candidate with the AI assistant.<br />
+            Your brief will appear here in real time.
           </div>
         )
       )}

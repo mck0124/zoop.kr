@@ -108,7 +108,7 @@ export const MainLoadingSkeleton = () => (
         marginBottom: '2rem',
         lineHeight: '1.5'
       }}>
-        페이지를 불러오는 중입니다
+        Loading your workspace
       </div>
       
       {/* 진행 바 */}
@@ -726,7 +726,7 @@ export const ProfileSkeleton = () => (
     </div>
     
     {/* 섹션들 */}
-    {['기본 정보', '경력 사항', '기술 스택'].map((section, index) => (
+    {['Basic information', 'Experience', 'Technical skills'].map((section, index) => (
       <div key={index} style={{ marginBottom: '2rem' }}>
         <div style={{
           height: '24px',
@@ -753,4 +753,4 @@ export const ProfileSkeleton = () => (
   </div>
 );
 
-export default MainLoadingSkeleton; 
+export default MainLoadingSkeleton;

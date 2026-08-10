@@ -24,7 +24,7 @@ export default function CompanySidebar() {
         const res = await axios.get(apiUrl(`/api/posts/company/${authState.userId}`));
         setPosts(res.data);
       } catch (err) {
-        console.error('공고 목록 조회 실패:', err);
+        console.error('Could not load job postings:', err);
       }
     };
     fetchPosts();
@@ -53,7 +53,7 @@ export default function CompanySidebar() {
 
   return (
     <aside className="sticky top-24 mt-20 ml-12 w-72 p-8 bg-white rounded-xl shadow transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg text-sm">
-      <h3 className="text-base font-bold text-gray-900 mb-6">📢 공고 관리</h3>
+      <h3 className="text-base font-bold text-gray-900 mb-6">📢 Hiring workspace</h3>
 
       {/* 대시보드 */}
       <div className="mb-5">
@@ -61,7 +61,7 @@ export default function CompanySidebar() {
           className={sectionClass('dashboard')}
           onClick={() => handleSelectSection('dashboard', '/company/dashboard')}
         >
-          🧭 대시보드
+          🧭 Dashboard
         </div>
       </div>
 
@@ -75,7 +75,7 @@ export default function CompanySidebar() {
             sessionStorage.setItem('activeSection', 'ongoing');
           }}
         >
-          📂 채용중인 공고
+          📂 Open roles
         </div>
 
         {showOngoing && (
@@ -101,7 +101,7 @@ export default function CompanySidebar() {
           className={sectionClass('archive')}
           onClick={() => handleSelectSection('archive', '/company/dashboard')}
         >
-          🗂 지난 공고
+          🗂 Archived roles
         </div>
       </div>
 
@@ -111,7 +111,7 @@ export default function CompanySidebar() {
         onClick={() => navigate('/company/recruit/create')}
         className="w-full mt-8 bg-emerald-500 text-white text-base font-semibold py-2.5 px-4 rounded-full hover:bg-emerald-600 transition"
       >
-        ➕ 새 공고 추가
+        ➕ Create a role
       </button>
     </aside>
   );

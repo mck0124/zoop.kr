@@ -33,27 +33,27 @@ function ApplyForm({ post, onSubmit, onCancel }) {
     const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = '이름을 입력해주세요';
+      newErrors.name = 'Please enter your name.';
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = '이메일을 입력해주세요';
+      newErrors.email = 'Please enter your email.';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = '올바른 이메일 형식을 입력해주세요';
+      newErrors.email = 'Please enter a valid email address.';
     }
 
     if (!formData.phone.trim()) {
-      newErrors.phone = '연락처를 입력해주세요';
+      newErrors.phone = 'Please enter your phone number.';
     }
 
     if (!formData.githubLogin.trim()) {
-      newErrors.githubLogin = 'GitHub 아이디를 입력해주세요';
+      newErrors.githubLogin = 'Please enter your GitHub username.';
     } else if (!/^[a-zA-Z0-9-]+$/.test(formData.githubLogin)) {
-      newErrors.githubLogin = 'GitHub 아이디는 영문, 숫자, 하이픈(-)만 사용 가능합니다';
+      newErrors.githubLogin = 'Use only letters, numbers, and hyphens in your GitHub username.';
     }
 
     if (!formData.languages.trim()) {
-      newErrors.languages = '보유 기술을 입력해주세요';
+      newErrors.languages = 'Please list at least one skill.';
     }
 
     setErrors(newErrors);
@@ -78,8 +78,8 @@ function ApplyForm({ post, onSubmit, onCancel }) {
       
       await onSubmit(submitData);
     } catch (error) {
-      console.error('지원 신청 오류:', error);
-      alert('지원 신청 중 오류가 발생했습니다. 다시 시도해주세요.');
+      console.error('Application submission error:', error);
+      alert('We could not submit your application. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -88,15 +88,15 @@ function ApplyForm({ post, onSubmit, onCancel }) {
   const inputFields = [
     {
       name: 'name',
-      label: '이름',
+      label: 'Full name',
       type: 'text',
-      placeholder: '홍길동',
+      placeholder: 'Alex Morgan',
       icon: FaUser,
       required: true
     },
     {
       name: 'email',
-      label: '이메일',
+      label: 'Email',
       type: 'email',
       placeholder: 'example@email.com',
       icon: FaEnvelope,
@@ -104,7 +104,7 @@ function ApplyForm({ post, onSubmit, onCancel }) {
     },
     {
       name: 'phone',
-      label: '연락처',
+      label: 'Phone number',
       type: 'tel',
       placeholder: '010-1234-5678',
       icon: FaPhone,
@@ -112,7 +112,7 @@ function ApplyForm({ post, onSubmit, onCancel }) {
     },
     {
       name: 'githubLogin',
-      label: 'GitHub 아이디',
+      label: 'GitHub username',
       type: 'text',
       placeholder: 'username',
       icon: FaGithub,
@@ -129,12 +129,12 @@ function ApplyForm({ post, onSubmit, onCancel }) {
       transition={{ duration: 0.5 }}
     >
       <div className="form-header">
-        <h3>{post.postTitle} 지원하기</h3>
-        <p>아래 정보를 입력하여 지원해주세요</p>
+        <h3>Apply for {post.postTitle}</h3>
+        <p>Share a few details so the hiring team can review your application.</p>
       </div>
 
       <div className="form-section">
-        <h4>기본 정보</h4>
+        <h4>Basic information</h4>
         <div className="form-grid">
           {inputFields.map(field => (
             <div key={field.name} className="form-group">
@@ -161,18 +161,18 @@ function ApplyForm({ post, onSubmit, onCancel }) {
       </div>
 
       <div className="form-section">
-        <h4>기술 및 경험</h4>
+        <h4>Skills and experience</h4>
         <div className="form-group">
           <label htmlFor="languages">
             <FaCode />
-            보유 기술 <span className="required">*</span>
+            Skills <span className="required">*</span>
           </label>
           <textarea
             id="languages"
             name="languages"
             value={formData.languages}
             onChange={handleChange}
-            placeholder="예: JavaScript, React, Node.js, Python, Java 등"
+            placeholder="e.g. JavaScript, React, Node.js, Python, Java"
             rows="3"
             className={errors.languages ? 'error' : ''}
           />
@@ -184,14 +184,14 @@ function ApplyForm({ post, onSubmit, onCancel }) {
         <div className="form-group">
           <label htmlFor="experience">
             <FaFileAlt />
-            관련 경험 (선택)
+            Relevant experience (optional)
           </label>
           <textarea
             id="experience"
             name="experience"
             value={formData.experience}
             onChange={handleChange}
-            placeholder="관련 프로젝트나 업무 경험을 간단히 설명해주세요"
+            placeholder="Briefly describe relevant projects or work experience"
             rows="4"
           />
         </div>
@@ -199,7 +199,7 @@ function ApplyForm({ post, onSubmit, onCancel }) {
         <div className="form-group">
           <label htmlFor="portfolio">
             <FaFileAlt />
-            포트폴리오 URL (선택)
+            Portfolio URL (optional)
           </label>
           <input
             type="url"
@@ -213,17 +213,17 @@ function ApplyForm({ post, onSubmit, onCancel }) {
       </div>
 
       <div className="form-section">
-        <h4>지원 동기</h4>
+        <h4>Motivation</h4>
         <div className="form-group">
           <label htmlFor="message">
-            지원 동기 및 자기소개 (선택)
+            Motivation and introduction (optional)
           </label>
           <textarea
             id="message"
             name="message"
             value={formData.message}
             onChange={handleChange}
-            placeholder="이 포지션에 지원하게 된 동기나 본인에 대한 소개를 자유롭게 작성해주세요"
+            placeholder="Tell us why this role interests you and introduce yourself"
             rows="5"
           />
         </div>
@@ -237,7 +237,7 @@ function ApplyForm({ post, onSubmit, onCancel }) {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          취소
+          Cancel
         </motion.button>
         <motion.button
           type="submit"
@@ -249,10 +249,10 @@ function ApplyForm({ post, onSubmit, onCancel }) {
           {isSubmitting ? (
             <>
               <div className="spinner"></div>
-              지원 중...
+              Submitting...
             </>
           ) : (
-            '지원하기'
+            'Submit application'
           )}
         </motion.button>
       </div>
