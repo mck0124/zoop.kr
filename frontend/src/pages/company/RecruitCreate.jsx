@@ -15,6 +15,38 @@ const RECRUIT_COPY = {
   zh: { title: "设置招聘筛选条件", subtitle: "使用 ZOOP 的智能筛选，找到更匹配的人才。", role: "职位", language: "语言", region: "地区", nationwide: "不限地区（全国）", salary: "薪资（万韩元）", headcount: "招聘人数", description: "职位描述", descriptionPlaceholder: "请输入职位和团队的相关信息。", deadline: "申请截止日期", deadlineLabel: "截止日期", apply: "应用筛选", selectLanguage: "请至少选择一种语言。", selectRegion: "请选择地区或选择全国。", selectDeadline: "请选择截止日期。", userError: "无法读取公司信息。", createError: "无法创建职位。", createFailed: "创建职位时发生错误：", quickDays: "天", candidateSuffix: " 人", salarySuffix: " 万韩元" }
 };
 
+const ROLE_OPTIONS = [
+  { value: "개발PM", label: "Engineering PM" },
+  { value: "데이터엔지니어", label: "Data engineer" },
+  { value: "백엔드/서버개발", label: "Backend / server" },
+  { value: "앱개발", label: "Mobile engineer" },
+  { value: "보안관제", label: "Security operations" },
+  { value: "정보보안", label: "Information security" },
+  { value: "프론트엔드", label: "Frontend engineer" },
+  { value: "웹개발", label: "Web engineer" },
+  { value: "시스템엔지니어", label: "Systems engineer" },
+];
+
+const REGION_OPTIONS = [
+  { value: "서울", label: "Seoul" },
+  { value: "인천", label: "Incheon" },
+  { value: "경기", label: "Gyeonggi" },
+  { value: "부산", label: "Busan" },
+  { value: "대구", label: "Daegu" },
+  { value: "광주", label: "Gwangju" },
+  { value: "대전", label: "Daejeon" },
+  { value: "세종", label: "Sejong" },
+  { value: "울산", label: "Ulsan" },
+  { value: "강원", label: "Gangwon" },
+  { value: "충북", label: "North Chungcheong" },
+  { value: "충남", label: "South Chungcheong" },
+  { value: "전북", label: "North Jeolla" },
+  { value: "전남", label: "South Jeolla" },
+  { value: "경북", label: "North Gyeongsang" },
+  { value: "경남", label: "South Gyeongsang" },
+  { value: "제주", label: "Jeju" },
+];
+
 const chipStyle = (selected) => ({
   border: selected ? "none" : "1.5px solid #e0e3e7",
   color: selected ? "#fff" : "#22694c",
@@ -164,14 +196,17 @@ export default function RecruitCreate() {
       }
       
       const userInfo = await userInfoResponse.json();
+      const selectedRegionLabels = REGION_OPTIONS
+        .filter(region => filters.regions.includes(region.value))
+        .map(region => region.label);
 
       const postData = {
         companyId: userInfo.companyId,
         companyAdminId: userInfo.companyAdminId,
-        postTitle: `채용 공고 - ${filters.languages.join(", ")} 개발자`,
+        postTitle: `${filters.languages.join(", ")} developer role`,
         postDescription: description,
         postProgrammingLanguage: filters.languages.join(","),
-        postLocation: filters.nationwide ? "전국" : filters.regions.join(","),
+        postLocation: filters.nationwide ? "Nationwide" : selectedRegionLabels.join(", "),
         postHeadcount: filters.headcount,
         postSalaryStart: `${filters.salary}만원`,
         postSalaryEnd: `${filters.salary + 1000}만원`,
@@ -211,9 +246,9 @@ export default function RecruitCreate() {
       }}
     >
       <SEO
-        title="채용 공고 생성 - ZOOP"
-        description="ZOOP에서 채용 공고를 생성하고, 맞춤형 인재를 추천받으세요."
-        keywords="채용, 채용 공고, 채용 공고 생성, 채용 필터, 채용 인재 추천, ZOOP"
+        title="Create a job posting - ZOOP"
+        description="Create a role and receive evidence-backed candidate recommendations with ZOOP."
+        keywords="hiring, job posting, candidate matching, AI recruiting, ZOOP"
       />
       <Navbar />
       {/* --- 달력/전체 스타일 글로벌 적용 --- */}
@@ -230,6 +265,24 @@ export default function RecruitCreate() {
           padding: 30px 40px 28px 40px;
           justify-content: center;
           gap: 36px;
+        }
+        @media (max-width: 760px) {
+          .react-datepicker {
+            min-width: 0;
+            width: 100%;
+            padding: 18px 8px;
+            gap: 8px;
+          }
+          .react-datepicker__month-container {
+            width: 100%;
+            margin: 0;
+          }
+          .react-datepicker__day-name,
+          .react-datepicker__day {
+            width: 2rem;
+            height: 2rem;
+            font-size: 0.9rem;
+          }
         }
         .react-datepicker__month-container {
           border: none;
@@ -380,28 +433,18 @@ export default function RecruitCreate() {
         </motion.div>
 
         <Section title={copy.role}>
-          {[
-            "개발PM",
-            "데이터엔지니어",
-            "백엔드/서버개발",
-            "앱개발",
-            "보안관제",
-            "정보보안",
-            "프론트엔드",
-            "웹개발",
-            "시스템엔지니어",
-          ].map((role) => (
+          {ROLE_OPTIONS.map((role) => (
             <motion.div
-              key={role}
+              key={role.value}
               whileHover={{
                 scale: 1.07,
                 boxShadow: "0 2px 14px #2ed99224",
               }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => toggleSelection("roles", role)}
-              style={chipStyle(filters.roles.includes(role))}
+              onClick={() => toggleSelection("roles", role.value)}
+              style={chipStyle(filters.roles.includes(role.value))}
             >
-              {role}
+              {role.label}
             </motion.div>
           ))}
         </Section>
@@ -449,36 +492,18 @@ export default function RecruitCreate() {
         </Section>
 
         <Section title={copy.region}>
-          {[
-            "서울",
-            "인천",
-            "경기",
-            "부산",
-            "대구",
-            "광주",
-            "대전",
-            "세종",
-            "울산",
-            "강원",
-            "충북",
-            "충남",
-            "전북",
-            "전남",
-            "경북",
-            "경남",
-            "제주",
-          ].map((region) => (
+          {REGION_OPTIONS.map((region) => (
             <motion.div
-              key={region}
+              key={region.value}
               whileHover={{
                 scale: 1.08,
                 boxShadow: "0 2px 14px #3ee1a815",
               }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => toggleSelection("regions", region)}
-              style={chipStyle(filters.regions.includes(region))}
+              onClick={() => toggleSelection("regions", region.value)}
+              style={chipStyle(filters.regions.includes(region.value))}
             >
-              {region}
+              {region.label}
             </motion.div>
           ))}
           <motion.div
@@ -569,7 +594,7 @@ export default function RecruitCreate() {
           <div
             style={{
               display: "flex",
-              flexDirection: "row",
+              flexDirection: typeof window !== 'undefined' && window.innerWidth < 760 ? "column" : "row",
               gap: "2.8rem",
               alignItems: "flex-start",
               justifyContent: "center",
@@ -583,7 +608,8 @@ export default function RecruitCreate() {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5, type: "spring" }}
               style={{
-                minWidth: 760,
+                minWidth: 0,
+                width: '100%',
                 maxWidth: 900,
                 borderRadius: 24,
                 margin: "0 auto",
@@ -599,7 +625,7 @@ export default function RecruitCreate() {
                 inline
                 dateFormat="yyyy-MM-dd"
                 calendarStartDay={0}
-                monthsShown={2}
+                monthsShown={typeof window !== 'undefined' && window.innerWidth < 760 ? 1 : 2}
                 showPopperArrow={false}
               />
             </motion.div>
@@ -610,7 +636,8 @@ export default function RecruitCreate() {
                 flexDirection: "column",
                 gap: "1rem",
                 marginTop: 22,
-                minWidth: 150,
+                minWidth: 0,
+                width: typeof window !== 'undefined' && window.innerWidth < 760 ? '100%' : 150,
               }}
             >
               {[7, 14, 30, 60].map((days) => (
