@@ -55,24 +55,44 @@ const DEFAULT_PHRASES = {
 // 최근에 보여준 버튼 phrase를 저장 (최대 10개)
 let recentPhraseHistory = [];
 
-function getDynamicCandidatePhrases(messages, fallbackPhrases = defaultCandidatePhrases) {
-  // 최근 입력/AI답변에 특정 키워드 있으면 다채롭게 제안 (간단 예시)
-  const keywords = [
-    { key: "책임", phrase: "주도적이고 책임감 있는 분을 원합니다" },
-    { key: "경험", phrase: "실무 경험이 풍부한 인재가 이상적입니다" },
-    { key: "팀워크", phrase: "팀과 협업을 잘하는 분이면 좋겠습니다" },
-    { key: "소통", phrase: "원활한 소통 능력을 갖춘 인재를 선호합니다" },
-    { key: "문제해결", phrase: "문제 해결 능력이 뛰어난 분을 선호합니다" },
-    { key: "꼼꼼", phrase: "꼼꼼하고 디테일을 잘 챙기는 분을 찾고 있습니다" },
-    { key: "창의", phrase: "창의적이고 유연한 사고를 가진 분을 선호합니다" },
-    { key: "리더", phrase: "리더십 경험이 있는 분을 원합니다" },
-    { key: "데이터", phrase: "데이터 기반 의사결정이 가능한 분을 선호합니다" },
-    { key: "긍정", phrase: "긍정적인 마인드를 가진 인재를 찾고 있습니다" }
-  ];
+function getDynamicCandidatePhrases(messages, fallbackPhrases = defaultCandidatePhrases, language = "en") {
+  const keywordSets = {
+    en: [
+      { keys: ["ownership", "responsibility", "accountable"], phrase: "We value ownership and accountability" },
+      { keys: ["experience", "practical", "hands-on"], phrase: "Prioritize practical, hands-on experience" },
+      { keys: ["teamwork", "collaboration", "team"], phrase: "Strong collaboration and teamwork matter" },
+      { keys: ["communication", "communicate"], phrase: "Clear, structured communication is important" },
+      { keys: ["problem", "solve", "challenge"], phrase: "Look for thoughtful problem solving" },
+      { keys: ["creative", "creative", "flexible"], phrase: "Encourage creative and flexible thinking" },
+      { keys: ["leadership", "lead"], phrase: "Leadership experience is valuable" },
+      { keys: ["data", "metric"], phrase: "Use data to guide decisions" },
+    ],
+    ko: [
+      { keys: ["책임"], phrase: "주도적이고 책임감 있는 분을 원합니다" },
+      { keys: ["경험"], phrase: "실무 경험이 풍부한 인재가 이상적입니다" },
+      { keys: ["팀워크"], phrase: "팀과 협업을 잘하는 분이면 좋겠습니다" },
+      { keys: ["소통"], phrase: "원활한 소통 능력을 갖춘 인재를 선호합니다" },
+      { keys: ["문제해결"], phrase: "문제 해결 능력이 뛰어난 분을 선호합니다" },
+      { keys: ["창의"], phrase: "창의적이고 유연한 사고를 가진 분을 선호합니다" },
+      { keys: ["리더"], phrase: "리더십 경험이 있는 분을 원합니다" },
+      { keys: ["데이터"], phrase: "데이터 기반 의사결정이 가능한 분을 선호합니다" },
+    ],
+    zh: [
+      { keys: ["责任", "担当"], phrase: "重视主人翁意识和责任感" },
+      { keys: ["经验", "实战"], phrase: "优先考虑有实际项目经验的人才" },
+      { keys: ["团队", "协作"], phrase: "重视团队协作能力" },
+      { keys: ["沟通"], phrase: "需要清晰有效的沟通能力" },
+      { keys: ["问题", "解决"], phrase: "寻找善于解决问题的人才" },
+      { keys: ["创新", "灵活"], phrase: "鼓励创新和灵活思考" },
+      { keys: ["领导"], phrase: "领导力经验会加分" },
+      { keys: ["数据"], phrase: "能够用数据支持决策" },
+    ],
+  };
+  const keywords = keywordSets[language] || keywordSets.en;
   let picks = [];
-  let text = messages.map(m => (typeof m.content === "string" ? m.content : "")).join(" ");
-  for (let { key, phrase } of keywords) {
-    if (text.includes(key)) picks.push(phrase);
+  const text = messages.map(m => (typeof m.content === "string" ? m.content : "")).join(" ").toLocaleLowerCase();
+  for (const { keys, phrase } of keywords) {
+    if (keys.some(key => text.includes(key.toLocaleLowerCase()))) picks.push(phrase);
   }
   // 후보군: 키워드 기반 picks + 프리셋 섞기
   let pool = Array.from(new Set([...picks, ...fallbackPhrases]));
@@ -161,7 +181,7 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
       ? examples
         : messages.length === 1 && messages[0].type === "ai"
         ? defaultPhrases
-        : getDynamicCandidatePhrases(messages, defaultPhrases);
+        : getDynamicCandidatePhrases(messages, defaultPhrases, language);
 
   // 예상 버튼들(중복 제거)
   const uniqueCandidatePhrases = Array.from(new Set(candidatePhrases));
