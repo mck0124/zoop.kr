@@ -85,6 +85,12 @@ export default function MatchingDetailPage() {
   const matchEvidence = getMatchEvidence();
   const decisionGate = getEvidenceValue('decision_gate', null);
   const sourceIntegrity = getEvidenceValue('source_integrity', null) || getEvidenceValue('audit', null)?.source_integrity;
+  const matchScoreValue = match?.matchScore ?? match?.matchingScore;
+  const groundedMatchEvidence = [
+    ...(Array.isArray(matchEvidence?.evidence) ? matchEvidence.evidence : []),
+    ...(Array.isArray(matchEvidence?.dimensions) ? matchEvidence.dimensions.flatMap(dimension => Array.isArray(dimension?.evidence) ? dimension.evidence : []) : []),
+  ].filter(item => ['verified', 'grounded'].includes(item?.verification_state));
+  const hasGroundedMatchScore = groundedMatchEvidence.length > 0 || Number(matchEvidence?.evidence_quality?.grounded_evidence || 0) > 0;
 
   return (
     <div style={{ maxWidth: 800, margin: '40px auto', background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(48,197,155,0.10)', padding: '2.5rem 2.5rem 2rem 2.5rem' }}>
@@ -115,9 +121,9 @@ export default function MatchingDetailPage() {
       {/* 매칭 점수/이유 */}
       <section>
         <h2 style={{ color: '#222', fontWeight: 800, fontSize: '1.2rem', marginBottom: 12 }}>3. Match score and rationale</h2>
-        {match && (match.matchScore !== undefined || match.matchingScore !== undefined) ? (
+        {match && matchScoreValue !== undefined ? (
           <div style={{ background: '#f8fafd', borderRadius: 10, padding: 18, fontSize: 16 }}>
-          <div><b>Match score:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{match.matchScore ?? match.matchingScore}</span></div>
+          <div><b>Match score:</b> {hasGroundedMatchScore ? <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{matchScoreValue}</span> : <span style={{ color: '#92400e', fontWeight: 700 }}>Withheld until evidence is verified</span>}</div>
           {decisionGate && (
             <div style={{ marginTop: 12, padding: 12, borderRadius: 10, border: `1px solid ${decisionGate.final_decision === 'strong_match' ? '#a7f3d0' : '#fed7aa'}`, background: decisionGate.final_decision === 'strong_match' ? '#ecfdf5' : '#fff7ed', color: decisionGate.final_decision === 'strong_match' ? '#047857' : '#9a3412', fontSize: 13 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>

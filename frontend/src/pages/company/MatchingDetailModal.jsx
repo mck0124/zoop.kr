@@ -136,6 +136,8 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                 const evidenceQuality = reasonPayload?.evidence?.evidence_quality;
                 const decisionGate = reasonPayload?.evidence?.decision_gate || null;
                 const sourceIntegrity = reasonPayload?.evidence?.source_integrity || reasonPayload?.evidence?.audit?.source_integrity || null;
+                const groundedEvidenceCount = dimensions.reduce((count, dimension) => count + (Array.isArray(dimension.evidence) ? dimension.evidence.filter(item => ['verified', 'grounded'].includes(item?.verification_state)).length : 0), 0);
+                const scoreIsGrounded = groundedEvidenceCount > 0 || Number(evidenceQuality?.grounded_evidence || 0) > 0;
                 const selectedDelta = counterfactuals
                   .filter((_, index) => selectedCounterfactuals.includes(index))
                   .reduce((sum, item) => sum + Number(item.expected_score_delta || 0), 0);
@@ -143,9 +145,9 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                 return score !== undefined ? (
                   <div style={{ background: '#f8fafd', borderRadius: 10, padding: 18, fontSize: 16 }}>
                     <div style={{ display: 'flex', gap: 16, alignItems: 'baseline', flexWrap: 'wrap' }}>
-                          <span><b>Current match score:</b> <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{score}</span></span>
-                      {selectedCounterfactuals.length > 0 && <span style={{ color: '#6d28d9', fontWeight: 800 }}>Projected after verification: {projectedScore.toFixed(0)} points</span>}
-                      <button
+                      <span><b>Current match score:</b> {scoreIsGrounded ? <span style={{ color: '#f59e42', fontWeight: 700, fontSize: 20 }}>{score}</span> : <span style={{ color: '#92400e', fontWeight: 700 }}>Withheld until evidence is verified</span>}</span>
+                      {scoreIsGrounded && selectedCounterfactuals.length > 0 && <span style={{ color: '#6d28d9', fontWeight: 800 }}>Projected after verification: {projectedScore.toFixed(0)} points</span>}
+                      {scoreIsGrounded && <button
                         type="button"
                         onClick={() => {
                           const receipt = {
@@ -173,7 +175,7 @@ export default function MatchingDetailModal({ open, onClose, candPortfolioId, po
                         style={{ marginLeft: 'auto', border: '1px solid #a7f3d0', borderRadius: 999, background: '#ecfdf5', color: '#047857', padding: '7px 12px', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}
                       >
                         Save decision receipt
-                      </button>
+                      </button>}
                     </div>
                     <div style={{ marginTop: 10 }}><b>Rationale:</b></div>
                     <pre style={{ background: '#fff', borderRadius: 8, padding: 14, fontSize: 15, marginTop: 6, whiteSpace: 'pre-wrap', maxHeight: 240, overflow: 'auto' }}>{summary}</pre>
