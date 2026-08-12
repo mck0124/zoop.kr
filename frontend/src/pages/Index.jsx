@@ -225,7 +225,6 @@ export default function Index() {
 
       {/* 메인 배너 */}
       <section className="hero-section">
-        <img src="/zoop_main_banner.png" alt="ZOOP AI recruiting platform" className="hero-image" />
         <div className="hero-text">
           <h1>{copy.hero}</h1>
           <div className="cta-actions" aria-label="Choose your account type">
