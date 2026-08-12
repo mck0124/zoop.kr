@@ -30,6 +30,8 @@
 .login-button { min-height: 52px; border-radius: 12px; background: linear-gradient(135deg, #30c59b, #159b75); box-shadow: 0 12px 22px rgba(22,155,117,.2); }
 .login-button:hover { transform: translateY(-2px); box-shadow: 0 16px 26px rgba(22,155,117,.26); }
 .error-message { border: 1px solid #f2c8c0; border-radius: 10px; background: #fff6f4; color: #b24e40; }
+.demo-login-hint { display: grid; gap: .18rem; margin-top: 1rem; padding: .8rem .95rem; border: 1px dashed #9edac5; border-radius: 12px; color: #4d7668; background: #f2fcf7; font-size: .75rem; }
+.demo-login-hint strong { color: #087153; font-size: .78rem; }
 .find-links a { color: #176c53; }
 .social-icon { width: 44px; height: 44px; border: 1px solid #e0ebe7; border-radius: 12px; background: #fff; }
 

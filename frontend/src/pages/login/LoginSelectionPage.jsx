@@ -7,6 +7,7 @@ import Navbar from '../../components/Navbar';
 import { useAuth } from '../../context/AuthContext';
 import SEO from '../../components/SEO';
 import { apiUrl } from '../../api/config';
+import { DEMO_ACCOUNTS, DEMO_MODE } from '../../demo/demoData';
 
 function LoginSelectionPage() {
   const [userType, setUserType] = useState('candidate'); // 기본값 개인회원
@@ -105,6 +106,21 @@ function LoginSelectionPage() {
     // }
 
     setError('');
+
+    if (DEMO_MODE) {
+      const demoAccount = DEMO_ACCOUNTS[userType];
+      if (loginId === demoAccount.loginId && password === demoAccount.password) {
+        setAuthState({ token: demoAccount.token, userType, userId: demoAccount.userId, loginId: demoAccount.loginId });
+        localStorage.setItem('jwtToken', demoAccount.token);
+        localStorage.setItem('userType', userType);
+        localStorage.setItem('userId', demoAccount.userId);
+        localStorage.setItem('loginId', demoAccount.loginId);
+        navigate(userType === 'candidate' ? '/candidate/dashboard' : '/company/dashboard', { replace: true });
+        return;
+      }
+      setError('Demo login: check the username and password shown below.');
+      return;
+    }
 
     try {
       const response = await axios.post(apiUrl('/api/auth/login'), {
@@ -417,6 +433,13 @@ function LoginSelectionPage() {
                 <Link to="/find-password">Reset password</Link>
               </div>
             </form>
+            {DEMO_MODE && (
+              <div className="demo-login-hint" role="note">
+                <strong>Demo access</strong>
+                <span>{userType === 'candidate' ? 'Candidate' : 'Company'}: {DEMO_ACCOUNTS[userType].loginId}</span>
+                <span>Password: {DEMO_ACCOUNTS[userType].password}</span>
+              </div>
+            )}
             <p className="signup-subtext">Or continue with a social account</p>
                 <div className="social-icons"> 
                   <img src="/icons/naver.svg" alt="Continue with Naver" className="social-icon" onClick={() => handleSocialLogin('naver')}/>

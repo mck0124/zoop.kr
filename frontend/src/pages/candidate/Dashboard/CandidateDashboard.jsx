@@ -17,6 +17,7 @@ import {
 import { InterviewSchedulerModal } from '../Interview';
 import InterviewPreparationModal from '../../../components/InterviewPreparationModal';
 import { apiUrl } from '../../../api/config';
+import { DEMO_CANDIDATE_POSTINGS, DEMO_MODE } from '../../../demo/demoData';
 
 import './CandidateDashboard.css';
 
@@ -163,6 +164,12 @@ function CandidateDashboard() {
       }
       setDashboardLoading(true);
       setDashboardError('');
+      if (DEMO_MODE) {
+        setUserName('Alex Morgan');
+        setJobPostings(DEMO_CANDIDATE_POSTINGS);
+        setDashboardLoading(false);
+        return;
+      }
       try {
         // 1. 사용자 정보 가져오기
         const userResponse = await authenticatedFetch(apiUrl(`/api/candidates/${candidateId}`));

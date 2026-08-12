@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '../../components/SEO';
 import AIAnalysisSummary, { parseAIAnalysisData } from '../../components/AIAnalysisSummary';
 import { apiUrl } from '../../api/config';
+import { DEMO_COMPANY_INFO, DEMO_COMPANY_POSTINGS, DEMO_MODE } from '../../demo/demoData';
 
 const authenticatedFetch = (url, options = {}) => fetch(url, {
   ...options,
@@ -305,6 +306,11 @@ export default function CompanyDashboard() {
   useEffect(() => {
     const userId = localStorage.getItem('userId');
     if (!userId) return;
+    if (DEMO_MODE) {
+      setCompanyInfo(DEMO_COMPANY_INFO);
+      setCompanyAdminId(2001);
+      return;
+    }
     
     
       authenticatedFetch(apiUrl(`/api/companyadmins/info/${userId}`), {
@@ -333,6 +339,11 @@ export default function CompanyDashboard() {
     // JWT 토큰이 있으면 바로 공고를 불러오도록 수정
     const token = localStorage.getItem('jwtToken');
     if (!token) {
+      setLoading(false);
+      return;
+    }
+    if (DEMO_MODE) {
+      setPostings(DEMO_COMPANY_POSTINGS);
       setLoading(false);
       return;
     }
