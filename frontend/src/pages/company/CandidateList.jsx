@@ -1171,9 +1171,9 @@ export default function CandidateList({ activeTab = 'all' }) {
       bgColor: "#ecfdf5"
     },
     modern: {
-      name: "모던",
-      description: "세련되고 혁신적인 스타일",
-      preview: "🚀 트렌디하고 혁신적인 톤",
+      name: "Modern",
+      description: "Sleek and innovative style",
+      preview: "🚀 Trendy and forward-thinking tone",
       defaultGreeting: "Hello",
       defaultMessage: "We're building the future of technology and would love to have you join our journey. Your skills perfectly match what we're looking for.",
       color: "#7c3aed",
@@ -1227,12 +1227,12 @@ export default function CandidateList({ activeTab = 'all' }) {
 
   // 4. 모달 열기 함수
   const openBulkEmailModal = () => {
-    const postTitle = postInfo?.postTitle || '채용 공고';
-    const companyName = postInfo?.companyName || '저희 회사';
+    const postTitle = postInfo?.postTitle || 'Engineering opportunity';
+    const companyName = postInfo?.companyName || 'Our company';
     setBulkSelectedTemplate('professional');
     setBulkCustomGreeting(emailTemplates.professional.defaultGreeting);
     setBulkCustomMessage(emailTemplates.professional.defaultMessage);
-    setBulkEmailSubject(`[${companyName}] ${postTitle} - 특별 초대`);
+    setBulkEmailSubject(`[${companyName}] ${postTitle} - Special invitation`);
     setShowBulkEmailModal(true);
   };
 
