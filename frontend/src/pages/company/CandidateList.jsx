@@ -495,6 +495,14 @@ const TargetIcon = (props) => (
 // Radar chart SVG for 6 component scores
 const radarKeys = ['팔로워 수','공개 저장소 수','언어 다양성','최근 활동성','프로젝트 품질','기술적 깊이'];
 const radarLabels = ['Followers','Public repositories','Language breadth','Recent activity','Project quality','Technical depth'];
+const dimensionLabels = {
+  '팔로워 수': 'Followers',
+  '공개 저장소 수': 'Public repositories',
+  '언어 다양성': 'Language breadth',
+  '최근 활동성': 'Recent activity',
+  '프로젝트 품질': 'Project quality',
+  '기술적 깊이': 'Technical depth'
+};
 const radarMax = [10, 15, 15, 20, 20, 20]; // 각 항목별 만점
 function RadarChartSVG({ scores = {}, size = 90, totalScore, showLabels = false, showScores = false }) {
   const cx = size / 2, cy = size / 2, r = size * 0.41;
@@ -1702,7 +1710,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                           border: '1px solid #e2e8f0'
                         }}>
                           <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '2px' }}>
-                            {key}
+                            {dimensionLabels[key] || key}
                           </div>
                           <div style={{ fontSize: '14px', fontWeight: '700', color: '#059669' }}>
                             {value} points
@@ -2972,7 +2980,7 @@ const LanguageDistributionChart = ({ candidate, width = 300, height = 300 }) => 
           textAnchor="middle"
           dominantBaseline="middle"
         >
-          {languageStats.length}개
+          {languageStats.length} languages
         </text>
         <text
           x={centerX - 20}
@@ -2983,7 +2991,7 @@ const LanguageDistributionChart = ({ candidate, width = 300, height = 300 }) => 
           textAnchor="middle"
           dominantBaseline="middle"
         >
-          언어
+          Languages
         </text>
       </svg>
     </div>
@@ -3133,7 +3141,7 @@ const LanguagePieChart = ({ languages, width = 300, height = 300 }) => {
           textAnchor="middle"
           dominantBaseline="middle"
         >
-          {total}개
+          {total} languages
         </text>
         <text
           x={centerX - 20}
@@ -3144,7 +3152,7 @@ const LanguagePieChart = ({ languages, width = 300, height = 300 }) => {
           textAnchor="middle"
           dominantBaseline="middle"
         >
-          언어
+          Languages
         </text>
       </svg>
     </div>
@@ -3227,10 +3235,10 @@ const EvidenceTrustPanel = ({ candidate, analysisText }) => {
       : structured.dimensions.reduce((count, dimension) => count + (dimension.evidence || []).length, 0)
     : null;
   const signals = [
-    candidate?.githubProfileUrl || candidate?.profileUrl ? 'GitHub 원본 프로필' : null,
-    getCandidateLanguages(candidate || {}).length ? '사용 언어 데이터' : null,
-    candidate?.analysisScore !== undefined || candidate?.aiAnalysis?.analysisScore !== undefined ? 'AI 분석 점수' : null,
-    structured?.version === 'portfolio-evidence-v1' ? '제출물 원문 근거 검증' : structured ? '항목별 근거와 확신도' : '자연어 분석 결과'
+    candidate?.githubProfileUrl || candidate?.profileUrl ? 'Original GitHub profile' : null,
+    getCandidateLanguages(candidate || {}).length ? 'Language data' : null,
+    candidate?.analysisScore !== undefined || candidate?.aiAnalysis?.analysisScore !== undefined ? 'AI analysis score' : null,
+    structured?.version === 'portfolio-evidence-v1' ? 'Submission evidence verification' : structured ? 'Evidence and confidence by dimension' : 'Natural-language analysis'
   ].filter(Boolean);
 
   return (
