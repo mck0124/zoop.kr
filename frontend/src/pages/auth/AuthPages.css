@@ -40,7 +40,7 @@
 .signup-description { max-width: 430px; margin: .8rem auto 2.4rem; color: #71817b; }
 .signup-tabs { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .5rem; max-width: 440px; margin: 0 auto 1.8rem; padding: .35rem; border-radius: 14px; background: #f1f7f4; }
 .signup-tabs button { border: 0; border-radius: 10px; padding: .85rem 1rem; color: #71817b; }
-.signup-tabs button.active { color: #087153; background: #fff; box-shadow: 0 4px 12px rgba(30,89,69,.1); }
+.signup-tabs button.active { color: #087153; background: #fff; border-bottom: 0; box-shadow: 0 4px 12px rgba(30,89,69,.1); }
 .signup-divider { width: 100%; height: 1px; margin: 0 auto 2rem; background: #e5efeb; }
 .signup-icons img { width: 48px; height: 48px; padding: .7rem; border: 1px solid #e1ece7; border-radius: 14px; background: #fff; }
 .signup-id-button { width: min(100%,390px); border: 0; border-radius: 12px; padding: 1rem 1.4rem; color: #fff; background: linear-gradient(135deg,#20b889,#118967); box-shadow: 0 12px 24px rgba(17,137,103,.2); font-weight: 700; }
