@@ -2173,7 +2173,8 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
   const keywords = extractKeywords(analysisText);
   const langsArr = getStackArray(candidate.candidateLanguages || candidate.languages);
   const login = candidate.githubLogin || candidate.login;
-  const avatarUrl = login ? `https://github.com/${login}.png?size=160` : undefined;
+  const avatarUrl = candidate.avatarUrl || (login ? `https://github.com/${login}.png?size=160` : undefined);
+  const githubUrl = candidate.githubProfileUrl || candidate.candidateGithubUrl || (login ? `https://github.com/${login}` : undefined);
   const portfolioEvidence = parsePortfolioEvidence(analysisText);
 
   // 3D hover + animated graph + dynamic lighting
@@ -2270,7 +2271,12 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
       {/* 이름(깃허브ID) 중앙 정렬로 표시 */}
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 0%', minHeight: 0 }}>
         <div style={{ marginBottom: '0.5rem', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <span style={{ color: '#263249', fontSize: '1.1rem', fontWeight: 800, textAlign: 'center' }}>{login || <span>&nbsp;</span>}</span>
+          <span style={{ color: '#263249', fontSize: '1.1rem', fontWeight: 800, textAlign: 'center' }}>{candidate.candidateName || login || <span>&nbsp;</span>}</span>
+          {login && candidate.candidateName && (
+            <a href={githubUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>
+              @{login} · GitHub profile
+            </a>
+          )}
           <button
             type="button"
             aria-pressed={compareSelected}
@@ -2279,6 +2285,12 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
           >
             {compareSelected ? 'Added to comparison' : 'Add to comparison'}
           </button>
+          {(typeof candidate.followers === 'number' || typeof candidate.publicRepos === 'number') && (
+            <div style={{ display: 'flex', gap: 14, marginTop: 8, color: '#64748b', fontSize: 11, fontWeight: 700 }}>
+              <span>{candidate.followers ?? 0} followers</span>
+              <span>{candidate.publicRepos ?? candidate.repositoriesCount ?? 0} public repos</span>
+            </div>
+          )}
         </div>
         {/* TossMetaTag(이메일 있음/없음)는 완전히 제거 */}
         {/* 시각화 요소들로 대체 */}
