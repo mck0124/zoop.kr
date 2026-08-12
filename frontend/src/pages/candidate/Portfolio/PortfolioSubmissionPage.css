@@ -792,10 +792,10 @@
   min-width: 200px !important;
   max-width: 280px !important;
   transition: all 0.3s ease !important;
-  margin-top: 2rem !important;
-  display: block !important;
-  margin-left: auto !important;
-  margin-right: 0 !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
 }
 
 .submit-button:hover {
@@ -805,6 +805,30 @@
 
 .submit-button:active {
   transform: translateY(0);
+}
+
+.submit-button:disabled {
+  cursor: not-allowed !important;
+  opacity: .48;
+  background: #94a3b8 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.submit-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .55rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.submit-helper {
+  margin: 0;
+  color: #64748b;
+  font-size: .82rem;
 }
 
 /* 반응형 디자인 */

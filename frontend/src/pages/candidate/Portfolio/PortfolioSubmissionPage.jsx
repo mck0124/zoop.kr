@@ -685,11 +685,21 @@ function PortfolioSubmissionPage() {
               <p className="agreement-warning">
                 * If this information is relevant, the hiring process may be paused or canceled.
               </p>
-            </div>
 
-            <button type="submit" className="submit-button">
-              Submit application
-            </button>
+              <div className="submit-actions">
+                <button
+                  type="submit"
+                  className="submit-button"
+                  disabled={isSubmitting || !agreeRequiredPersonal}
+                  title={!agreeRequiredPersonal ? 'Agree to the required personal data terms first' : undefined}
+                >
+                  {isSubmitting ? 'Submitting…' : 'Submit application'}
+                </button>
+                {!agreeRequiredPersonal && (
+                  <p className="submit-helper">Agree to the required item above to continue.</p>
+                )}
+              </div>
+            </div>
           </form>
         </div>
       </div>
