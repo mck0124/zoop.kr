@@ -139,17 +139,23 @@ def _history(history):
 # --------- 중복 제거용 함수 ----------
 def call_openai_chat(messages, max_tokens=800, temperature=0.3):
     try:
-        response = get_openai_client().chat.completions.create(
-            model=OPENAI_MODEL,
-            messages=messages,
-            max_tokens=max_tokens,
-            temperature=temperature
-        )
-        return (
-            response.choices[0].message.content
-            if response.choices and hasattr(response.choices[0], "message")
-            else "AI가 응답하지 않았습니다."
-        )
+        client = get_openai_client()
+        for attempt in range(2):
+            response = client.chat.completions.create(
+                model=OPENAI_MODEL,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=temperature
+            )
+            content = (
+                response.choices[0].message.content
+                if response.choices and hasattr(response.choices[0], "message")
+                else ""
+            )
+            if isinstance(content, str) and content.strip():
+                return content
+            print(f"[AI API] empty response; retrying ({attempt + 1}/2)")
+        return "AI did not return a usable response. Please try again."
     except Exception as e:
         print(f"[OpenAI API Error] {e}")
         raise RuntimeError("AI 서버 연결에 문제가 발생했습니다.") from e

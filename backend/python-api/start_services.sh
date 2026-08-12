@@ -4,6 +4,11 @@
 
 echo "🚀 ZOOP Backend Services를 시작합니다..."
 
+if [ ! -f ".env" ]; then
+    echo "⚠️  공통 환경파일이 없습니다: backend/python-api/.env"
+    echo "DeepSeek API 키와 OPENAI_BASE_URL을 먼저 설정해주세요."
+fi
+
 # GitHub Search Service (Port 8000)
 echo "🔍 GitHub Search Service 시작 중... (Port 8000)"
 cd github_search

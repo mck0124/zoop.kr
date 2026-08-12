@@ -670,6 +670,45 @@
     }
   }
 
+  /* Stable desktop layout: keep the logo, menu, language switcher, and account cluster in separate flex regions. */
+  @media screen and (min-width: 901px) {
+    .zoop-navbar {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 1.5rem;
+      min-width: 0;
+    }
+
+    .zoop-navbar .logo-button {
+      display: flex;
+      flex: 0 0 auto;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .zoop-navbar .nav-links {
+      flex: 1 1 auto;
+      min-width: 0;
+      justify-content: center;
+      gap: clamp(.75rem, 1.5vw, 1.5rem);
+    }
+
+    .zoop-navbar > .lang-toggle {
+      position: static !important;
+      flex: 0 0 auto;
+      margin: 0 !important;
+      transform: none !important;
+      white-space: nowrap;
+    }
+
+    .zoop-navbar > .auth-buttons {
+      flex: 0 0 auto;
+      min-width: 0;
+      padding-left: 0;
+      margin: 0;
+    }
+  }
+
   /* 모바일 사용자 정보 스타일 */
   .mobile-user-info {
     display: flex;
