@@ -718,6 +718,25 @@
       width: max-content;
       max-width: calc(100% - 420px);
     }
+
+    /* The company header has three independent zones. Keep the language
+       switcher and account controls out of the centered public navigation. */
+    .zoop-navbar.company-dashboard > .lang-toggle {
+      position: absolute !important;
+      right: 13.5rem !important;
+      top: 50%;
+      transform: translateY(-50%) !important;
+      margin: 0 !important;
+      z-index: 4;
+    }
+
+    .zoop-navbar.company-dashboard > .auth-buttons {
+      position: absolute;
+      right: clamp(1rem, 3vw, 3rem);
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 5;
+    }
   }
 
   /* 모바일 사용자 정보 스타일 */
