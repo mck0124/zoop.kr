@@ -4,40 +4,40 @@ import {
   DEMO_COMPANY_POSTINGS,
 } from './demoData';
 
-const DEMO_GITHUB_LOGIN = 'gaearon';
+const DEMO_GITHUB_LOGINS = ['gaearon', 'sindresorhus', 'kentcdodds', 'yyx990803', 'tj'];
 const DEMO_CANDIDATE_CACHE_KEY = 'zoop.demo.githubCandidates';
-const candidate = { candidateId: 1001, candidateName: 'Alex Morgan', githubLogin: DEMO_GITHUB_LOGIN, candidateEmail: 'alex@demo.example', candidateBio: 'GitHub profile loaded from the public GitHub API.', candidateGithubUrl: `https://github.com/${DEMO_GITHUB_LOGIN}` };
-const applicants = [{
+const candidate = { candidateId: 1001, candidateName: 'Demo Candidate', githubLogin: DEMO_GITHUB_LOGINS[0], candidateEmail: 'alex@demo.example', candidateBio: 'GitHub profile loaded from the public GitHub API.', candidateGithubUrl: `https://github.com/${DEMO_GITHUB_LOGINS[0]}` };
+const applicants = DEMO_GITHUB_LOGINS.map((login, index) => ({
   ...candidate,
-  candidateName: 'Dan Abramov',
-  login: DEMO_GITHUB_LOGIN,
-  candidateGithubUrl: `https://github.com/${DEMO_GITHUB_LOGIN}`,
-  githubProfileUrl: `https://github.com/${DEMO_GITHUB_LOGIN}`,
-  candidateLanguages: 'JavaScript, TypeScript',
-  languages: ['JavaScript', 'TypeScript'],
+  candidateId: 1001 + index,
+  candidateName: login,
+  login,
+  githubLogin: login,
+  candidateGithubUrl: `https://github.com/${login}`,
+  githubProfileUrl: `https://github.com/${login}`,
+  candidateLanguages: '',
+  languages: [],
   followers: 0,
   publicRepos: 0,
   repositoriesCount: 0,
   analysisScore: null,
   score: null,
-}];
+  githubSearchResultId: 6001 + index,
+}));
 const analysis = { version: 'github-evidence-v1', score: 92, summary: 'Strong evidence of frontend product ownership and reliable delivery.', evidence: [{ verification_state: 'verified', claim: 'Built production React interfaces', source: 'GitHub activity' }], dimensions: [{ name: 'Product engineering', score: 92, evidence: [{ verification_state: 'verified', source: 'Repository history' }] }] };
 
 const jsonResponse = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
 
-async function fetchRealGithubCandidate() {
-  const cached = window.localStorage.getItem(DEMO_CANDIDATE_CACHE_KEY);
-  if (cached) {
-    try { return JSON.parse(cached); } catch { window.localStorage.removeItem(DEMO_CANDIDATE_CACHE_KEY); }
-  }
+const clamp = (value, min, max) => Math.max(min, Math.min(max, Math.round(value)));
 
-  const profileResponse = await fetch(`https://api.github.com/users/${DEMO_GITHUB_LOGIN}`, {
+async function fetchGithubCandidate(login, index, searchIndex) {
+  const profileResponse = await fetch(`https://api.github.com/users/${login}`, {
     headers: { Accept: 'application/vnd.github+json' }
   });
   if (!profileResponse.ok) throw new Error(`GitHub profile request failed: ${profileResponse.status}`);
   const profile = await profileResponse.json();
 
-  const reposResponse = await fetch(`https://api.github.com/users/${DEMO_GITHUB_LOGIN}/repos?per_page=12&sort=updated`, {
+  const reposResponse = await fetch(`https://api.github.com/users/${login}/repos?per_page=30&sort=updated`, {
     headers: { Accept: 'application/vnd.github+json' }
   });
   const repos = reposResponse.ok ? await reposResponse.json() : [];
@@ -46,12 +46,16 @@ async function fetchRealGithubCandidate() {
     return counts;
   }, {});
   const languages = Object.keys(languageCounts).sort((a, b) => languageCounts[b] - languageCounts[a]);
-  const realCandidate = {
-    candidateId: 1001,
+  const stars = repos.reduce((sum, repo) => sum + Number(repo.stargazers_count || 0), 0);
+  const latestRepoDate = repos.map(repo => Date.parse(repo.updated_at)).filter(Number.isFinite).sort((a, b) => b - a)[0];
+  const daysSinceActivity = latestRepoDate ? Math.max(0, (Date.now() - latestRepoDate) / 86400000) : 999;
+  const daysSinceJoined = Math.max(1, (Date.now() - Date.parse(profile.created_at)) / 86400000);
+  const candidate = {
+    candidateId: 1001 + index,
     candidateName: profile.name || profile.login,
     githubLogin: profile.login,
     login: profile.login,
-    candidateEmail: 'alex@demo.example',
+    candidateEmail: `${profile.login}@demo.example`,
     candidateBio: profile.bio || 'Public GitHub contributor',
     candidateGithubUrl: profile.html_url,
     githubProfileUrl: profile.html_url,
@@ -64,24 +68,36 @@ async function fetchRealGithubCandidate() {
     githubCreatedAt: profile.created_at,
     candidateLanguages: languages.join(', '),
     languages,
-    repositories: repos.map(repo => ({
-      name: repo.name,
-      full_name: repo.full_name,
-      html_url: repo.html_url,
-      description: repo.description,
-      language: repo.language,
-      stargazers_count: repo.stargazers_count,
-      forks_count: repo.forks_count,
-      updated_at: repo.updated_at,
-    })),
+    repositories: repos.map(repo => ({ name: repo.name, full_name: repo.full_name, html_url: repo.html_url, description: repo.description, language: repo.language, stargazers_count: repo.stargazers_count, forks_count: repo.forks_count, updated_at: repo.updated_at })),
+    followerScore: clamp(Math.log10(profile.followers + 1) * 3.2, 0, 10),
+    repoScore: clamp(Math.log10(profile.public_repos + 1) * 6.5, 0, 15),
+    languageScore: clamp(languages.length * 3, 0, 15),
+    activityScore: clamp(daysSinceActivity < 30 ? 20 : daysSinceActivity < 90 ? 16 : daysSinceActivity < 365 ? 10 : 4, 0, 20),
+    projectQualityScore: clamp(Math.log10(stars + 1) * 8, 0, 20),
+    technicalDepthScore: clamp(Math.min(20, languages.length * 2 + Math.log10(repos.length + 1) * 5 + Math.min(4, daysSinceJoined / 3650)), 0, 20),
+    githubStars: stars,
+    githubDataSource: 'GitHub public API',
     jobCandCurrStage: '2y',
     postId: 9001,
-    githubSearchResultId: 6001,
+    githubSearchResultId: searchIndex,
     analysisScore: null,
     score: null,
   };
-  window.localStorage.setItem(DEMO_CANDIDATE_CACHE_KEY, JSON.stringify(realCandidate));
-  return realCandidate;
+  return candidate;
+}
+
+async function fetchRealGithubCandidates() {
+  const cached = window.localStorage.getItem(DEMO_CANDIDATE_CACHE_KEY);
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 1) return parsed;
+    } catch { /* refresh the cache below */ }
+    window.localStorage.removeItem(DEMO_CANDIDATE_CACHE_KEY);
+  }
+  const candidates = await Promise.all(DEMO_GITHUB_LOGINS.map((login, index) => fetchGithubCandidate(login, index, 6001 + index)));
+  window.localStorage.setItem(DEMO_CANDIDATE_CACHE_KEY, JSON.stringify(candidates));
+  return candidates;
 }
 
 export function demoFetch(input, init = {}) {
@@ -103,8 +119,8 @@ export function demoFetch(input, init = {}) {
   if (path.includes('/api/companyadmins/info')) return Promise.resolve(jsonResponse({ ...DEMO_COMPANY_INFO, companyAdminId: 2001 }));
   if (path.includes('/api/companyadmins')) return Promise.resolve(jsonResponse({ companyAdminId: 2001, loginId: 'demo.company', adminName: 'Hiring Team' }));
   if (path.includes('/api/github-search')) {
-    return fetchRealGithubCandidate()
-      .then(realCandidate => jsonResponse([realCandidate]))
+    return fetchRealGithubCandidates()
+      .then(realCandidates => jsonResponse(realCandidates))
       .catch(() => jsonResponse(applicants));
   }
   if (path.includes('/api/ai-analysis-results')) return Promise.resolve(jsonResponse([]));

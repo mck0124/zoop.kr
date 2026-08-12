@@ -1024,14 +1024,14 @@ function getCandidateLanguages(candidate) {
 // Improved parseComponentScores: more flexible patterns
 function parseComponentScores(analysisText, candidate) {
   // Prefer direct fields if available
-  if (candidate && candidate.followerScore && candidate.repoScore) {
+  if (candidate && ['followerScore', 'repoScore', 'languageScore', 'activityScore', 'projectQualityScore', 'technicalDepthScore'].some(key => typeof candidate[key] === 'number')) {
     return {
-      '팔로워 수': candidate.followerScore,
-      '공개 저장소 수': candidate.repoScore,
-      '언어 다양성': candidate.languageScore,
-      '최근 활동성': candidate.activityScore,
-      '프로젝트 품질': candidate.projectQualityScore,
-      '기술적 깊이': candidate.technicalDepthScore,
+      '팔로워 수': candidate.followerScore || 0,
+      '공개 저장소 수': candidate.repoScore || 0,
+      '언어 다양성': candidate.languageScore || 0,
+      '최근 활동성': candidate.activityScore || 0,
+      '프로젝트 품질': candidate.projectQualityScore || 0,
+      '기술적 깊이': candidate.technicalDepthScore || 0,
     };
   }
   
@@ -1142,7 +1142,7 @@ export default function CandidateList({ activeTab = 'all' }) {
   const [reloadToken, setReloadToken] = useState(0);
   const [selectedAnalysis, setSelectedAnalysis] = useState(null);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
-  const [modalScore, setModalScore] = useState(0);
+  const [modalScore, setModalScore] = useState(null);
 
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [compareSelected, setCompareSelected] = useState([]);
@@ -1401,10 +1401,8 @@ export default function CandidateList({ activeTab = 'all' }) {
 
   const openAnalysisModal = (analysis, score, candidate) => {
     // 점수 추출 개선
-    let finalScore = score || 0;
-    if (typeof finalScore !== 'number' || finalScore === 0) {
-      finalScore = extractScore(analysis) || 0;
-    }
+    let finalScore = typeof score === 'number' && score > 0 ? score : extractScore(analysis);
+    if (typeof finalScore !== 'number' || finalScore <= 0) finalScore = null;
     
     setSelectedAnalysis(analysis);
     setModalScore(finalScore);
@@ -1659,7 +1657,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                   lineHeight: 1.1,
                   flexShrink: 0
                 }}>
-                  {modalScore} points
+                  {modalScore === null ? 'Score pending' : `${modalScore} points`}
                 </div>
               </div>
             </ModalHeader>
@@ -1670,7 +1668,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                 <EvidenceTrustPanel candidate={selectedCandidate} analysisText={selectedAnalysis} />
                 <AIAnalysisSummary
                   analysis={selectedAnalysis}
-                  score={modalScore}
+                  score={modalScore ?? 0}
                 />
                 {/* 1. 종합 역량 분석 섹션 */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
@@ -1689,7 +1687,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                       <RadarChartSVG 
                         scores={parseComponentScores(selectedAnalysis, selectedCandidate)}
                         size={200}
-                        totalScore={modalScore}
+                        totalScore={modalScore ?? undefined}
                         showLabels={true}
                         showScores={false}
                       />
@@ -2252,12 +2250,13 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
   // Never invent a score for an unprocessed candidate. A recruiter must be able
   // to distinguish a real model result from a pending or insufficient-evidence state.
   const isAllZero = radarLabels.every(label => (radarScores[label] || 0) === 0);
+  const hasProfileSignals = Object.values(radarScores).some(value => typeof value === 'number' && value > 0);
   let displayScore = realScore;
   if (typeof displayScore !== 'number' || isNaN(displayScore)) {
     displayScore = Object.values(radarScores).reduce((a, b) => a + (typeof b === 'number' ? b : 0), 0);
   }
   const hasVerifiedScore = analysisPayload.hasStructuredEvidence && analysisPayload.evidenceCount > 0 && !isAllZero && displayScore > 0;
-  const safeRadarScores = hasVerifiedScore ? radarScores : {};
+  const safeRadarScores = hasVerifiedScore || hasProfileSignals ? radarScores : {};
   return (
     <TossCard
       key={login}
@@ -2354,7 +2353,7 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
                 <RadarChartSVG 
                   scores={safeRadarScores}
                   size={130} 
-                  totalScore={displayScore}
+                  totalScore={hasVerifiedScore ? displayScore : undefined}
                   showLabels={true}
                   showScores={false}
                 />
