@@ -1394,8 +1394,8 @@ export default function CandidateList({ activeTab = 'all' }) {
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric', month: 'long', day: 'numeric'
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric', month: 'short', day: 'numeric'
     });
   };
 
