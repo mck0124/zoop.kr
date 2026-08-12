@@ -1068,12 +1068,12 @@ function parseNaturalLanguageScores(text) {
     if (structured?.version === 'github-evidence-v1' && Array.isArray(structured.dimensions)) {
       const dimensionScores = Object.fromEntries(structured.dimensions.map(item => [item.name, item.score || 0]));
       return {
-        '팔로워 수': 0,
-        '공개 저장소 수': 0,
-        '언어 다양성': dimensionScores['기술 스택'] || 0,
-        '최근 활동성': dimensionScores['활동 신호'] || 0,
+        '팔로워 수': dimensionScores['팔로워 수'] || 0,
+        '공개 저장소 수': dimensionScores['공개 저장소 수'] || 0,
+        '언어 다양성': dimensionScores['언어 다양성'] || dimensionScores['기술 스택'] || 0,
+        '최근 활동성': dimensionScores['최근 활동성'] || dimensionScores['활동 신호'] || 0,
         '프로젝트 품질': dimensionScores['프로젝트 품질'] || 0,
-        '기술적 깊이': Math.min(20, (dimensionScores['문제 해결 깊이'] || 0) + (dimensionScores['커뮤니티·협업 신호'] || 0)),
+        '기술적 깊이': dimensionScores['기술적 깊이'] || Math.min(20, (dimensionScores['문제 해결 깊이'] || 0) + (dimensionScores['커뮤니티·협업 신호'] || 0)),
         totalScore: Number(structured.score || 0),
       };
     }
@@ -1336,7 +1336,7 @@ export default function CandidateList({ activeTab = 'all' }) {
           let candidateLanguages = '';
           if (aiAnalysis && aiAnalysis.analysisData) {
             portfolioAnalysis = aiAnalysis.analysisData;
-            candidateLanguages = '';
+            candidateLanguages = candidate.candidateLanguages || candidate.languages || '';
           } else {
             portfolioAnalysis = 'AI 분석 결과 없음';
           }

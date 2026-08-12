@@ -100,6 +100,41 @@ async function fetchRealGithubCandidates() {
   return candidates;
 }
 
+function buildDemoAiAnalysisResults(candidates) {
+  return candidates.map(candidate => {
+    const repositories = Array.isArray(candidate.repositories) ? candidate.repositories : [];
+    const languages = Array.isArray(candidate.languages) ? candidate.languages : [];
+    const dimensions = [
+      ['팔로워 수', candidate.followerScore, 'Public follower count from the GitHub profile'],
+      ['공개 저장소 수', candidate.repoScore, 'Public repository count from the GitHub profile'],
+      ['언어 다양성', candidate.languageScore, `Observed ${languages.length} programming language(s) across public repositories`],
+      ['최근 활동성', candidate.activityScore, 'Most recently updated public repositories'],
+      ['프로젝트 품질', candidate.projectQualityScore, `Observed ${candidate.githubStars || 0} total star(s) across sampled repositories`],
+      ['기술적 깊이', candidate.technicalDepthScore, 'Repository history, language breadth, and public project volume'],
+    ].map(([name, score, claim]) => ({
+      name,
+      score,
+      max: name === '팔로워 수' ? 10 : name === '공개 저장소 수' ? 15 : name === '언어 다양성' ? 15 : name === '최근 활동성' ? 20 : 20,
+      evidence: [{ verification_state: 'verified', source: 'GitHub public API', claim }],
+    }));
+    const score = dimensions.reduce((sum, dimension) => sum + Number(dimension.score || 0), 0);
+    return {
+      githubSearchResultId: candidate.githubSearchResultId,
+      analysisData: JSON.stringify({
+        version: 'github-evidence-v1',
+        score,
+        summary: `GitHub profile signals were analyzed from ${repositories.length} public repositories.`,
+        evidence_coverage: 100,
+        confidence: 0.82,
+        decision: 'review',
+        dimensions,
+        evidence: dimensions.flatMap(dimension => dimension.evidence),
+        gaps: ['Verify ownership and design decisions in a representative project'],
+      }),
+    };
+  });
+}
+
 export function demoFetch(input, init = {}) {
   const rawUrl = typeof input === 'string' ? input : input?.url || '';
   const url = new URL(rawUrl, window.location.origin);
@@ -123,7 +158,11 @@ export function demoFetch(input, init = {}) {
       .then(realCandidates => jsonResponse(realCandidates))
       .catch(() => jsonResponse(applicants));
   }
-  if (path.includes('/api/ai-analysis-results')) return Promise.resolve(jsonResponse([]));
+  if (path.includes('/api/ai-analysis-results')) {
+    let cachedCandidates = [];
+    try { cachedCandidates = JSON.parse(window.localStorage.getItem(DEMO_CANDIDATE_CACHE_KEY) || '[]'); } catch { cachedCandidates = []; }
+    return Promise.resolve(jsonResponse(buildDemoAiAnalysisResults(Array.isArray(cachedCandidates) ? cachedCandidates : applicants)));
+  }
   if (path.includes('/api/ai-analysis') || path.includes('/api/analysis')) return Promise.resolve(jsonResponse(analysis));
   if (path.includes('/api/interviews') || path.includes('/api/interview-schedules')) return Promise.resolve(jsonResponse({ interviewId: 7001, postId: 9001, candidateId: 1001, status: 'SCHEDULED', scheduledAt: '2026-08-20T10:00:00' }));
   if (path.includes('/api/bookmarks')) return Promise.resolve(jsonResponse(method === 'GET' ? [{ postId: 9001 }] : { success: true }));
