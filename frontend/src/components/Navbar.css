@@ -723,7 +723,7 @@
        switcher and account controls out of the centered public navigation. */
     .zoop-navbar.company-dashboard > .lang-toggle {
       position: absolute !important;
-      right: 13.5rem !important;
+      right: 19rem !important;
       top: 50%;
       transform: translateY(-50%) !important;
       margin: 0 !important;
@@ -732,10 +732,13 @@
 
     .zoop-navbar.company-dashboard > .auth-buttons {
       position: absolute;
-      right: clamp(1rem, 3vw, 3rem);
+      right: clamp(1rem, 2vw, 2rem);
       top: 50%;
       transform: translateY(-50%);
       z-index: 5;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
     }
   }
 
