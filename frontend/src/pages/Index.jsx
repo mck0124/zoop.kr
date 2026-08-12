@@ -50,48 +50,6 @@ const LEDGER_DEMO_COPY = {
   },
 };
 
-const LEDGER_PLAYGROUND_COPY = {
-  en: {
-    kicker: 'TRY A REAL EVIDENCE CHECK',
-    title: 'Does the claim exist in the source?',
-    body: 'Paste a source excerpt and a claim. ZOOP only marks a claim as verified when the exact wording can be found in the source.',
-    sourceLabel: 'Source excerpt',
-    claimLabel: 'Claim to audit',
-    sourcePlaceholder: 'Paste the candidate’s original sentence here…',
-    claimPlaceholder: 'What should the AI verify?',
-    action: 'Audit this claim',
-    verified: 'Verified · exact source match',
-    review: 'Needs verification · the claim is not present verbatim',
-    hint: 'This playground demonstrates the evidence gate locally. No text is uploaded.',
-  },
-  ko: {
-    kicker: '실제 근거 검증 체험',
-    title: '이 주장이 원문에 실제로 있나요?',
-    body: '원문과 주장을 입력하세요. ZOOP은 동일한 문구가 원문에서 확인될 때만 검증된 주장으로 표시합니다.',
-    sourceLabel: '원문 발췌',
-    claimLabel: '검증할 주장',
-    sourcePlaceholder: '후보자가 작성한 원문을 붙여 넣으세요…',
-    claimPlaceholder: 'AI가 무엇을 검증해야 하나요?',
-    action: '주장 검증하기',
-    verified: '검증됨 · 원문 일치',
-    review: '확인 필요 · 주장이 원문에 그대로 없습니다',
-    hint: '이 체험은 근거 게이트를 로컬에서 보여줍니다. 텍스트는 업로드되지 않습니다.',
-  },
-  zh: {
-    kicker: '体验真实证据验证',
-    title: '这个声明真的存在于原文中吗？',
-    body: '输入原文和声明。只有在原文中找到完全一致的表述时，ZOOP 才会将其标记为已验证。',
-    sourceLabel: '原文摘录',
-    claimLabel: '要验证的声明',
-    sourcePlaceholder: '粘贴候选人的原文…',
-    claimPlaceholder: 'AI 应该验证什么？',
-    action: '验证声明',
-    verified: '已验证 · 原文完全匹配',
-    review: '需要验证 · 原文中没有完全一致的表述',
-    hint: '此体验在本地展示证据门控。文本不会被上传。',
-  },
-};
-
 const HOME_COPY = {
   en: {
     hero: <>Everything hiring needs<br />made simple with ZOOP</>,
@@ -129,19 +87,6 @@ export default function Index() {
   const ledgerDemo = LEDGER_DEMO_COPY[language] || LEDGER_DEMO_COPY.en;
   const [demoView, setDemoView] = useState('evidence');
   const [demoValidated, setDemoValidated] = useState(false);
-  const [auditSource, setAuditSource] = useState('We introduced a retry queue and idempotency keys to reduce incident rates.');
-  const [auditClaim, setAuditClaim] = useState('');
-  const [auditResult, setAuditResult] = useState(null);
-  const playgroundCopy = LEDGER_PLAYGROUND_COPY[language] || LEDGER_PLAYGROUND_COPY.en;
-
-  const normalizeEvidenceText = value => String(value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
-  const auditClaimAgainstSource = event => {
-    event.preventDefault();
-    const source = normalizeEvidenceText(auditSource);
-    const claim = normalizeEvidenceText(auditClaim);
-    setAuditResult({ verified: Boolean(claim.length >= 8 && source.includes(claim)) });
-  };
-
   // subtitle fade-in - 확실한 스크롤 효과
   useEffect(() => {
     const checkVisibility = () => {
@@ -225,6 +170,7 @@ export default function Index() {
 
       {/* 메인 배너 */}
       <section className="hero-section">
+        <img src="/zoop_main_banner.png" alt="ZOOP AI recruiting platform" className="hero-image" />
         <div className="hero-text">
           <h1>{copy.hero}</h1>
           <div className="cta-actions" aria-label="Choose your account type">
@@ -235,31 +181,6 @@ export default function Index() {
               {copy.company} <span aria-hidden="true">→</span>
             </button>
           </div>
-          <form className="ledger-playground" onSubmit={auditClaimAgainstSource} aria-labelledby="ledger-playground-title">
-            <div className="ledger-playground-heading">
-              <span className="evidence-kicker">{playgroundCopy.kicker}</span>
-              <h3 id="ledger-playground-title">{playgroundCopy.title}</h3>
-              <p>{playgroundCopy.body}</p>
-            </div>
-            <div className="ledger-playground-fields">
-              <label>
-                <span>{playgroundCopy.sourceLabel}</span>
-                <textarea value={auditSource} onChange={event => { setAuditSource(event.target.value); setAuditResult(null); }} placeholder={playgroundCopy.sourcePlaceholder} rows={3} />
-              </label>
-              <label>
-                <span>{playgroundCopy.claimLabel}</span>
-                <input value={auditClaim} onChange={event => { setAuditClaim(event.target.value); setAuditResult(null); }} placeholder={playgroundCopy.claimPlaceholder} />
-              </label>
-            </div>
-            <div className="ledger-playground-footer">
-              <button type="submit" className="ledger-demo-action" disabled={!auditClaim.trim()}>{playgroundCopy.action}</button>
-              <small>{playgroundCopy.hint}</small>
-            </div>
-            {auditResult && <div role={auditResult.verified ? 'status' : 'alert'} className={`ledger-audit-result ${auditResult.verified ? 'verified' : 'review'}`}>
-              <strong>{auditResult.verified ? '✓' : '!'}</strong>
-              <span>{auditResult.verified ? playgroundCopy.verified : playgroundCopy.review}</span>
-            </div>}
-          </form>
         </div>
       </section>
 
