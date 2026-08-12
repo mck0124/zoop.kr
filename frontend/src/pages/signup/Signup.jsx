@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import SEO from '../../components/SEO';
 import './Signup.css';
+import '../auth/AuthPages.css';
 
 export default function Signup() {
   const [selectedTab, setSelectedTab] = useState('applicant');

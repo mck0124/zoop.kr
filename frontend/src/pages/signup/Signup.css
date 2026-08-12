@@ -5,6 +5,25 @@
     font-family: 'Arial', sans-serif;
   }
 
+  /* Presentation-ready signup refresh */
+  .signup-wrapper { max-width: 720px; margin: 7.5rem auto 4rem; padding: 3.25rem 4rem 3rem; border: 1px solid rgba(21,103,76,.1); border-radius: 28px; background: rgba(255,255,255,.92); box-shadow: 0 24px 70px rgba(24,61,48,.12); position: relative; overflow: hidden; }
+  .signup-wrapper::before { content: ''; position: absolute; width: 220px; height: 220px; top: -135px; right: -50px; border-radius: 50%; background: #dcf8eb; }
+  .signup-title, .signup-description, .signup-tabs, .signup-divider, .signup-subtext, .signup-icons, .signup-id-button, .signup-footer { position: relative; z-index: 1; }
+  .signup-title { font-size: clamp(2.3rem, 5vw, 3.3rem); letter-spacing: -.06em; color: #123c31; }
+  .signup-description { max-width: 430px; margin: .8rem auto 2.4rem; color: #71817b; }
+  .signup-tabs { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .5rem; max-width: 440px; margin: 0 auto 1.8rem; padding: .35rem; border-radius: 14px; background: #f1f7f4; }
+  .signup-tabs button { border: 0; border-radius: 10px; padding: .85rem 1rem; color: #71817b; }
+  .signup-tabs button.active { color: #087153; background: #fff; box-shadow: 0 4px 12px rgba(30,89,69,.1); }
+  .signup-divider { width: 100%; height: 1px; margin: 0 auto 2rem; background: #e5efeb; }
+  .signup-subtext { color: #71817b; font-size: .9rem; }
+  .signup-icons { gap: .8rem; margin-bottom: 2rem; }
+  .signup-icons img { width: 48px; height: 48px; padding: .7rem; border: 1px solid #e1ece7; border-radius: 14px; background: #fff; transition: transform .2s ease, border-color .2s ease; }
+  .signup-icons img:hover { border-color: #93dbc2; transform: translateY(-2px); }
+  .signup-id-button { width: min(100%,390px); border: 0; border-radius: 12px; padding: 1rem 1.4rem; color: #fff; background: linear-gradient(135deg,#20b889,#118967); box-shadow: 0 12px 24px rgba(17,137,103,.2); font-weight: 700; }
+  .signup-id-button:hover { background: linear-gradient(135deg,#159f78,#087153); }
+  .signup-footer { color: #899992; }
+  @media (max-width: 600px) { .signup-wrapper { margin: 5.5rem 1rem 2rem; padding: 2.3rem 1.2rem 2rem; border-radius: 22px; } .signup-icons { gap: .55rem; } .signup-icons img { width: 44px; height: 44px; padding: .6rem; } }
+
   .signup-title {
     margin: 0;
     color: #172033;

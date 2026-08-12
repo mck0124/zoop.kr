@@ -1,0 +1,57 @@
+/* Shared presentation layer for the public authentication screens. */
+.login-page-wrapper {
+  min-height: calc(100vh - 76px);
+  padding: 7.5rem 1.5rem 3rem;
+  background: radial-gradient(circle at 12% 10%, rgba(48,197,155,.12), transparent 28%), radial-gradient(circle at 92% 80%, rgba(196,239,224,.55), transparent 32%), #f7faf9;
+}
+
+.login-container {
+  width: min(1040px, 100%);
+  min-height: 610px;
+  height: auto;
+  border: 1px solid rgba(32,126,99,.12);
+  border-radius: 28px;
+  box-shadow: 0 24px 70px rgba(21,69,57,.14);
+}
+
+.login-left { width: 43%; padding: 3.5rem; align-items: flex-start; text-align: left; color: #123c31; background: radial-gradient(circle at 100% 0%, rgba(255,255,255,.9), transparent 34%), linear-gradient(145deg, #dff8ed, #bcebd9); }
+.login-left h2 { max-width: 330px; margin: auto 0 2rem; color: #123c31; font-size: clamp(2rem, 4vw, 3.15rem); line-height: 1.1; letter-spacing: -.045em; text-align: left; text-shadow: none; }
+.login-left::before, .login-left::after { opacity: .35; }
+.zoop-logo { order: -1; margin: 0 0 auto; }
+.zoop-logo img { max-width: 150px; }
+.signup-button { padding: .85rem 1.25rem; border: 1px solid rgba(18,60,49,.18); border-radius: 999px; background: #fff; color: #176c53; font-weight: 700; box-shadow: 0 8px 20px rgba(21,69,57,.08); }
+.signup-button:hover { background: #f4fffa; transform: translateY(-2px); }
+.login-right { width: 57%; padding: 3.5rem 4rem; justify-content: center; }
+.login-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; padding: .35rem; border: 1px solid #e1ece8; border-radius: 14px; background: #f4f8f6; }
+.tab-button { width: auto; padding: .8rem 1rem; border: 0; border-radius: 10px; color: #6b8078; font-weight: 700; }
+.tab-button.active { background: #fff; color: #176c53; box-shadow: 0 4px 12px rgba(21,69,57,.08); }
+.input-group input { min-height: 52px; padding: .9rem 1rem; border: 1px solid #d8e6e1; border-radius: 12px; background: #fbfdfc; }
+.input-group input:focus { border-color: #30c59b; box-shadow: 0 0 0 4px rgba(48,197,155,.12); outline: none; }
+.login-button { min-height: 52px; border-radius: 12px; background: linear-gradient(135deg, #30c59b, #159b75); box-shadow: 0 12px 22px rgba(22,155,117,.2); }
+.login-button:hover { transform: translateY(-2px); box-shadow: 0 16px 26px rgba(22,155,117,.26); }
+.error-message { border: 1px solid #f2c8c0; border-radius: 10px; background: #fff6f4; color: #b24e40; }
+.find-links a { color: #176c53; }
+.social-icon { width: 44px; height: 44px; border: 1px solid #e0ebe7; border-radius: 12px; background: #fff; }
+
+.signup-wrapper { max-width: 720px; margin: 7.5rem auto 4rem; padding: 3.25rem 4rem 3rem; border: 1px solid rgba(21,103,76,.1); border-radius: 28px; background: rgba(255,255,255,.94); box-shadow: 0 24px 70px rgba(24,61,48,.12); position: relative; overflow: hidden; }
+.signup-wrapper::before { content: ''; position: absolute; width: 220px; height: 220px; top: -135px; right: -50px; border-radius: 50%; background: #dcf8eb; }
+.signup-title, .signup-description, .signup-tabs, .signup-divider, .signup-subtext, .signup-icons, .signup-id-button, .signup-footer { position: relative; z-index: 1; }
+.signup-title { color: #123c31; font-size: clamp(2.3rem, 5vw, 3.3rem); letter-spacing: -.06em; }
+.signup-description { max-width: 430px; margin: .8rem auto 2.4rem; color: #71817b; }
+.signup-tabs { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .5rem; max-width: 440px; margin: 0 auto 1.8rem; padding: .35rem; border-radius: 14px; background: #f1f7f4; }
+.signup-tabs button { border: 0; border-radius: 10px; padding: .85rem 1rem; color: #71817b; }
+.signup-tabs button.active { color: #087153; background: #fff; box-shadow: 0 4px 12px rgba(30,89,69,.1); }
+.signup-divider { width: 100%; height: 1px; margin: 0 auto 2rem; background: #e5efeb; }
+.signup-icons img { width: 48px; height: 48px; padding: .7rem; border: 1px solid #e1ece7; border-radius: 14px; background: #fff; }
+.signup-id-button { width: min(100%,390px); border: 0; border-radius: 12px; padding: 1rem 1.4rem; color: #fff; background: linear-gradient(135deg,#20b889,#118967); box-shadow: 0 12px 24px rgba(17,137,103,.2); font-weight: 700; }
+.signup-id-button:hover { transform: translateY(-2px); }
+
+@media (max-width: 768px) {
+  .login-page-wrapper { padding: 6rem 1rem 2rem; }
+  .login-container { display: flex; flex-direction: column; }
+  .login-left, .login-right { width: 100%; }
+  .login-left { min-height: 260px; padding: 2.25rem; }
+  .login-left h2 { margin: 2rem 0 1.5rem; font-size: 2.25rem; }
+  .login-right { padding: 2.25rem 1.5rem; }
+  .signup-wrapper { margin: 6rem 1rem 2rem; padding: 2.3rem 1.2rem 2rem; border-radius: 22px; }
+}

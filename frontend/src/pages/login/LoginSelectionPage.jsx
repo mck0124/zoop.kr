@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link, useSearchParams, useLocation } from 'react-router-dom'; 
 import axios from 'axios';
 import './LoginSelectionPage.css';
+import '../auth/AuthPages.css';
 import Navbar from '../../components/Navbar';
 import { useAuth } from '../../context/AuthContext';
 import SEO from '../../components/SEO';

@@ -13,6 +13,154 @@ body {
     overflow-x: hidden; /* Prevent horizontal scroll on some subtle animations */
 }
 
+/* Presentation-ready auth refresh */
+.login-page-wrapper {
+    min-height: calc(100vh - 76px);
+    padding: 7.5rem 1.5rem 3rem;
+    background: radial-gradient(circle at 12% 18%, rgba(194,244,224,.72), transparent 28%), radial-gradient(circle at 92% 82%, rgba(218,235,255,.62), transparent 28%), #f7faf9;
+}
+.login-container { width: min(1040px, 100%); min-height: 610px; height: auto; border: 1px solid rgba(21,103,76,.1); border-radius: 28px; box-shadow: 0 28px 80px rgba(24,61,48,.14), 0 4px 18px rgba(24,61,48,.06); }
+.login-left { width: 43%; padding: 3.5rem; align-items: flex-start; text-align: left; color: #123c31; background: radial-gradient(circle at 82% 15%, rgba(255,255,255,.72), transparent 24%), linear-gradient(145deg, #e9fbf3 0%, #d7f5e7 52%, #c7eddf 100%); }
+.login-left h2 { max-width: 330px; margin: auto 0 2rem; color: #123c31; font-size: clamp(1.8rem, 3vw, 2.5rem); line-height: 1.16; letter-spacing: -.045em; text-align: left; text-shadow: none; }
+.login-left::before, .login-left::after { opacity: .45; }
+.zoop-logo { order: -1; margin: 0 0 auto; }
+.zoop-logo img { max-width: 150px; margin: 0; }
+.signup-button { min-width: 0; padding: .85rem 1.25rem; border: 1px solid #178b68; border-radius: 999px; color: #087153; background: rgba(255,255,255,.42); box-shadow: none; }
+.signup-button:hover { background: #087153; border-color: #087153; box-shadow: 0 10px 24px rgba(8,113,83,.2); }
+.login-right { width: 57%; padding: 3.5rem 4rem; justify-content: center; }
+.login-tabs { width: 100%; margin-bottom: 2rem; padding: .3rem; border-radius: 14px; background: #f1f7f4; gap: .35rem; }
+.tab-button { flex: 1; padding: .75rem 1rem; border: 0; border-radius: 10px; color: #6b7e77; font-size: .95rem; }
+.tab-button.active { border: 0; color: #087153; background: #fff; box-shadow: 0 4px 12px rgba(30,89,69,.1); transform: none; }
+.login-form { gap: 1rem; }
+.input-group input { min-height: 52px; padding: .85rem 1rem; border: 1px solid #d7e4df; border-radius: 12px; background: #fbfdfc; color: #17372d; font-size: .95rem; }
+.input-group input:focus { border-color: #20b889; box-shadow: 0 0 0 4px rgba(32,184,137,.12); }
+.checkbox-group { margin: .15rem 0 .25rem; gap: 1rem; justify-content: space-between; }
+.checkbox-label { color: #71817b; font-size: .78rem; }
+.login-button { min-height: 52px; margin-top: .25rem; border-radius: 12px; background: linear-gradient(135deg, #20b889, #118967); box-shadow: 0 12px 24px rgba(17,137,103,.2); }
+.login-button:hover { background: linear-gradient(135deg, #159f78, #087153); }
+.error-message { min-height: 0; margin: .25rem 0; padding: .7rem .8rem; border: 1px solid #fecaca; border-radius: 10px; color: #b42318; background: #fff5f5; font-size: .82rem; }
+.find-links { margin-top: .7rem; font-size: .8rem; }
+.find-links a { color: #62766e; }
+.login-right > .signup-subtext { margin: 2.2rem 0 .9rem; color: #899992; font-size: .8rem; }
+.social-icons { gap: .75rem; margin-bottom: 0; }
+.social-icon { width: 46px; height: 46px; border: 1px solid #e1ece7; border-radius: 13px; background: #fff; }
+.social-icon:hover { border-color: #93dbc2; background: #f2fcf8; transform: translateY(-2px); }
+
+@media (max-width: 768px) {
+    .login-page-wrapper { min-height: 100vh; padding: 6rem 1rem 2rem; }
+    .login-container { border-radius: 22px; }
+    .login-left, .login-right { width: 100%; }
+    .login-left { order: 2; align-items: center; padding: 2.3rem 1.5rem; text-align: center; }
+    .login-left h2 { margin: 1.5rem auto; text-align: center; font-size: 1.7rem; }
+    .zoop-logo { order: -1; margin: 0; }
+    .login-right { order: 1; padding: 2rem 1.35rem 2.2rem; }
+}
+@media (max-width: 480px) {
+    .login-page-wrapper { padding: 5.5rem .7rem 1.5rem; }
+    .login-container { width: 100%; }
+    .checkbox-group { align-items: flex-start; }
+}
+
+/* Presentation-ready auth refresh */
+.login-page-wrapper {
+    min-height: calc(100vh - 76px);
+    padding: 7.5rem 1.5rem 3rem;
+    background:
+        radial-gradient(circle at 12% 10%, rgba(48, 197, 155, 0.12), transparent 28%),
+        radial-gradient(circle at 92% 80%, rgba(196, 239, 224, 0.55), transparent 32%),
+        #f7faf9;
+}
+
+.login-container {
+    width: min(1040px, 100%);
+    min-height: 610px;
+    height: auto;
+    border: 1px solid rgba(32, 126, 99, 0.12);
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 24px 70px rgba(21, 69, 57, 0.14);
+}
+
+.login-left {
+    width: 43%;
+    padding: 3.5rem;
+    align-items: flex-start;
+    text-align: left;
+    color: #123c31;
+    background: radial-gradient(circle at 100% 0%, rgba(255,255,255,.9), transparent 34%), linear-gradient(145deg, #dff8ed, #bcebd9);
+}
+
+.login-left h2 {
+    max-width: 330px;
+    margin: auto 0 2rem;
+    color: #123c31;
+    font-size: clamp(2rem, 4vw, 3.15rem);
+    line-height: 1.1;
+    letter-spacing: -0.045em;
+    text-align: left;
+    text-shadow: none;
+}
+
+.login-left::before,
+.login-left::after { opacity: .35; }
+
+.zoop-logo { order: -1; margin: 0 0 auto; }
+.zoop-logo img { max-width: 150px; }
+
+.signup-button {
+    padding: .85rem 1.25rem;
+    border: 1px solid rgba(18, 60, 49, .18);
+    border-radius: 999px;
+    background: #fff;
+    color: #176c53;
+    font-weight: 700;
+    box-shadow: 0 8px 20px rgba(21, 69, 57, .08);
+}
+
+.signup-button:hover { background: #f4fffa; transform: translateY(-2px); }
+
+.login-right { width: 57%; padding: 3.5rem 4rem; justify-content: center; }
+
+.login-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .35rem;
+    padding: .35rem;
+    border: 1px solid #e1ece8;
+    border-radius: 14px;
+    background: #f4f8f6;
+}
+
+.tab-button {
+    width: auto;
+    padding: .8rem 1rem;
+    border: 0;
+    border-radius: 10px;
+    color: #6b8078;
+    font-weight: 700;
+}
+
+.tab-button.active { background: #fff; color: #176c53; box-shadow: 0 4px 12px rgba(21, 69, 57, .08); }
+.login-form { gap: 1rem; }
+.input-group input { min-height: 52px; padding: .9rem 1rem; border: 1px solid #d8e6e1; border-radius: 12px; background: #fbfdfc; }
+.input-group input:focus { border-color: #30c59b; box-shadow: 0 0 0 4px rgba(48,197,155,.12); outline: none; }
+.checkbox-group { margin: .2rem 0 .45rem; color: #6b8078; }
+.login-button { min-height: 52px; border-radius: 12px; background: linear-gradient(135deg, #30c59b, #159b75); box-shadow: 0 12px 22px rgba(22, 155, 117, .2); }
+.login-button:hover { transform: translateY(-2px); box-shadow: 0 16px 26px rgba(22, 155, 117, .26); }
+.error-message { border: 1px solid #f2c8c0; border-radius: 10px; background: #fff6f4; color: #b24e40; }
+.find-links a { color: #176c53; }
+.social-icons { gap: .65rem; }
+.social-icon { width: 44px; height: 44px; border: 1px solid #e0ebe7; border-radius: 12px; background: #fff; }
+
+@media (max-width: 768px) {
+    .login-page-wrapper { padding: 6rem 1rem 2rem; }
+    .login-container { display: flex; flex-direction: column; }
+    .login-left, .login-right { width: 100%; }
+    .login-left { min-height: 260px; padding: 2.25rem; }
+    .login-left h2 { margin: 2rem 0 1.5rem; font-size: 2.25rem; }
+    .login-right { padding: 2.25rem 1.5rem; }
+}
+
 html {
     box-sizing: border-box;
 }
