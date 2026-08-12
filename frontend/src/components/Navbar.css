@@ -707,6 +707,17 @@
       padding-left: 0;
       margin: 0;
     }
+
+    /* Keep the company dashboard's public links centered in the viewport,
+       independent of the logo and account controls at either edge. */
+    .zoop-navbar.company-dashboard .nav-links {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      flex: none;
+      width: max-content;
+      max-width: calc(100% - 420px);
+    }
   }
 
   /* 모바일 사용자 정보 스타일 */

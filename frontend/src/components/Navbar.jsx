@@ -591,7 +591,7 @@ const Navbar = ({ onLangChange, hideAuth }) => {
 
   return (
     <header
-      className={`zoop-navbar ${isAboutPage ? `about${scrolled ? ' scrolled' : ''}` : ''}`}
+      className={`zoop-navbar ${location.pathname.startsWith('/company') ? 'company-dashboard' : ''} ${isAboutPage ? `about${scrolled ? ' scrolled' : ''}` : ''}`}
       ref={navbarRef}
       role="banner"
       aria-label="Main navigation"
