@@ -788,8 +788,8 @@ const getAnalysisPayload = (candidate, analysisResult) => {
   const { root: payload, envelope } = parseCandidateAnalysis(analysisText);
   const candidateScore = Number(candidate?.analysisScore ?? candidate?.parsed_score);
   const fallbackScore = Number.isFinite(candidateScore) && candidateScore > 0 ? candidateScore : extractScore(analysisText);
-  const rawScore = payload?.score_calibration?.calibrated_score ?? payload?.score ?? envelope?.score ?? fallbackScore;
-  const score = Number(rawScore);
+  const rawScore = payload?.score_calibration?.calibrated_score ?? payload?.score ?? envelope?.score ?? (Number.isFinite(fallbackScore) && fallbackScore > 0 ? fallbackScore : null);
+  const score = rawScore === null || rawScore === undefined || rawScore === '' ? NaN : Number(rawScore);
   const coverageRaw = payload?.evidence_coverage ?? payload?.evidenceCoverage;
   const coverageNumber = Number(coverageRaw);
   const coverage = Number.isFinite(coverageNumber) ? Math.round(Math.max(0, Math.min(100, coverageNumber <= 1 ? coverageNumber * 100 : coverageNumber))) : null;
