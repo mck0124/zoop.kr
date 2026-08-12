@@ -4,6 +4,12 @@
 
 echo "🚀 ZOOP Backend Services를 시작합니다..."
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+UVICORN_CMD="uvicorn"
+if [ -x "$SCRIPT_DIR/.venv/bin/uvicorn" ]; then
+    UVICORN_CMD="$SCRIPT_DIR/.venv/bin/uvicorn"
+fi
+
 if [ ! -f ".env" ]; then
     echo "⚠️  공통 환경파일이 없습니다: backend/python-api/.env"
     echo "DeepSeek API 키와 OPENAI_BASE_URL을 먼저 설정해주세요."
@@ -19,7 +25,7 @@ if [ ! -f ".env" ]; then
 fi
 
 # 백그라운드에서 github search 서비스 시작
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload &
+$UVICORN_CMD main:app --host 0.0.0.0 --port 8000 --reload &
 GITHUB_PID=$!
 echo "✅ GitHub Search Service 시작됨 (PID: $GITHUB_PID)"
 
@@ -35,7 +41,7 @@ if [ ! -f ".env" ]; then
 fi
 
 # 백그라운드에서 chatbot 서비스 시작
-uvicorn chatbot_api:app --host 0.0.0.0 --port 8001 --reload &
+$UVICORN_CMD chatbot_api:app --host 0.0.0.0 --port 8001 --reload &
 CHATBOT_PID=$!
 echo "✅ Chatbot Service 시작됨 (PID: $CHATBOT_PID)"
 
@@ -50,7 +56,7 @@ if [ ! -f ".env" ]; then
 fi
 
 # 백그라운드에서 interview analysis 서비스 시작
-uvicorn interview_analysis_api:app --host 0.0.0.0 --port 8002 --reload &
+$UVICORN_CMD interview_analysis_api:app --host 0.0.0.0 --port 8002 --reload &
 INTERVIEW_PID=$!
 echo "✅ Interview Analysis Service 시작됨 (PID: $INTERVIEW_PID)"
 
@@ -65,7 +71,7 @@ if [ ! -f ".env" ]; then
 fi
 
 # 백그라운드에서 portfolio matching 서비스 시작
-uvicorn portfolio_matching_api:app --host 0.0.0.0 --port 8003 --reload &
+$UVICORN_CMD portfolio_matching_api:app --host 0.0.0.0 --port 8003 --reload &
 PORTFOLIO_PID=$!
 echo "✅ Portfolio Matching Service 시작됨 (PID: $PORTFOLIO_PID)"
 
@@ -80,14 +86,14 @@ if [ ! -f ".env" ]; then
 fi
 
 # 백그라운드에서 interview questions 서비스 시작
-uvicorn interview_questions_api:app --host 0.0.0.0 --port 8004 --reload &
+$UVICORN_CMD interview_questions_api:app --host 0.0.0.0 --port 8004 --reload &
 QUESTIONS_PID=$!
 echo "✅ Interview Questions Service 시작됨 (PID: $QUESTIONS_PID)"
 
 # OCR Service (Port 5003)
 echo "📄 OCR Service 시작 중... (Port 5003)"
 cd ../../ocr
-uvicorn ocr_api:app --host 0.0.0.0 --port 5003 --reload &
+$UVICORN_CMD ocr_api:app --host 0.0.0.0 --port 5003 --reload &
 OCR_PID=$!
 cd ../python-api/interview_questions
 echo "✅ OCR Service 시작됨 (PID: $OCR_PID)"
