@@ -11,9 +11,10 @@ from datetime import datetime, timezone
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from common.ai_quality import decision_gate_report, evidence_quality_report, fairness_guard_audit, source_integrity_audit
 
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 GITHUB_HTTP_TIMEOUT_SECONDS = float(os.getenv("GITHUB_HTTP_TIMEOUT_SECONDS", "20"))
 
@@ -325,7 +326,7 @@ def get_openai_client():
     if openai_client is None:
         if not OPENAI_API_KEY:
             raise RuntimeError("OPENAI_API_KEY is not configured")
-        openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
+        openai_client = openai.OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_BASE_URL)
     return openai_client
 
 def call_openai_chat(messages, max_tokens=800, temperature=0.3):

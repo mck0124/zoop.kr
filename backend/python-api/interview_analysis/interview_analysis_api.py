@@ -22,8 +22,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from common.ai_quality import decision_gate_report, evidence_quality_report, fairness_guard_audit, source_integrity_audit
 
 # .env에서 API 키 로드
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 SPRING_API_URL = os.getenv("SPRING_API_URL", "http://localhost:8081")
 ZOOP_INTERNAL_API_KEY = os.getenv("ZOOP_INTERNAL_API_KEY", "")
@@ -54,7 +55,7 @@ def get_openai_client():
     if client is None:
         if not OPENAI_API_KEY:
             raise RuntimeError("OPENAI_API_KEY is not configured")
-        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+        client = openai.OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_BASE_URL)
     return client
 
 def get_whisper_model():

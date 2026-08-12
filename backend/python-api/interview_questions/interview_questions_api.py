@@ -10,8 +10,9 @@ import openai
 from typing import List
 
 # .env에서 API 키 로드
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
 client = None
@@ -21,7 +22,7 @@ def get_openai_client():
     if client is None:
         if not OPENAI_API_KEY:
             raise RuntimeError("OPENAI_API_KEY is not configured")
-        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+        client = openai.OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_BASE_URL)
     return client
 
 app = FastAPI()
