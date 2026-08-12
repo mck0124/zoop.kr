@@ -52,6 +52,32 @@ const DEFAULT_PHRASES = {
   zh: ["请帮我生成理想候选人画像", "重视责任感和主人翁意识", "具备良好的协作能力", "拥有丰富的实战经验", "能够快速学习新技术", "沟通清晰有效", "能够基于数据做决策", "以客户为中心"],
 };
 
+const ENGLISH_FILTER_VALUES = {
+  '프론트엔드': 'Frontend',
+  '프론트엔드 개발': 'Frontend development',
+  '백엔드': 'Backend',
+  '백엔드/서버개발': 'Backend / server development',
+  '웹개발': 'Web development',
+  '앱개발': 'Mobile development',
+  '데이터분석': 'Data analysis',
+  '데이터엔지니어': 'Data engineering',
+  '데이터 사이언티스트': 'Data science',
+  '개발PM': 'Engineering PM',
+  '서울': 'Seoul',
+  '부산': 'Busan',
+  '대구': 'Daegu',
+  '인천': 'Incheon',
+  '광주': 'Gwangju',
+  '대전': 'Daejeon',
+  '경기': 'Gyeonggi',
+  '전국': 'Nationwide',
+};
+
+function toEnglishFilterValue(value) {
+  if (typeof value !== 'string') return value;
+  return ENGLISH_FILTER_VALUES[value.trim()] || value;
+}
+
 // 최근에 보여준 버튼 phrase를 저장 (최대 10개)
 let recentPhraseHistory = [];
 
@@ -119,11 +145,11 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
     if (!filters) return [];
     const f = filters.filters || filters;
     const lines = [];
-    if (f.roles && f.roles.length) lines.push(`${copy.role}: ${f.roles.join(", ")}`);
-    if (f.languages && f.languages.length) lines.push(`${copy.languages}: ${f.languages.join(", ")}`);
+    if (f.roles && f.roles.length) lines.push(`${copy.role}: ${f.roles.map(toEnglishFilterValue).join(", ")}`);
+    if (f.languages && f.languages.length) lines.push(`${copy.languages}: ${f.languages.map(toEnglishFilterValue).join(", ")}`);
     let regionStr = "";
     if (f.nationwide) regionStr = copy.nationwide;
-    else if (f.regions && f.regions.length) regionStr = f.regions.join(", ");
+    else if (f.regions && f.regions.length) regionStr = f.regions.map(toEnglishFilterValue).join(", ");
     if (regionStr) lines.push(`${copy.region}: ${regionStr}`);
     if (f.salary) lines.push(`${copy.salary}: ${Number(f.salary).toLocaleString()}${language === "ko" ? "만원" : ""}`);
     if (f.headcount) lines.push(`${copy.headcount}: ${f.headcount}${language === "ko" ? "명" : ""}`);
