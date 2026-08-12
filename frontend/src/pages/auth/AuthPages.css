@@ -24,7 +24,7 @@
 .login-right { width: 57%; padding: 3.5rem 4rem; justify-content: center; }
 .login-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; padding: .35rem; border: 1px solid #e1ece8; border-radius: 14px; background: #f4f8f6; }
 .tab-button { width: auto; padding: .8rem 1rem; border: 0; border-radius: 10px; color: #6b8078; font-weight: 700; }
-.tab-button.active { background: #fff; color: #176c53; box-shadow: 0 4px 12px rgba(21,69,57,.08); }
+.tab-button.active { background: #fff; color: #176c53; border-bottom: 0 !important; box-shadow: 0 4px 12px rgba(21,69,57,.08); }
 .input-group input { min-height: 52px; padding: .9rem 1rem; border: 1px solid #d8e6e1; border-radius: 12px; background: #fbfdfc; }
 .input-group input:focus { border-color: #30c59b; box-shadow: 0 0 0 4px rgba(48,197,155,.12); outline: none; }
 .login-button { min-height: 52px; border-radius: 12px; background: linear-gradient(135deg, #30c59b, #159b75); box-shadow: 0 12px 22px rgba(22,155,117,.2); }
@@ -40,7 +40,7 @@
 .signup-description { max-width: 430px; margin: .8rem auto 2.4rem; color: #71817b; }
 .signup-tabs { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .5rem; max-width: 440px; margin: 0 auto 1.8rem; padding: .35rem; border-radius: 14px; background: #f1f7f4; }
 .signup-tabs button { border: 0; border-radius: 10px; padding: .85rem 1rem; color: #71817b; }
-.signup-tabs button.active { color: #087153; background: #fff; border-bottom: 0; box-shadow: 0 4px 12px rgba(30,89,69,.1); }
+.signup-tabs button.active { color: #087153; background: #fff; border-bottom: 0 !important; box-shadow: 0 4px 12px rgba(30,89,69,.1); }
 .signup-divider { width: 100%; height: 1px; margin: 0 auto 2rem; background: #e5efeb; }
 .signup-icons img { width: 48px; height: 48px; padding: .7rem; border: 1px solid #e1ece7; border-radius: 14px; background: #fff; }
 .signup-id-button { width: min(100%,390px); border: 0; border-radius: 12px; padding: 1rem 1.4rem; color: #fff; background: linear-gradient(135deg,#20b889,#118967); box-shadow: 0 12px 24px rgba(17,137,103,.2); font-weight: 700; }
