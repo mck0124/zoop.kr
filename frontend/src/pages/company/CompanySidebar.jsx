@@ -89,6 +89,21 @@ const Badge = ({ count }) => (
   </span>
 );
 
+const languageIconFile = (language) => {
+  const files = {
+    react: 'react.svg',
+    typescript: 'typescript.svg',
+    javascript: 'javascript.svg',
+    python: 'python.svg',
+    java: 'java.svg',
+    'c++': 'cpp.svg',
+    go: 'go.svg',
+    ruby: 'ruby.svg',
+    kotlin: 'kotlin.svg',
+  };
+  return `/languages/${files[language.toLowerCase()] || 'code.svg'}`;
+};
+
 export default function CompanySidebar({
   postings,
   loading,
@@ -437,19 +452,20 @@ export default function CompanySidebar({
                         </span>
                       </div>
                       <div style={{ position: 'absolute', right: '1.2rem', bottom: '1.2rem', display: 'flex', alignItems: 'center', zIndex: 2 }}>
-                        <span
+                        <img
+                          src={languageIconFile(langs[0])}
+                          alt={langs[0]}
+                          width={28}
+                          height={28}
                           style={{
                             background: 'white',
                             borderRadius: '8px',
                             boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
-                            padding: '5px 8px',
-                            color: '#2563eb',
-                            fontSize: 12,
-                            fontWeight: 800,
+                            padding: 3,
                             zIndex: 3,
-                            whiteSpace: 'nowrap'
+                            objectFit: 'contain'
                           }}
-                        >{langs[0]}</span>
+                        />
                       </div>
                     </div>
                   );
@@ -552,31 +568,35 @@ export default function CompanySidebar({
                       </span>
                     </div>
                     <div style={{ position: 'absolute', right: '1.2rem', bottom: '1.2rem', display: 'flex', alignItems: 'center', zIndex: 2 }}>
-                      <span
+                      <img
+                        src={languageIconFile(langs[0])}
+                        alt={langs[0]}
+                        width={28}
+                        height={28}
                         style={{
                           background: 'white',
                           borderRadius: '8px',
                           boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
-                          padding: '5px 8px',
-                          color: '#2563eb',
-                          fontSize: 12,
-                          fontWeight: 800,
+                          padding: 3,
                           zIndex: 3,
-                          whiteSpace: 'nowrap'
+                          objectFit: 'contain',
+                          marginRight: -10
                         }}
-                      >{langs[0]}</span>
-                      <span
+                      />
+                      <img
+                        src={languageIconFile(langs[1])}
+                        alt={langs[1]}
+                        width={28}
+                        height={28}
                         style={{
                           background: 'white',
                           borderRadius: '8px',
                           boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
-                          padding: '5px 8px',
-                          color: '#2563eb',
-                          fontSize: 12,
-                          fontWeight: 800,
-                          zIndex: 2
+                          padding: 3,
+                          zIndex: 2,
+                          objectFit: 'contain'
                         }}
-                      >{langs[1]}</span>
+                      />
                       {langs.length > 2 && (
                         <span style={{
                           marginLeft: -10,
