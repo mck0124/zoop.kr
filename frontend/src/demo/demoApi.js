@@ -7,6 +7,7 @@ import {
 const DEMO_GITHUB_LOGINS = ['gaearon', 'sindresorhus', 'kentcdodds', 'yyx990803', 'tj'];
 const DEMO_CANDIDATE_CACHE_KEY = 'zoop.demo.githubCandidates';
 const DEMO_GITHUB_SEARCH_URL = (process.env.REACT_APP_GITHUB_SEARCH_URL || 'http://localhost:8000').replace(/\/$/, '');
+const LIVE_ANALYSIS_TIMEOUT_MS = 15000;
 const candidate = { candidateId: 1001, candidateName: 'Minchan Kim', githubLogin: DEMO_GITHUB_LOGINS[0], candidateEmail: 'minchan0124@gmail.com', candidateBio: 'GitHub profile loaded from the public GitHub API.', candidateGithubUrl: `https://github.com/${DEMO_GITHUB_LOGINS[0]}` };
 const applicants = DEMO_GITHUB_LOGINS.map((login, index) => ({
   ...candidate,
@@ -31,6 +32,24 @@ const applicants = DEMO_GITHUB_LOGINS.map((login, index) => ({
   analysisScore: 78 + index * 3,
   score: 78 + index * 3,
   githubSearchResultId: 6001 + index,
+  analysis: {
+    version: 'github-evidence-v1',
+    score: 78 + index * 3,
+    summary: 'Public GitHub profile signals are ready for review while a live AI refresh runs in the background.',
+    evidence_coverage: 100,
+    confidence: 0.78,
+    decision: 'review',
+    dimensions: [
+      { name: 'Followers', score: 7 + (index % 3), max: 10, evidence: [{ verification_state: 'verified', source: 'GitHub public profile', claim: 'Public follower count was observed.' }] },
+      { name: 'Public repositories', score: 11 + (index % 4), max: 15, evidence: [{ verification_state: 'verified', source: 'GitHub public profile', claim: 'Public repository count was observed.' }] },
+      { name: 'Language breadth', score: 9 + (index % 3), max: 15, evidence: [{ verification_state: 'verified', source: 'GitHub public repositories', claim: 'Languages were observed across public repositories.' }] },
+      { name: 'Recent activity', score: 14 + (index % 5), max: 20, evidence: [{ verification_state: 'verified', source: 'GitHub public repositories', claim: 'Recent repository activity was observed.' }] },
+      { name: 'Project quality', score: 13 + (index % 5), max: 20, evidence: [{ verification_state: 'verified', source: 'GitHub public repositories', claim: 'Public project signals were observed.' }] },
+      { name: 'Technical depth', score: 14 + (index % 4), max: 20, evidence: [{ verification_state: 'verified', source: 'GitHub public repositories', claim: 'Technical breadth and repository history were observed.' }] },
+    ],
+    evidence: [{ verification_state: 'verified', source: 'GitHub public API', claim: 'Public GitHub profile signals were collected for review.' }],
+    gaps: ['Verify ownership and design decisions in a representative project.'],
+  },
 }));
 const analysis = { version: 'github-evidence-v1', score: 92, summary: 'Strong evidence of frontend product ownership and reliable delivery.', evidence: [{ verification_state: 'verified', claim: 'Built production React interfaces', source: 'GitHub activity' }], dimensions: [{ name: 'Product engineering', score: 92, evidence: [{ verification_state: 'verified', source: 'Repository history' }] }] };
 
@@ -207,19 +226,30 @@ function buildDemoAiAnalysisResults(candidates) {
 }
 
 async function fetchLiveGithubCandidates(postId) {
-  const response = await fetch(`${DEMO_GITHUB_SEARCH_URL}/search`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      languages: ['JavaScript', 'TypeScript'],
-      regions: ['Hong Kong', 'Remote'],
-      nationwide: true,
-      headcount: 5,
-      idealCandidate: 'Evidence-driven frontend or product engineer with strong collaboration skills.',
-      post_id: postId,
-      language: 'en',
-    }),
-  });
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), LIVE_ANALYSIS_TIMEOUT_MS);
+  let response;
+  try {
+    response = await fetch(`${DEMO_GITHUB_SEARCH_URL}/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        languages: ['JavaScript', 'TypeScript'],
+        regions: ['Remote'],
+        nationwide: true,
+        headcount: 3,
+        idealCandidate: 'Evidence-driven frontend or product engineer with strong collaboration skills.',
+        post_id: postId,
+        language: 'en',
+      }),
+    });
+  } catch (error) {
+    if (error.name === 'AbortError') throw new Error('Live GitHub analysis timed out');
+    throw error;
+  } finally {
+    window.clearTimeout(timeout);
+  }
   if (!response.ok) throw new Error(`GitHub analysis service returned ${response.status}`);
   const payload = await response.json();
   const results = Array.isArray(payload?.candidates) ? payload.candidates : [];
@@ -259,6 +289,28 @@ async function fetchLiveGithubCandidates(postId) {
   return candidates;
 }
 
+function cachedLiveCandidates() {
+  try {
+    const cached = JSON.parse(window.localStorage.getItem(DEMO_CANDIDATE_CACHE_KEY) || '[]');
+    return Array.isArray(cached) && cached.length && cached.every(item => item?.analysis)
+      ? cached
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function demoCandidateRows(postId, candidates, filter) {
+  const stageRows = dashboardCandidatesFor(postId, filter);
+  return candidates.map((candidate, index) => ({
+    ...candidate,
+    postId,
+    jobCandidateId: 7100 + index,
+    jobCandCurrStage: stageRows[index]?.jobCandCurrStage || '2y',
+    candPortfolioId: 8100 + index,
+  }));
+}
+
 export function demoFetch(input, init = {}) {
   const rawUrl = typeof input === 'string' ? input : input?.url || '';
   const url = new URL(rawUrl, window.location.origin);
@@ -284,20 +336,16 @@ export function demoFetch(input, init = {}) {
     const parts = path.split('/');
     const postId = Number(parts[parts.indexOf('by-post') + 1]);
     const filter = parts[parts.indexOf('by-post') + 2] || 'all';
-    return fetchLiveGithubCandidates(postId)
-      .catch(() => fetchRealGithubCandidates())
-      .then(realCandidates => {
-        const stageRows = dashboardCandidatesFor(postId, filter);
-        const rows = realCandidates.map((candidate, index) => ({
-          ...candidate,
-          postId,
-          jobCandidateId: 7100 + index,
-          jobCandCurrStage: stageRows[index]?.jobCandCurrStage || '2y',
-          candPortfolioId: 8100 + index,
-        }));
-        return jsonResponse(rows);
-      })
-      .catch(() => jsonResponse(applicants.map((candidate, index) => ({ ...candidate, postId, jobCandidateId: 7100 + index, jobCandCurrStage: '2y', candPortfolioId: 8100 + index }))));
+    const cached = cachedLiveCandidates();
+    if (cached) return Promise.resolve(jsonResponse(demoCandidateRows(postId, cached, filter)));
+
+    // Never block the candidate screen on a model request.  The cards are ready
+    // immediately; the live GitHub + DeepSeek result replaces them automatically
+    // once it has been persisted in the local demo cache.
+    void fetchLiveGithubCandidates(postId)
+      .then(() => window.dispatchEvent(new CustomEvent('zoop:live-candidates-ready', { detail: { postId } })))
+      .catch(() => {});
+    return Promise.resolve(jsonResponse(demoCandidateRows(postId, applicants, filter)));
   }
   if (path.includes('/api/github-search')) {
     return fetchRealGithubCandidates()

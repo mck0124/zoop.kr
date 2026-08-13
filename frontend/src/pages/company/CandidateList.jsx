@@ -910,7 +910,7 @@ const CandidateComparisonModal = ({ candidates, aiAnalysisResults, selectedLogin
               {rows.map(row => <div key={`coverage-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: row.coverage !== null && row.coverage >= 70 ? '#047857' : '#b45309', fontWeight: 800 }}>{row.coverage === null ? 'Check needed' : `${row.coverage}%`} {row.evidenceCount ? `· ${row.evidenceCount} evidence items` : ''}</div>)}
               {dimensions.map(dimension => <React.Fragment key={dimension}>
                 <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>{dimension}</div>
-                {rows.map(row => { const item = getDimension(row, dimension); return <div key={`${dimension}-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: '#334155', fontSize: 13 }}><strong>{item?.score ?? '—'}</strong>{item?.max ? `/${item.max}` : ''}<div style={{ marginTop: 4, color: '#64748b', lineHeight: 1.45 }}>{item?.evidence?.find(evidence => evidence.verification_state === 'grounded')?.claim || 'No grounded evidence'}</div></div>; })}
+                {rows.map(row => { const item = getDimension(row, dimension); return <div key={`${dimension}-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: '#334155', fontSize: 13 }}><strong>{item?.score ?? '—'}</strong>{item?.max ? `/${item.max}` : ''}<div style={{ marginTop: 4, color: '#64748b', lineHeight: 1.45 }}>{item?.evidence?.find(evidence => evidence.verification_state === 'grounded' || evidence.verification_state === 'verified')?.claim || 'No evidence detail available'}</div></div>; })}
               </React.Fragment>)}
               <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>Next verification</div>
               {rows.map(row => <div key={`gap-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: '#475569', fontSize: 13, lineHeight: 1.5 }}>{row.gaps.length ? row.gaps.slice(0, 2).join(' · ') : 'Verify real contribution and design decisions in a representative project.'}</div>)}
@@ -1300,23 +1300,35 @@ export default function CandidateList({ activeTab = 'all' }) {
     }
   };
 
-  // 실제 데이터 fetch (네가 쓰던 코드 그대로!)
+  // Refresh once the optional live GitHub + DeepSeek demo analysis finishes.
+  // The initial screen remains usable while that slower request runs in the background.
+  useEffect(() => {
+    const handleLiveCandidatesReady = (event) => {
+      if (Number(event.detail?.postId) === Number(postId)) {
+        setReloadToken(value => value + 1);
+      }
+    };
+    window.addEventListener('zoop:live-candidates-ready', handleLiveCandidatesReady);
+    return () => window.removeEventListener('zoop:live-candidates-ready', handleLiveCandidatesReady);
+  }, [postId]);
+
+  // Load posting and candidate data.
   useEffect(() => {
     setLoadError('');
     // 공고 정보 조회
     authenticatedFetch(apiUrl(`/api/postings/info/${postId}`))
       .then(res => {
-        if (!res.ok) throw new Error('공고 정보 조회 실패');
+        if (!res.ok) throw new Error('Unable to load job posting');
         return res.json();
       })
       .then(data => setPostInfo(data))
       .catch(() => setPostInfo(null));
 
-    // 후보자 데이터 조회 (DB에서)
+    // Load candidate data.
     const fetchCandidates = async () => {
       try {
         const response = await authenticatedFetch(apiUrl(`/api/github-search/by-post/${postId}`));
-        if (!response.ok) throw new Error('후보자 데이터 조회 실패');
+        if (!response.ok) throw new Error('Unable to load candidates');
         const candidatesData = await response.json();
 
         // AI 분석 결과도 함께 조회
@@ -1342,8 +1354,13 @@ export default function CandidateList({ activeTab = 'all' }) {
           if (aiAnalysis && aiAnalysis.analysisData) {
             portfolioAnalysis = aiAnalysis.analysisData;
             candidateLanguages = candidate.candidateLanguages || candidate.languages || '';
+          } else if (candidate.analysis || candidate.analysisData) {
+            portfolioAnalysis = typeof candidate.analysis === 'string'
+              ? candidate.analysis
+              : JSON.stringify(candidate.analysis || candidate.analysisData);
+            candidateLanguages = candidate.candidateLanguages || candidate.languages || '';
           } else {
-            portfolioAnalysis = 'AI 분석 결과 없음';
+            portfolioAnalysis = 'No AI analysis is available yet.';
           }
           return {
             score: candidate.analysisScore ?? candidate.score ?? 0,
@@ -1363,7 +1380,7 @@ export default function CandidateList({ activeTab = 'all' }) {
         setCandidates([...emailFirst, ...noEmail]);
         setLoading(false);
       } catch (error) {
-        setLoadError('후보자 목록을 불러오지 못했습니다. 백엔드 연결 상태를 확인한 뒤 다시 시도해 주세요.');
+        setLoadError('We could not load candidates. Please check the connection and try again.');
         setCandidates([]);
         setLoading(false);
       }
@@ -2231,12 +2248,12 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
   if (analysisResult && analysisResult.analysisData) {
     const parsed = parseNaturalLanguageScores(analysisResult.analysisData);
     radarScores = {
-      '팔로워 수': parsed['팔로워 수'] || 0,
-      '공개 저장소 수': parsed['공개 저장소 수'] || 0,
-      '언어 다양성': parsed['언어 다양성'] || 0,
-      '최근 활동성': parsed['최근 활동성'] || 0,
-      '프로젝트 품질': parsed['프로젝트 품질'] || 0,
-      '기술적 깊이': parsed['기술적 깊이'] || 0,
+      Followers: parsed['팔로워 수'] || 0,
+      'Public repositories': parsed['공개 저장소 수'] || 0,
+      'Language breadth': parsed['언어 다양성'] || 0,
+      'Recent activity': parsed['최근 활동성'] || 0,
+      'Project quality': parsed['프로젝트 품질'] || 0,
+      'Technical depth': parsed['기술적 깊이'] || 0,
     };
     realScore = parsed.totalScore !== null ? parsed.totalScore : 0;
   } else {
@@ -2244,12 +2261,12 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
       ? candidate.aiAnalysis.analysisScore
       : (typeof candidate.analysisScore === 'number' ? candidate.analysisScore : 0);
     radarScores = {
-      '팔로워 수': candidate.followerScore || 0,
-      '공개 저장소 수': candidate.repoScore || 0,
-      '언어 다양성': candidate.languageScore || 0,
-      '최근 활동성': candidate.activityScore || 0,
-      '프로젝트 품질': candidate.projectQualityScore || 0,
-      '기술적 깊이': candidate.technicalDepthScore || 0,
+      Followers: candidate.followerScore || 0,
+      'Public repositories': candidate.repoScore || 0,
+      'Language breadth': candidate.languageScore || 0,
+      'Recent activity': candidate.activityScore || 0,
+      'Project quality': candidate.projectQualityScore || 0,
+      'Technical depth': candidate.technicalDepthScore || 0,
     };
   }
 
