@@ -510,7 +510,8 @@ function RadarChartSVG({ scores = {}, size = 90, totalScore, showLabels = false,
   // 각 축의 각도
   const angles = radarLabels.map((_, i) => (Math.PI * 2 * i) / radarLabels.length - Math.PI/2);
   // 점수값(0~1)
-  const values = radarKeys.map((key, i) => Math.max(0, Math.min(1, (scores[key] || 0) / radarMax[i])));
+  const scoreAt = (index) => Number(scores[radarLabels[index]] ?? scores[radarKeys[index]] ?? 0);
+  const values = radarKeys.map((_, i) => Math.max(0, Math.min(1, scoreAt(i) / radarMax[i])));
   // 폴리곤 좌표
   const points = values.map((v, i) => {
     const angle = angles[i];
@@ -529,7 +530,7 @@ function RadarChartSVG({ scores = {}, size = 90, totalScore, showLabels = false,
     cx + (r + 14) * Math.cos(a),
     cy + (r + 14) * Math.sin(a)
   ]);
-  const allZero = radarKeys.every(key => (scores[key] || 0) === 0);
+  const allZero = radarKeys.every((_, index) => scoreAt(index) === 0);
   return (
     <svg width={size} height={size} style={{
       display:'block',
@@ -610,7 +611,7 @@ function RadarChartSVG({ scores = {}, size = 90, totalScore, showLabels = false,
       {/* 축 점수 */}
       {showScores && scorePoints.map(([x, y], i) => (
         <text key={i} x={x} y={y} textAnchor="middle" alignmentBaseline="middle" fontSize={size > 120 ? 16 : 13} fill="#222" fontWeight="600" opacity="0.98">
-          {scores[radarKeys[i]] !== undefined ? scores[radarKeys[i]] : 0}
+          {scoreAt(i)}
         </text>
       ))}
       {/* 중앙 점수 */}
@@ -687,7 +688,14 @@ const extractStrengths = (analysisText) => {
     .map(item => `${item.name}: ${item.assessment}`)
     .slice(0, 4);
   const github = parseGithubEvidence(analysisText);
-  if (github) return (github.strengths || []).slice(0, 4);
+  if (github) {
+    const explicitStrengths = Array.isArray(github.strengths) ? github.strengths : [];
+    if (explicitStrengths.length) return explicitStrengths.slice(0, 4);
+    return (github.dimensions || [])
+      .map(item => item?.evidence?.find(evidence => evidence.claim)?.claim)
+      .filter(Boolean)
+      .slice(0, 4);
+  }
   const strengthMatch = analysisText.match(/강점:\s*([^\n]+)/);
   if (strengthMatch) {
     const strengths = strengthMatch[1].trim().split(',').map(s => s.trim());
@@ -715,7 +723,11 @@ const extractSuitableJobs = (analysisText) => {
   const structured = parsePortfolioEvidence(analysisText);
   if (structured) return (structured.technical_stack || []).slice(0, 4);
   const github = parseGithubEvidence(analysisText);
-  if (github) return (github.suitable_roles || []).slice(0, 4);
+  if (github) {
+    if (Array.isArray(github.suitable_roles) && github.suitable_roles.length) return github.suitable_roles.slice(0, 4);
+    const observedLanguages = (github.dimensions || []).some(item => item?.name === 'Language breadth');
+    return observedLanguages ? ['Frontend Engineer', 'Product Engineer', 'Full-stack Engineer'] : [];
+  }
   const jobMatch = analysisText.match(/적합직무:\s*([^\n]+)/);
   if (jobMatch) {
     const jobs = jobMatch[1].trim().split(',').map(j => j.trim());
@@ -729,7 +741,7 @@ const extractGrowthPotential = (analysisText) => {
   const structured = parsePortfolioEvidence(analysisText);
   if (structured) return structured.seniority_signal || '';
   const github = parseGithubEvidence(analysisText);
-  if (github) return github.growth_signal || '';
+  if (github) return github.growth_signal || github.summary || 'Review public GitHub activity alongside interview evidence to validate ownership and scope.';
   const growthMatch = analysisText.match(/성장가능성:\s*([^\n]+(?:\n[^\n]+)*)/);
   if (growthMatch) {
     return growthMatch[1].trim();
@@ -2843,18 +2855,26 @@ const LanguageDistributionChart = ({ candidate, width = 300, height = 300 }) => 
   // GitHub 데이터에서 언어별 통계 추출
   const getLanguageStats = (candidate) => {
     // 백엔드에서 받은 skills_analysis 데이터 사용
-    const skillsAnalysis = candidate.skills_analysis || candidate.skillsAnalysis || {};
+    const skillsAnalysis = candidate.skills_analysis || candidate.skillsAnalysis;
     
-    if (Object.keys(skillsAnalysis).length > 0) {
-      // 실제 GitHub 데이터가 있는 경우
-      return Object.entries(skillsAnalysis).map(([lang, stats]) => ({
-        language: lang,
-        count: stats.count,
-        stars: stats.stars,
-        size: stats.size,
-        // 저장소 수와 스타 수를 종합한 가중치
-        weight: (stats.count * 0.6) + (stats.stars * 0.4)
-      })).sort((a, b) => b.weight - a.weight);
+    if (skillsAnalysis && typeof skillsAnalysis === 'object' && !Array.isArray(skillsAnalysis)) {
+      const measured = Object.entries(skillsAnalysis)
+        .map(([lang, stats]) => {
+          const count = Number(stats?.count ?? 0);
+          const stars = Number(stats?.stars ?? 0);
+          const size = Number(stats?.size ?? 0);
+          return {
+            language: lang,
+            count,
+            stars,
+            size,
+            // Only use measurable public GitHub values here.
+            weight: (count * 0.6) + (stars * 0.4)
+          };
+        })
+        .filter(item => item.language && Number.isFinite(item.weight) && item.weight > 0)
+        .sort((a, b) => b.weight - a.weight);
+      if (measured.length) return measured;
     }
     
     // If only a language list is available, preserve the language signal but do
@@ -2871,6 +2891,7 @@ const LanguageDistributionChart = ({ candidate, width = 300, height = 300 }) => 
   
   const languageStats = getLanguageStats(candidate);
   const totalWeight = languageStats.reduce((sum, lang) => sum + lang.weight, 0);
+  const hasLanguageData = languageStats.length > 0 && Number.isFinite(totalWeight) && totalWeight > 0;
   const colors = [
     '#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', 
     '#ef4444', '#ec4899', '#84cc16', '#f97316', '#06b6d4'
@@ -2910,7 +2931,7 @@ const LanguageDistributionChart = ({ candidate, width = 300, height = 300 }) => 
           </filter>
         </defs>
         
-        {languageStats.slice(0, 6).map((lang, index) => {
+        {hasLanguageData && languageStats.slice(0, 6).map((lang, index) => {
           const percentage = (lang.weight / totalWeight) * 100;
           const angle = (percentage / 100) * 2 * Math.PI;
           const startAngle = currentAngle;
@@ -3002,7 +3023,7 @@ const LanguageDistributionChart = ({ candidate, width = 300, height = 300 }) => 
           textAnchor="middle"
           dominantBaseline="middle"
         >
-          {languageStats.length} languages
+          {hasLanguageData ? `${languageStats.length} languages` : 'No languages'}
         </text>
         <text
           x={centerX - 20}
@@ -3016,6 +3037,32 @@ const LanguageDistributionChart = ({ candidate, width = 300, height = 300 }) => 
           Languages
         </text>
       </svg>
+      <div style={{
+        position: 'absolute',
+        left: 20,
+        right: 20,
+        bottom: 14,
+        display: 'flex',
+        justifyContent: 'center',
+        flexWrap: 'wrap',
+        gap: 6
+      }}>
+        {hasLanguageData ? languageStats.slice(0, 4).map((lang, index) => (
+          <span key={lang.language} style={{
+            borderRadius: 999,
+            padding: '4px 8px',
+            color: '#fff',
+            background: colors[index % colors.length],
+            fontSize: 11,
+            fontWeight: 800,
+            boxShadow: '0 2px 5px rgba(15, 23, 42, 0.14)'
+          }}>
+            {lang.language} · {lang.count || 1} repo{(lang.count || 1) === 1 ? '' : 's'}
+          </span>
+        )) : (
+          <span style={{ color: '#64748b', fontSize: 13 }}>No public language data was returned.</span>
+        )}
+      </div>
     </div>
   );
 };
