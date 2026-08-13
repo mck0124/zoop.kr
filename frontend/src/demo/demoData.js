@@ -11,14 +11,14 @@ export const DEMO_ACCOUNTS = {
     loginId: 'demo.candidate',
     password: 'ZoopDemo2026!',
     userId: '1001',
-    displayName: 'Alex Morgan',
+    displayName: 'Minchan Kim',
     token: demoToken('demo.candidate'),
   },
   company: {
     loginId: 'demo.company',
     password: 'ZoopDemo2026!',
     userId: '2001',
-    displayName: 'Northstar Labs',
+    displayName: 'Minchan Kim',
     token: demoToken('demo.company'),
   },
 };
@@ -26,7 +26,7 @@ export const DEMO_ACCOUNTS = {
 export const DEMO_CANDIDATE_POSTINGS = [
   {
     postId: 9001,
-    companyName: 'Northstar Labs',
+    companyName: 'Minchan Kim Labs',
     postTitle: 'Frontend Engineer — Evidence Platform',
     postPostedDate: '2026-08-01',
     postExpiryDate: '2026-09-15',
@@ -44,19 +44,19 @@ export const DEMO_CANDIDATE_POSTINGS = [
 
 export const DEMO_COMPANY_INFO = {
   companyId: 3001,
-  companyName: 'Northstar Labs',
+  companyName: 'Minchan Kim Labs',
   businessNumber: 'DEMO-2026-001',
-  ceoName: 'Jordan Lee',
-  adminName: 'Hiring Team',
-  email: 'hiring@northstar.example',
-  address: 'San Francisco, CA',
+  ceoName: 'Minchan Kim',
+  adminName: 'Minchan Kim',
+  email: 'minchan0124@gmail.com',
+  address: 'Hong Kong',
 };
 
 export const DEMO_COMPANY_POSTINGS = [
   {
     postId: 9001,
     postTitle: 'Frontend Engineer — Evidence Platform',
-    postLocation: 'Remote / San Francisco',
+    postLocation: 'Remote / Hong Kong',
     postProgrammingLanguage: 'React TypeScript JavaScript',
     postDescription: 'Build trustworthy hiring tools with a small, focused team.',
     postSalaryStart: 120000,

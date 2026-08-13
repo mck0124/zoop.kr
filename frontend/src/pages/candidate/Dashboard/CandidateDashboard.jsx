@@ -165,7 +165,7 @@ function CandidateDashboard() {
       setDashboardLoading(true);
       setDashboardError('');
       if (DEMO_MODE) {
-        setUserName('Alex Morgan');
+        setUserName('Minchan Kim');
         setJobPostings(DEMO_CANDIDATE_POSTINGS);
         setDashboardLoading(false);
         return;

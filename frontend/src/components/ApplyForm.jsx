@@ -92,7 +92,7 @@ function ApplyForm({ post, onSubmit, onCancel }) {
       name: 'name',
       label: 'Full name',
       type: 'text',
-      placeholder: 'Alex Morgan',
+      placeholder: 'Minchan Kim',
       icon: FaUser,
       required: true
     },

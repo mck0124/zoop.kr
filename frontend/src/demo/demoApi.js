@@ -6,7 +6,7 @@ import {
 
 const DEMO_GITHUB_LOGINS = ['gaearon', 'sindresorhus', 'kentcdodds', 'yyx990803', 'tj'];
 const DEMO_CANDIDATE_CACHE_KEY = 'zoop.demo.githubCandidates';
-const candidate = { candidateId: 1001, candidateName: 'Demo Candidate', githubLogin: DEMO_GITHUB_LOGINS[0], candidateEmail: 'alex@demo.example', candidateBio: 'GitHub profile loaded from the public GitHub API.', candidateGithubUrl: `https://github.com/${DEMO_GITHUB_LOGINS[0]}` };
+const candidate = { candidateId: 1001, candidateName: 'Minchan Kim', githubLogin: DEMO_GITHUB_LOGINS[0], candidateEmail: 'minchan0124@gmail.com', candidateBio: 'GitHub profile loaded from the public GitHub API.', candidateGithubUrl: `https://github.com/${DEMO_GITHUB_LOGINS[0]}` };
 const applicants = DEMO_GITHUB_LOGINS.map((login, index) => ({
   ...candidate,
   candidateId: 1001 + index,
