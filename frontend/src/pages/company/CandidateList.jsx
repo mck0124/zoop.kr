@@ -901,7 +901,7 @@ const CandidateComparisonModal = ({ candidates, aiAnalysisResults, selectedLogin
           <div style={{ minWidth: Math.max(720, rows.length * 260) }}>
             <div style={{ display: 'grid', gridTemplateColumns: `180px repeat(${rows.length}, minmax(220px, 1fr))`, gap: 1, background: '#e2e8f0', border: '1px solid #e2e8f0', borderRadius: 16, overflow: 'hidden' }}>
               <div style={{ padding: 16, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>Decision lens</div>
-              {rows.map(row => <div key={row.candidate.githubLogin || row.candidate.login} style={{ padding: 16, background: '#fff', color: '#172033', fontWeight: 850, fontSize: 16 }}>{row.candidate.githubLogin || row.candidate.login || '이름 미확인'}</div>)}
+              {rows.map(row => <div key={row.candidate.githubLogin || row.candidate.login} style={{ padding: 16, background: '#fff', color: '#172033', fontWeight: 850, fontSize: 16 }}>{row.candidate.githubLogin || row.candidate.login || 'Unknown candidate'}</div>)}
               <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>Adjusted score</div>
               {rows.map(row => <div key={`score-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: '#0f766e', fontSize: 25, fontWeight: 900 }}>{row.score === null ? 'Pending' : `${row.score}/100`}</div>)}
               <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>Decision status</div>
@@ -1068,12 +1068,12 @@ function parseNaturalLanguageScores(text) {
     if (structured?.version === 'github-evidence-v1' && Array.isArray(structured.dimensions)) {
       const dimensionScores = Object.fromEntries(structured.dimensions.map(item => [item.name, item.score || 0]));
       return {
-        '팔로워 수': dimensionScores['팔로워 수'] || 0,
-        '공개 저장소 수': dimensionScores['공개 저장소 수'] || 0,
-        '언어 다양성': dimensionScores['언어 다양성'] || dimensionScores['기술 스택'] || 0,
-        '최근 활동성': dimensionScores['최근 활동성'] || dimensionScores['활동 신호'] || 0,
-        '프로젝트 품질': dimensionScores['프로젝트 품질'] || 0,
-        '기술적 깊이': dimensionScores['기술적 깊이'] || Math.min(20, (dimensionScores['문제 해결 깊이'] || 0) + (dimensionScores['커뮤니티·협업 신호'] || 0)),
+        '팔로워 수': dimensionScores['팔로워 수'] || dimensionScores.Followers || 0,
+        '공개 저장소 수': dimensionScores['공개 저장소 수'] || dimensionScores['Public repositories'] || 0,
+        '언어 다양성': dimensionScores['언어 다양성'] || dimensionScores['Language breadth'] || dimensionScores['기술 스택'] || 0,
+        '최근 활동성': dimensionScores['최근 활동성'] || dimensionScores['Recent activity'] || dimensionScores['활동 신호'] || 0,
+        '프로젝트 품질': dimensionScores['프로젝트 품질'] || dimensionScores['Project quality'] || 0,
+        '기술적 깊이': dimensionScores['기술적 깊이'] || dimensionScores['Technical depth'] || Math.min(20, (dimensionScores['문제 해결 깊이'] || 0) + (dimensionScores['커뮤니티·협업 신호'] || 0)),
         totalScore: Number(structured.score || 0),
       };
     }
@@ -1330,7 +1330,12 @@ export default function CandidateList({ activeTab = 'all' }) {
           if (ai.githubSearchResultId) aiAnalysisMap[ai.githubSearchResultId] = ai;
         });
 
-        const mappedCandidates = candidatesData.map(candidate => {
+        const mappedCandidates = candidatesData.map(rawCandidate => {
+          // Some API responses wrap the profile under `candidate`; flatten it so
+          // the card, score, avatar, and comparison controls use one data shape.
+          const candidate = rawCandidate?.candidate && typeof rawCandidate.candidate === 'object'
+            ? { ...rawCandidate, ...rawCandidate.candidate }
+            : rawCandidate;
           const aiAnalysis = aiAnalysisMap[candidate.githubSearchResultId];
           let portfolioAnalysis = '';
           let candidateLanguages = '';
@@ -1341,12 +1346,13 @@ export default function CandidateList({ activeTab = 'all' }) {
             portfolioAnalysis = 'AI 분석 결과 없음';
           }
           return {
-            score: candidate.analysisScore || 0,
+            score: candidate.analysisScore ?? candidate.score ?? 0,
             portfolioAnalysis: portfolioAnalysis,
             candidateLanguages: candidateLanguages,
             profileUrl: candidate.githubProfileUrl,
             githubSearchResultId: candidate.githubSearchResultId,
             ...candidate,
+            avatarUrl: candidate.avatarUrl || (candidate.githubLogin || candidate.login ? `https://github.com/${candidate.githubLogin || candidate.login}.png?size=160` : ''),
             candidateEmail: candidate.candidateEmail === 'not_found@example.com' ? null : candidate.candidateEmail
           };
         });

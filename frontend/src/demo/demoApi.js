@@ -15,13 +15,20 @@ const applicants = DEMO_GITHUB_LOGINS.map((login, index) => ({
   githubLogin: login,
   candidateGithubUrl: `https://github.com/${login}`,
   githubProfileUrl: `https://github.com/${login}`,
-  candidateLanguages: '',
-  languages: [],
-  followers: 0,
-  publicRepos: 0,
-  repositoriesCount: 0,
-  analysisScore: null,
-  score: null,
+  candidateLanguages: index % 2 ? 'JavaScript, TypeScript, Node.js' : 'JavaScript, TypeScript, React',
+  languages: index % 2 ? ['JavaScript', 'TypeScript', 'Node.js'] : ['JavaScript', 'TypeScript', 'React'],
+  avatarUrl: `https://github.com/${login}.png?size=160`,
+  followers: 120 + index * 80,
+  publicRepos: 24 + index * 9,
+  repositoriesCount: 24 + index * 9,
+  followerScore: 7 + (index % 3),
+  repoScore: 11 + (index % 4),
+  languageScore: 9 + (index % 3),
+  activityScore: 14 + (index % 5),
+  projectQualityScore: 13 + (index % 5),
+  technicalDepthScore: 14 + (index % 4),
+  analysisScore: 78 + index * 3,
+  score: 78 + index * 3,
   githubSearchResultId: 6001 + index,
 }));
 const analysis = { version: 'github-evidence-v1', score: 92, summary: 'Strong evidence of frontend product ownership and reliable delivery.', evidence: [{ verification_state: 'verified', claim: 'Built production React interfaces', source: 'GitHub activity' }], dimensions: [{ name: 'Product engineering', score: 92, evidence: [{ verification_state: 'verified', source: 'Repository history' }] }] };
@@ -147,7 +154,7 @@ async function fetchRealGithubCandidates() {
   if (cached) {
     try {
       const parsed = JSON.parse(cached);
-      if (Array.isArray(parsed) && parsed.length > 1) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 1 && parsed.every(item => item.avatarUrl && Number.isFinite(item.followerScore))) return parsed;
     } catch { /* refresh the cache below */ }
     window.localStorage.removeItem(DEMO_CANDIDATE_CACHE_KEY);
   }
@@ -161,16 +168,16 @@ function buildDemoAiAnalysisResults(candidates) {
     const repositories = Array.isArray(candidate.repositories) ? candidate.repositories : [];
     const languages = Array.isArray(candidate.languages) ? candidate.languages : [];
     const dimensions = [
-      ['팔로워 수', candidate.followerScore, 'Public follower count from the GitHub profile'],
-      ['공개 저장소 수', candidate.repoScore, 'Public repository count from the GitHub profile'],
-      ['언어 다양성', candidate.languageScore, `Observed ${languages.length} programming language(s) across public repositories`],
-      ['최근 활동성', candidate.activityScore, 'Most recently updated public repositories'],
-      ['프로젝트 품질', candidate.projectQualityScore, `Observed ${candidate.githubStars || 0} total star(s) across sampled repositories`],
-      ['기술적 깊이', candidate.technicalDepthScore, 'Repository history, language breadth, and public project volume'],
+      ['Followers', candidate.followerScore, 'Public follower count from the GitHub profile'],
+      ['Public repositories', candidate.repoScore, 'Public repository count from the GitHub profile'],
+      ['Language breadth', candidate.languageScore, `Observed ${languages.length} programming language(s) across public repositories`],
+      ['Recent activity', candidate.activityScore, 'Most recently updated public repositories'],
+      ['Project quality', candidate.projectQualityScore, `Observed ${candidate.githubStars || 0} total star(s) across sampled repositories`],
+      ['Technical depth', candidate.technicalDepthScore, 'Repository history, language breadth, and public project volume'],
     ].map(([name, score, claim]) => ({
       name,
       score,
-      max: name === '팔로워 수' ? 10 : name === '공개 저장소 수' ? 15 : name === '언어 다양성' ? 15 : name === '최근 활동성' ? 20 : 20,
+      max: name === 'Followers' ? 10 : name === 'Public repositories' ? 15 : name === 'Language breadth' ? 15 : name === 'Recent activity' ? 20 : 20,
       evidence: [{ verification_state: 'verified', source: 'GitHub public API', claim }],
     }));
     const score = dimensions.reduce((sum, dimension) => sum + Number(dimension.score || 0), 0);
@@ -216,7 +223,19 @@ export function demoFetch(input, init = {}) {
     const parts = path.split('/');
     const postId = Number(parts[parts.indexOf('by-post') + 1]);
     const filter = parts[parts.indexOf('by-post') + 2] || 'all';
-    return Promise.resolve(jsonResponse(dashboardCandidatesFor(postId, filter)));
+    return fetchRealGithubCandidates()
+      .then(realCandidates => {
+        const stageRows = dashboardCandidatesFor(postId, filter);
+        const rows = realCandidates.map((candidate, index) => ({
+          ...candidate,
+          postId,
+          jobCandidateId: 7100 + index,
+          jobCandCurrStage: stageRows[index]?.jobCandCurrStage || '2y',
+          candPortfolioId: 8100 + index,
+        }));
+        return jsonResponse(rows);
+      })
+      .catch(() => jsonResponse(applicants.map((candidate, index) => ({ ...candidate, postId, jobCandidateId: 7100 + index, jobCandCurrStage: '2y', candPortfolioId: 8100 + index }))));
   }
   if (path.includes('/api/github-search')) {
     return fetchRealGithubCandidates()

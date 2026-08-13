@@ -16,6 +16,12 @@ const EN_CATEGORY_LABELS = {
   '자신감': 'Confidence',
   '자신감과 태도': 'Confidence and attitude',
   '경험의 구체성': 'Specificity of experience',
+  '팔로워 수': 'Followers',
+  '공개 저장소 수': 'Public repositories',
+  '언어 다양성': 'Language breadth',
+  '최근 활동성': 'Recent activity',
+  '프로젝트 품질': 'Project quality',
+  '기술적 깊이': 'Technical depth',
 };
 
 const asArray = (value) => (Array.isArray(value) ? value : []);
