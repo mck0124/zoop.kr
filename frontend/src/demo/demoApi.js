@@ -26,6 +26,62 @@ const applicants = DEMO_GITHUB_LOGINS.map((login, index) => ({
 }));
 const analysis = { version: 'github-evidence-v1', score: 92, summary: 'Strong evidence of frontend product ownership and reliable delivery.', evidence: [{ verification_state: 'verified', claim: 'Built production React interfaces', source: 'GitHub activity' }], dimensions: [{ name: 'Product engineering', score: 92, evidence: [{ verification_state: 'verified', source: 'Repository history' }] }] };
 
+const DEMO_DASHBOARD_CANDIDATES = [
+  { login: 'gaearon', stage: '2y', score: 94, email: 'gaearon@demo.example', searched: '2026-08-08T09:20:00Z', interviewDate: '2026-08-21T14:00:00Z' },
+  { login: 'sindresorhus', stage: '1n', score: 89, email: 'sindresorhus@demo.example', searched: '2026-08-07T15:40:00Z' },
+  { login: 'kentcdodds', stage: '2y', score: 87, email: 'kentcdodds@demo.example', searched: '2026-08-06T11:10:00Z' },
+  { login: 'yyx990803', stage: '0', score: 82, email: 'yyx990803@demo.example', searched: '2026-08-05T16:25:00Z' },
+  { login: 'tj', stage: '3y', score: 78, email: 'tj@demo.example', searched: '2026-08-04T10:05:00Z' },
+].map((item, index) => ({
+  jobCandidateId: 7100 + index,
+  postId: 9001,
+  githubSearchResultId: 6001 + index,
+  candidate: {
+    candidateId: 1001 + index,
+    githubLogin: item.login,
+    login: item.login,
+    candidateName: item.login,
+    candidateEmail: item.email,
+    githubProfileUrl: `https://github.com/${item.login}`,
+    candidateGithubUrl: `https://github.com/${item.login}`,
+    candidateBio: 'Technical candidate discovered through public GitHub activity.',
+    githubSearchDate: item.searched,
+    jobCandidateId: 7100 + index,
+    postId: 9001,
+    candPortfolioId: 8100 + index,
+    interviewDate: item.interviewDate,
+    analysisScore: item.score,
+  },
+  jobCandCurrStage: item.stage,
+  candPortfolioId: 8100 + index,
+  aiAnalysis: {
+    analysisId: 9100 + index,
+    analysisScore: item.score,
+    analysisData: JSON.stringify({
+      version: 'github-evidence-v1', score: item.score, evidence_coverage: 100, confidence: 0.82,
+      dimensions: [{ name: 'GitHub profile signals', score: item.score, evidence: [{ verification_state: 'verified', source: 'GitHub public API' }] }],
+      evidence: [{ verification_state: 'verified', source: 'GitHub public API', claim: 'Public technical activity observed' }],
+    }),
+  },
+}));
+
+const dashboardCandidatesFor = (postId, filter) => {
+  let rows = DEMO_DASHBOARD_CANDIDATES.filter(row => row.postId === Number(postId));
+  if (filter === 'interview-scheduled') rows = rows.filter(row => row.candidate.interviewDate);
+  if (filter === 'interview-completed') rows = rows.filter(row => row.jobCandCurrStage === '3y');
+  if (filter === 'no-response') rows = rows.filter(row => row.jobCandCurrStage === '0');
+  if (filter === 'response') rows = rows.filter(row => row.jobCandCurrStage !== '0');
+  if (filter === 'matched-candidates') rows = rows.filter(row => row.candPortfolioId);
+  if (filter === 'additional-applicants') rows = rows.filter(row => row.jobCandCurrStage === '0');
+  return rows;
+};
+
+const DEMO_NOTIFICATIONS = [
+  { notificationId: 1, type: 'candidate-response', title: 'Candidate response received', message: 'sindresorhus opened your invitation for Frontend Engineer.', createdAt: '2026-08-12T09:15:00Z', isRead: false },
+  { notificationId: 2, type: 'interview-scheduled', title: 'Interview scheduled', message: 'gaearon is scheduled for an interview on August 21.', createdAt: '2026-08-11T16:30:00Z', isRead: false },
+  { notificationId: 3, type: 'new-match', title: 'New candidate match', message: 'A new candidate matched your Evidence Platform role.', createdAt: '2026-08-10T11:00:00Z', isRead: true },
+];
+
 const jsonResponse = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, Math.round(value)));
@@ -149,10 +205,19 @@ export function demoFetch(input, init = {}) {
     return Promise.resolve(jsonResponse(candidate));
   }
   if (path.endsWith('/api/postings/company')) return Promise.resolve(jsonResponse(DEMO_COMPANY_POSTINGS));
-  if (path.includes('/api/postings/info/')) return Promise.resolve(jsonResponse({ ...DEMO_COMPANY_POSTINGS[0], postDescription: 'Build trustworthy hiring tools with a small, focused team.' }));
+  if (path.includes('/api/postings/info/')) {
+    const postId = Number(path.split('/').pop());
+    return Promise.resolve(jsonResponse(DEMO_COMPANY_POSTINGS.find(post => post.postId === postId) || DEMO_COMPANY_POSTINGS[0]));
+  }
   if (path.includes('/api/postings')) return Promise.resolve(jsonResponse({ ...DEMO_COMPANY_POSTINGS[0], postId: 9001 }));
   if (path.includes('/api/companyadmins/info')) return Promise.resolve(jsonResponse({ ...DEMO_COMPANY_INFO, companyAdminId: 2001 }));
   if (path.includes('/api/companyadmins')) return Promise.resolve(jsonResponse({ companyAdminId: 2001, loginId: 'demo.company', adminName: 'Hiring Team' }));
+  if (path.includes('/api/github-search/by-post/')) {
+    const parts = path.split('/');
+    const postId = Number(parts[parts.indexOf('by-post') + 1]);
+    const filter = parts[parts.indexOf('by-post') + 2] || 'all';
+    return Promise.resolve(jsonResponse(dashboardCandidatesFor(postId, filter)));
+  }
   if (path.includes('/api/github-search')) {
     return fetchRealGithubCandidates()
       .then(realCandidates => jsonResponse(realCandidates))
@@ -163,13 +228,14 @@ export function demoFetch(input, init = {}) {
     try { cachedCandidates = JSON.parse(window.localStorage.getItem(DEMO_CANDIDATE_CACHE_KEY) || '[]'); } catch { cachedCandidates = []; }
     return Promise.resolve(jsonResponse(buildDemoAiAnalysisResults(Array.isArray(cachedCandidates) ? cachedCandidates : applicants)));
   }
+  if (path.includes('/api/notifications/unread-count')) return Promise.resolve(jsonResponse({ count: DEMO_NOTIFICATIONS.filter(item => !item.isRead).length }));
+  if (path.includes('/api/notifications')) return Promise.resolve(jsonResponse(DEMO_NOTIFICATIONS));
   if (path.includes('/api/ai-analysis') || path.includes('/api/analysis')) return Promise.resolve(jsonResponse(analysis));
   if (path.includes('/api/interviews') || path.includes('/api/interview-schedules')) return Promise.resolve(jsonResponse({ interviewId: 7001, postId: 9001, candidateId: 1001, status: 'SCHEDULED', scheduledAt: '2026-08-20T10:00:00' }));
   if (path.includes('/api/bookmarks')) return Promise.resolve(jsonResponse(method === 'GET' ? [{ postId: 9001 }] : { success: true }));
   if (path.includes('/api/resumes') || path.includes('/api/portfolios')) return Promise.resolve(jsonResponse({ success: true, portfolioUrl: 'https://github.com/demo-candidate', status: 'SUBMITTED' }));
   if (path.includes('/api/progress') || path.includes('/api/invitations') || path.includes('/api/email')) return Promise.resolve(jsonResponse({ success: true, message: 'Demo action completed.' }));
   if (path.includes('/api/applications') || path.includes('/api/job-candidates')) return Promise.resolve(jsonResponse({ success: true, applicationId: 9901 }));
-  if (path.includes('/api/notifications')) return Promise.resolve(jsonResponse([]));
 
   // A successful no-op keeps secondary demo buttons usable without a database.
   return Promise.resolve(jsonResponse({ success: true, demo: true }));
