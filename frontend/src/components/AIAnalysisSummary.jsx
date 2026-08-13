@@ -22,6 +22,10 @@ const EN_CATEGORY_LABELS = {
   '최근 활동성': 'Recent activity',
   '프로젝트 품질': 'Project quality',
   '기술적 깊이': 'Technical depth',
+  '기술 스택': 'Technology stack',
+  '활동 신호': 'Activity signals',
+  '문제 해결 깊이': 'Problem-solving depth',
+  '커뮤니티·협업 신호': 'Community and collaboration signals',
 };
 
 const asArray = (value) => (Array.isArray(value) ? value : []);

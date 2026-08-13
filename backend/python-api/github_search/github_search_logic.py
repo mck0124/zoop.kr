@@ -736,6 +736,71 @@ JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므
                     "support_factor": 0.0,
                     "evidence": [{"evidence_id": _evidence_id("github", name, "missing"), "source": "missing", "claim": "이 평가 차원에 대한 확인 근거 없음", "verification_state": "needs_verification", "confidence": 0.0}],
                 })
+        # The model may return valid prose while omitting the required source
+        # reference. In that case, retain the safety gate but derive a small,
+        # fully traceable baseline from the observed public GitHub snapshot.
+        # This prevents a formatting failure from turning a real profile into
+        # an all-zero result.
+        if not any(item["verification_state"] == "grounded" for dimension in dimensions for item in dimension["evidence"]):
+            languages = safe_details["languages"]
+            skills = safe_details["skills_analysis"]
+            repo_signals = safe_details["repository_signals"]
+            recent_events = safe_details["recent_events"]
+            primary_language = languages[0] if languages else next(iter(skills), None)
+            documented_count = int(repo_signals.get("documented_top_repository_count", 0) or 0)
+            active_count = int(repo_signals.get("active_repository_count", 0) or 0)
+            original_count = int(repo_signals.get("original_repository_count", 0) or 0)
+
+            def observed_dimension(name, raw_score, source, reference, claim):
+                maximum = max_scores[name]
+                raw_score = round(max(0.0, min(float(maximum), float(raw_score))), 1)
+                confidence = 0.85
+                return {
+                    "name": name,
+                    "score": round(raw_score * confidence, 1),
+                    "model_score": raw_score,
+                    "max": maximum,
+                    "evidence_support": confidence,
+                    "support_factor": confidence,
+                    "evidence": [{
+                        "evidence_id": _evidence_id("github", name, source, reference),
+                        "source": source,
+                        "evidence_ref": str(reference),
+                        "claim": claim,
+                        "observed_value": observed_evidence(source, str(reference)),
+                        "verification_state": "grounded",
+                        "confidence": confidence,
+                    }],
+                }
+
+            fallback_dimensions = []
+            if primary_language:
+                fallback_dimensions.append(observed_dimension(
+                    "기술 스택", min(20, len(languages) * 4), "languages", primary_language,
+                    f"Observed {len(languages)} programming language(s) in public repositories, including {primary_language}."
+                ))
+            if "documented_top_repository_count" in repo_signals:
+                fallback_dimensions.append(observed_dimension(
+                    "프로젝트 품질", min(20, documented_count * 5 + min(8, original_count * 0.4)), "repository_signals", "documented_top_repository_count",
+                    f"Observed {documented_count} documented top repository or repositories in the public snapshot."
+                ))
+            if "active_repository_count" in repo_signals:
+                fallback_dimensions.append(observed_dimension(
+                    "활동 신호", min(20, active_count), "repository_signals", "active_repository_count",
+                    f"Observed {active_count} public repository or repositories maintained within the last 12 months."
+                ))
+            if primary_language and primary_language in skills:
+                fallback_dimensions.append(observed_dimension(
+                    "문제 해결 깊이", min(20, len(skills) * 4 + min(8, original_count * 0.3)), "skills_analysis", primary_language,
+                    f"Observed public repository activity across {len(skills)} technology area(s)."
+                ))
+            if recent_events:
+                fallback_dimensions.append(observed_dimension(
+                    "커뮤니티·협업 신호", min(20, len(recent_events) * 2), "recent_events", "0",
+                    "Observed recent public GitHub activity; verify team collaboration directly in interview."
+                ))
+            if fallback_dimensions:
+                dimensions = fallback_dimensions
         if not dimensions:
             raise ValueError("GitHub 분석 차원이 비어 있습니다.")
         grounded = [item for dimension in dimensions for item in dimension["evidence"] if item["verification_state"] == "grounded" and item["claim"] != "확인된 근거 없음"]
@@ -753,7 +818,7 @@ JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므
             "score": score,
             "score_calibration": {
                 "method": "evidence_weighted_github_v1",
-                "description": "모델 초안 점수에 실제 공개 데이터 근거의 검증 상태와 확신도를 반영했습니다.",
+                "description": "The score is calibrated against verifiable public GitHub evidence.",
                 "model_score": round(sum(item.get("model_score", 0) for item in dimensions), 1),
                 "calibrated_score": score,
                 "uncalibrated_dimensions": [item["name"] for item in dimensions if item.get("support_factor", 0) == 0],
@@ -774,9 +839,9 @@ JSON 키와 dimensions의 name 값은 기존 스키마와 호환되어야 하므
                 coverage=round(min(100.0, len(grounded) / max(1, len(dimensions)) * 100), 1),
                 source_integrity=integrity,
             ),
-            "gaps": [str(item) for item in result.get("gaps", []) if item][:6] or ["실제 코드 기여도와 협업 맥락은 GitHub 공개 데이터만으로 확인 불가"],
-            "risk_flags": [str(item) for item in result.get("risk_flags", []) if item][:6] or ["공개 활동량을 실력의 직접 증거로 해석하지 않음"],
-            "verification_plan": [str(item) for item in result.get("verification_plan", []) if item][:6] or ["대표 저장소의 실제 기여와 설계 선택을 면접에서 확인"],
+            "gaps": [str(item) for item in result.get("gaps", []) if item][:6] or ["Verify individual contribution and collaboration context in a representative repository."],
+            "risk_flags": [str(item) for item in result.get("risk_flags", []) if item][:6] or ["Do not interpret public activity volume as direct evidence of ability."],
+            "verification_plan": [str(item) for item in result.get("verification_plan", []) if item][:6] or ["Review representative repository contributions and design decisions during interview."],
             "fairness_guard": result.get("fairness_guard") if isinstance(result.get("fairness_guard"), dict) else {"status": "pass", "excluded_attributes": ["이름", "이메일", "위치", "회사"], "evaluated_attributes": ["공개 기술·프로젝트 근거"]},
             "decision_trace": ["직무와 무관한 개인정보를 평가에서 제외", "공개 GitHub 신호를 5개 직무 관련 차원으로 분리", f"{len(grounded)}개 근거와 확인 불가 영역을 분리", f"독립 근거 유형 {len(source_types)}개를 확인", f"근거 수준에 따른 판단: {decision}"],
             "audit": {

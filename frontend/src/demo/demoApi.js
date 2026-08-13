@@ -6,6 +6,7 @@ import {
 
 const DEMO_GITHUB_LOGINS = ['gaearon', 'sindresorhus', 'kentcdodds', 'yyx990803', 'tj'];
 const DEMO_CANDIDATE_CACHE_KEY = 'zoop.demo.githubCandidates';
+const DEMO_GITHUB_SEARCH_URL = (process.env.REACT_APP_GITHUB_SEARCH_URL || 'http://localhost:8000').replace(/\/$/, '');
 const candidate = { candidateId: 1001, candidateName: 'Minchan Kim', githubLogin: DEMO_GITHUB_LOGINS[0], candidateEmail: 'minchan0124@gmail.com', candidateBio: 'GitHub profile loaded from the public GitHub API.', candidateGithubUrl: `https://github.com/${DEMO_GITHUB_LOGINS[0]}` };
 const applicants = DEMO_GITHUB_LOGINS.map((login, index) => ({
   ...candidate,
@@ -165,6 +166,13 @@ async function fetchRealGithubCandidates() {
 
 function buildDemoAiAnalysisResults(candidates) {
   return candidates.map(candidate => {
+    const liveAnalysis = candidate.analysis || candidate.analysisData;
+    if (liveAnalysis) {
+      return {
+        githubSearchResultId: candidate.githubSearchResultId,
+        analysisData: typeof liveAnalysis === 'string' ? liveAnalysis : JSON.stringify(liveAnalysis),
+      };
+    }
     const repositories = Array.isArray(candidate.repositories) ? candidate.repositories : [];
     const languages = Array.isArray(candidate.languages) ? candidate.languages : [];
     const dimensions = [
@@ -198,6 +206,59 @@ function buildDemoAiAnalysisResults(candidates) {
   });
 }
 
+async function fetchLiveGithubCandidates(postId) {
+  const response = await fetch(`${DEMO_GITHUB_SEARCH_URL}/search`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      languages: ['JavaScript', 'TypeScript'],
+      regions: ['Hong Kong', 'Remote'],
+      nationwide: true,
+      headcount: 5,
+      idealCandidate: 'Evidence-driven frontend or product engineer with strong collaboration skills.',
+      post_id: postId,
+      language: 'en',
+    }),
+  });
+  if (!response.ok) throw new Error(`GitHub analysis service returned ${response.status}`);
+  const payload = await response.json();
+  const results = Array.isArray(payload?.candidates) ? payload.candidates : [];
+  if (!results.length) throw new Error('GitHub analysis service returned no candidates');
+
+  const candidates = results.map((item, index) => {
+    const login = item.login || item.githubLogin;
+    const analysis = item.analysis || item.analysisData;
+    const score = Number(item.llm_score ?? item.score ?? 0);
+    const details = item.details || {};
+    return {
+      candidateId: 1001 + index,
+      githubSearchResultId: 6001 + index,
+      jobCandidateId: 7100 + index,
+      postId,
+      jobCandCurrStage: '2y',
+      candPortfolioId: 8100 + index,
+      candidateName: item.name || login,
+      githubLogin: login,
+      login,
+      candidateEmail: item.email || null,
+      candidateBio: item.bio || 'GitHub profile analyzed from public source data.',
+      candidateGithubUrl: item.profile_url || `https://github.com/${login}`,
+      githubProfileUrl: item.profile_url || `https://github.com/${login}`,
+      avatarUrl: item.avatar_url || `https://github.com/${login}.png?size=160`,
+      followers: Number(item.followers ?? details.followers ?? 0),
+      publicRepos: Number(item.public_repos ?? details.public_repos ?? 0),
+      repositoriesCount: Number(item.public_repos ?? details.public_repos ?? 0),
+      candidateLanguages: Array.isArray(details.languages) ? details.languages.join(', ') : (item.languages || ''),
+      languages: Array.isArray(details.languages) ? details.languages : [],
+      analysisScore: Number.isFinite(score) ? score : 0,
+      score: Number.isFinite(score) ? score : 0,
+      analysis,
+    };
+  });
+  window.localStorage.setItem(DEMO_CANDIDATE_CACHE_KEY, JSON.stringify(candidates));
+  return candidates;
+}
+
 export function demoFetch(input, init = {}) {
   const rawUrl = typeof input === 'string' ? input : input?.url || '';
   const url = new URL(rawUrl, window.location.origin);
@@ -223,7 +284,8 @@ export function demoFetch(input, init = {}) {
     const parts = path.split('/');
     const postId = Number(parts[parts.indexOf('by-post') + 1]);
     const filter = parts[parts.indexOf('by-post') + 2] || 'all';
-    return fetchRealGithubCandidates()
+    return fetchLiveGithubCandidates(postId)
+      .catch(() => fetchRealGithubCandidates())
       .then(realCandidates => {
         const stageRows = dashboardCandidatesFor(postId, filter);
         const rows = realCandidates.map((candidate, index) => ({
