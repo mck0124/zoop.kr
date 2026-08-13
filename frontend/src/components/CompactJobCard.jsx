@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FaMapMarkerAlt, FaCalendarAlt, FaRegBookmark, FaBookmark } from 'react-icons/fa';
 import './CompactJobCard.css';
 
@@ -10,6 +10,7 @@ function getInitials(name) {
 }
 
 export default function CompactJobCard({ post, onClick, isBookmarked, onBookmarkToggle, onApply }) {
+  const [logoFailed, setLogoFailed] = useState(false);
   const {
     companyName,
     postTitle,
@@ -36,8 +37,13 @@ export default function CompactJobCard({ post, onClick, isBookmarked, onBookmark
         {isBookmarked ? <FaBookmark color="#30c59b" size={22} /> : <FaRegBookmark color="#bbb" size={22} />}
       </button>
       <div className="logo-wrap">
-        {companyLogoUrl ? (
-          <img src={companyLogoUrl} alt={companyName} className="company-logo" />
+        {companyLogoUrl && !logoFailed ? (
+          <img
+            src={companyLogoUrl}
+            alt=""
+            className="company-logo"
+            onError={() => setLogoFailed(true)}
+          />
         ) : (
           <div className="company-initials">{getInitials(companyName)}</div>
         )}
