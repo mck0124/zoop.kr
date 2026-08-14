@@ -9,6 +9,7 @@ import SEO from '../../components/SEO';
 import AIAnalysisSummary, { parseAIAnalysisData } from '../../components/AIAnalysisSummary';
 import { apiUrl } from '../../api/config';
 import { DEMO_COMPANY_INFO, DEMO_COMPANY_POSTINGS, DEMO_MODE } from '../../demo/demoData';
+import { formatSalaryRange } from '../../utils/formatters';
 
 const authenticatedFetch = (url, options = {}) => fetch(url, {
   ...options,
@@ -1654,7 +1655,7 @@ export default function CompanyDashboard() {
                           <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                             <strong style={{ color: '#2d3748', fontSize: '1.1rem' }}>Salary range</strong>
                             <div style={{ marginTop: '0.5rem', color: '#4a5568' }}>
-                              {selectedPostDetail.postSalaryStart || '0'} ~ {selectedPostDetail.postSalaryEnd || '0'}
+                              {formatSalaryRange(selectedPostDetail.postSalaryStart, selectedPostDetail.postSalaryEnd)}
                             </div>
                           </div>
                           <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>

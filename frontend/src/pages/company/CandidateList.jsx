@@ -5,6 +5,7 @@ import Navbar from '../../components/Navbar';
 import { FaGithub, FaTimes } from 'react-icons/fa';
 import SEO from '../../components/SEO';
 import { apiUrl } from '../../api/config';
+import { formatSalaryRange } from '../../utils/formatters';
 import AIAnalysisSummary from '../../components/AIAnalysisSummary';
 
 const authenticatedFetch = (url, options = {}) => fetch(url, {
@@ -1485,7 +1486,7 @@ export default function CandidateList({ activeTab = 'all' }) {
   const top10CandidateScore = percentileScore(90);
 
   if (loading) {
-    return <Wrapper><Navbar /><Container>Loading candidates...</Container></Wrapper>;
+    return <Wrapper><Navbar /><Container><div className="candidate-state-card candidate-state-card-loading" role="status" aria-live="polite"><span className="candidate-state-spinner" aria-hidden="true" /><h2>Preparing candidate review</h2><p>We are collecting public evidence and calculating grounded scores.</p></div></Container></Wrapper>;
   }
 
   if (loadError) {
@@ -1530,7 +1531,7 @@ export default function CandidateList({ activeTab = 'all' }) {
             <PostInfoHeader>{postInfo.postTitle}</PostInfoHeader>
             <PostInfoGrid>
               <div><InfoLabel>Location</InfoLabel><InfoText>{postInfo.postLocation || 'Not specified'}</InfoText></div>
-              <div><InfoLabel>Salary</InfoLabel><InfoText>{postInfo.postSalaryStart || '0'} – {postInfo.postSalaryEnd || '0'}</InfoText></div>
+              <div><InfoLabel>Salary</InfoLabel><InfoText>{formatSalaryRange(postInfo.postSalaryStart, postInfo.postSalaryEnd)}</InfoText></div>
               <div><InfoLabel>Openings</InfoLabel><InfoText>{postInfo.postHeadcount || 0}</InfoText></div>
               <div><InfoLabel>Posted</InfoLabel><InfoText>{formatDate(postInfo.postPostedDate)}</InfoText></div>
             </PostInfoGrid>
@@ -1574,7 +1575,12 @@ export default function CandidateList({ activeTab = 'all' }) {
 
         {/* 포스터 가로 스크롤 */}
         {candidates.length === 0 ? (
-          <PostDesc>No recommended candidates yet.<br />Candidates will appear when the search is complete.</PostDesc>
+          <div className="candidate-state-card candidate-state-card-empty" role="status">
+            <div className="candidate-state-icon" aria-hidden="true">◎</div>
+            <h3>No candidates are ready yet</h3>
+            <p>Candidate results will appear here after the public evidence search is complete.</p>
+            <button type="button" onClick={() => { setLoading(true); setReloadToken(value => value + 1); }}>Refresh candidates</button>
+          </div>
         ) : (
           <PosterScrollWrap>
             <PostersRow>

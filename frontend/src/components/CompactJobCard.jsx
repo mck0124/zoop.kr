@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaMapMarkerAlt, FaCalendarAlt, FaRegBookmark, FaBookmark } from 'react-icons/fa';
 import './CompactJobCard.css';
+import { formatSalaryRange } from '../utils/formatters';
 
 function getInitials(name) {
   if (!name) return '';
@@ -56,7 +57,7 @@ export default function CompactJobCard({ post, onClick, isBookmarked, onBookmark
             <FaMapMarkerAlt /> {postLocation}
           </span>
           <span className="meta-item">
-            <FaCalendarAlt /> {postExpiryDate ? new Date(postExpiryDate).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit', weekday: 'short' }) : ''}
+            <FaCalendarAlt /> {postExpiryDate ? new Date(postExpiryDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No deadline'}
           </span>
         </div>
         <div className="job-tags">
@@ -64,10 +65,10 @@ export default function CompactJobCard({ post, onClick, isBookmarked, onBookmark
             <span className="job-tag" key={lang}>{lang.trim()}</span>
           ))}
           {postSalaryStart && postSalaryEnd && (
-            <span className="job-tag salary">{postSalaryStart}~{postSalaryEnd}만원</span>
+            <span className="job-tag salary">{formatSalaryRange(postSalaryStart, postSalaryEnd)}</span>
           )}
           {postHeadcount && (
-            <span className="job-tag headcount">{postHeadcount}명</span>
+            <span className="job-tag headcount">{postHeadcount} openings</span>
           )}
         </div>
         {onApply && (
@@ -79,7 +80,7 @@ export default function CompactJobCard({ post, onClick, isBookmarked, onBookmark
               onApply(post);
             }}
           >
-            지원하기
+            Apply now
           </button>
         )}
       </div>

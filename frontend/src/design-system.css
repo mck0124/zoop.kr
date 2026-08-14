@@ -298,6 +298,49 @@ select:focus-visible, textarea:focus-visible {
 .decision-lens-rank-score { color: var(--zoop-green-dark); font-size: .8rem; font-weight: 850; }
 .decision-lens-rank-status { color: var(--zoop-muted); font-size: .75rem; text-align: right; }
 
+.candidate-state-card {
+  display: grid;
+  justify-items: center;
+  gap: .45rem;
+  margin: 1.5rem 0;
+  padding: 3rem 1.5rem;
+  border: 1px solid var(--zoop-border);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .82);
+  box-shadow: var(--zoop-shadow-sm);
+  text-align: center;
+}
+
+.candidate-state-card h2, .candidate-state-card h3 {
+  margin: .35rem 0 0;
+  color: var(--zoop-ink);
+  font-size: 1.25rem;
+  letter-spacing: -.025em;
+}
+
+.candidate-state-card p { max-width: 480px; margin: 0; color: var(--zoop-muted); line-height: 1.6; }
+.candidate-state-card button {
+  margin-top: .8rem;
+  padding: .7rem 1.1rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--zoop-green);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+.candidate-state-card button:hover { background: var(--zoop-green-dark); }
+.candidate-state-icon { color: var(--zoop-green); font-size: 2.3rem; line-height: 1; }
+.candidate-state-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #d9eee6;
+  border-top-color: var(--zoop-green);
+  border-radius: 50%;
+  animation: zoop-spin .8s linear infinite;
+}
+@keyframes zoop-spin { to { transform: rotate(360deg); } }
+
 @media (max-width: 900px) {
   .company-dashboard .dashboard-container {
     display: block !important;
