@@ -24,6 +24,7 @@ public class S3Service {
     private final S3Client s3Client;
     private final String bucket;
     private final String region;
+    private final boolean configured;
 
     public S3Service(
         @Value("${cloud.aws.credentials.access-key}") String accessKey,
@@ -33,17 +34,31 @@ public class S3Service {
     ) {
         this.bucket = bucket;
         this.region = region;
-        this.s3Client = S3Client.builder()
-                .region(Region.of(region))
-                .credentialsProvider(
-                    StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(accessKey, secretKey)
+        this.configured = !accessKey.isBlank() && !secretKey.isBlank() && !bucket.isBlank();
+
+        if (configured) {
+            this.s3Client = S3Client.builder()
+                    .region(Region.of(region))
+                    .credentialsProvider(
+                        StaticCredentialsProvider.create(
+                            AwsBasicCredentials.create(accessKey, secretKey)
+                        )
                     )
-                )
-                .build();
+                    .build();
+        } else {
+            this.s3Client = null;
+            System.out.println("[S3Service] AWS credentials are not configured; file uploads are disabled locally.");
+        }
+    }
+
+    private void requireConfiguredS3() throws IOException {
+        if (!configured) {
+            throw new IOException("S3 uploads are not configured for this local environment.");
+        }
     }
 
     public String uploadPortfolioFile(MultipartFile file) throws IOException {
+        requireConfiguredS3();
         String key = "portfolios/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
         System.out.println("[S3Service] S3 업로드 시도: bucket=" + bucket + ", key=" + key + ", fileName=" + file.getOriginalFilename());
         try {
@@ -72,6 +87,7 @@ public class S3Service {
     }
 
     public String uploadInterviewVideoFile(MultipartFile file) throws IOException {
+        requireConfiguredS3();
         String key = "videos/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
         System.out.println("[S3Service] S3 업로드 시도: bucket=" + bucket + ", key=" + key + ", fileName=" + file.getOriginalFilename());
         try {
@@ -104,6 +120,7 @@ public class S3Service {
      * @throws IOException
     */
     public ResponseInputStream<GetObjectResponse> downloadFile(String s3Url) throws IOException {
+        requireConfiguredS3();
         URI uri;
         try {
             uri = new URI(s3Url);
