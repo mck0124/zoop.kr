@@ -7,7 +7,7 @@ import {
 const DEMO_GITHUB_LOGINS = ['gaearon', 'sindresorhus', 'kentcdodds', 'yyx990803', 'tj'];
 const DEMO_CANDIDATE_CACHE_KEY = 'zoop.demo.githubCandidates';
 const DEMO_GITHUB_SEARCH_URL = (process.env.REACT_APP_GITHUB_SEARCH_URL || 'http://localhost:8000').replace(/\/$/, '');
-const LIVE_ANALYSIS_TIMEOUT_MS = 15000;
+const LIVE_ANALYSIS_TIMEOUT_MS = 120000;
 const candidate = { candidateId: 1001, candidateName: 'Minchan Kim', githubLogin: DEMO_GITHUB_LOGINS[0], candidateEmail: 'minchan0124@gmail.com', candidateBio: 'GitHub profile loaded from the public GitHub API.', candidateGithubUrl: `https://github.com/${DEMO_GITHUB_LOGINS[0]}` };
 const applicants = DEMO_GITHUB_LOGINS.map((login, index) => ({
   ...candidate,
@@ -50,6 +50,21 @@ const applicants = DEMO_GITHUB_LOGINS.map((login, index) => ({
     evidence: [{ verification_state: 'verified', source: 'GitHub public API', claim: 'Public GitHub profile signals were collected for review.' }],
     gaps: ['Verify ownership and design decisions in a representative project.'],
   },
+}));
+// These only make the screen usable while the live request is running. They are
+// deliberately not scored, not treated as analyzed, and do not invent contact
+// details. The real GitHub + model response replaces them when it arrives.
+const pendingApplicants = applicants.map(({ analysis, ...applicant }) => ({
+  ...applicant,
+  candidateEmail: null,
+  analysisScore: null,
+  score: null,
+  followerScore: 0,
+  repoScore: 0,
+  languageScore: 0,
+  activityScore: 0,
+  projectQualityScore: 0,
+  technicalDepthScore: 0,
 }));
 const analysis = { version: 'github-evidence-v1', score: 92, summary: 'Strong evidence of frontend product ownership and reliable delivery.', evidence: [{ verification_state: 'verified', claim: 'Built production React interfaces', source: 'GitHub activity' }], dimensions: [{ name: 'Product engineering', score: 92, evidence: [{ verification_state: 'verified', source: 'Repository history' }] }] };
 
@@ -138,7 +153,7 @@ async function fetchGithubCandidate(login, index, searchIndex) {
     candidateName: profile.name || profile.login,
     githubLogin: profile.login,
     login: profile.login,
-    candidateEmail: `${profile.login}@demo.example`,
+    candidateEmail: profile.email || null,
     candidateBio: profile.bio || 'Public GitHub contributor',
     candidateGithubUrl: profile.html_url,
     githubProfileUrl: profile.html_url,
@@ -263,6 +278,7 @@ async function fetchLiveGithubCandidates(postId) {
     return {
       candidateId: 1001 + index,
       githubSearchResultId: 6001 + index,
+      source: 'live-github-deepseek',
       jobCandidateId: 7100 + index,
       postId,
       jobCandCurrStage: '2y',
@@ -292,7 +308,7 @@ async function fetchLiveGithubCandidates(postId) {
 function cachedLiveCandidates() {
   try {
     const cached = JSON.parse(window.localStorage.getItem(DEMO_CANDIDATE_CACHE_KEY) || '[]');
-    return Array.isArray(cached) && cached.length && cached.every(item => item?.analysis)
+    return Array.isArray(cached) && cached.length && cached.every(item => item?.source === 'live-github-deepseek' && item?.analysis)
       ? cached
       : null;
   } catch {
@@ -345,17 +361,16 @@ export function demoFetch(input, init = {}) {
     void fetchLiveGithubCandidates(postId)
       .then(() => window.dispatchEvent(new CustomEvent('zoop:live-candidates-ready', { detail: { postId } })))
       .catch(() => {});
-    return Promise.resolve(jsonResponse(demoCandidateRows(postId, applicants, filter)));
+    return Promise.resolve(jsonResponse(demoCandidateRows(postId, pendingApplicants, filter)));
   }
   if (path.includes('/api/github-search')) {
     return fetchRealGithubCandidates()
       .then(realCandidates => jsonResponse(realCandidates))
-      .catch(() => jsonResponse(applicants));
+      .catch(() => jsonResponse(pendingApplicants));
   }
   if (path.includes('/api/ai-analysis-results')) {
-    let cachedCandidates = [];
-    try { cachedCandidates = JSON.parse(window.localStorage.getItem(DEMO_CANDIDATE_CACHE_KEY) || '[]'); } catch { cachedCandidates = []; }
-    return Promise.resolve(jsonResponse(buildDemoAiAnalysisResults(Array.isArray(cachedCandidates) ? cachedCandidates : applicants)));
+    const cachedCandidates = cachedLiveCandidates();
+    return Promise.resolve(jsonResponse(cachedCandidates ? buildDemoAiAnalysisResults(cachedCandidates) : []));
   }
   if (path.includes('/api/notifications/unread-count')) return Promise.resolve(jsonResponse({ count: DEMO_NOTIFICATIONS.filter(item => !item.isRead).length }));
   if (path.includes('/api/notifications')) return Promise.resolve(jsonResponse(DEMO_NOTIFICATIONS));
