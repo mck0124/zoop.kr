@@ -2043,7 +2043,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                     <div key={candidate.githubLogin || candidate.login} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
                       <span style={{ color: '#22c55e', fontWeight: 'bold' }}>✓</span>
                       <span style={{ fontWeight: '600' }}>{candidate.githubLogin || candidate.login}</span>
-                      <span style={{ color: '#6b7280' }}>({candidate.candidateEmail || candidate.email || '이메일 없음'})</span>
+                      <span style={{ color: '#6b7280' }}>({candidate.candidateEmail || candidate.email || 'No email'})</span>
                     </div>
                   ))}
                 </div>
