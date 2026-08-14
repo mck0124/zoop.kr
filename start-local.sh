@@ -51,12 +51,16 @@ echo "Starting Spring backend (http://localhost:8080)…"
 ) >"$LOG_DIR/backend.log" 2>&1 &
 BACKEND_PID=$!
 
-echo "Starting React frontend (http://localhost:3000)…"
-(
-  cd "$ROOT_DIR/frontend"
-  exec npm start
-) >"$LOG_DIR/frontend.log" 2>&1 &
-FRONTEND_PID=$!
+if lsof -tiTCP:3000 -sTCP:LISTEN >/dev/null 2>&1; then
+  echo "React frontend is already running on http://localhost:3000"
+else
+  echo "Starting React frontend (http://localhost:3000)…"
+  (
+    cd "$ROOT_DIR/frontend"
+    exec npm start
+  ) >"$LOG_DIR/frontend.log" 2>&1 &
+  FRONTEND_PID=$!
+fi
 
 echo
 echo "ZOOP is starting. Logs:"
@@ -65,4 +69,4 @@ echo "  Backend:  $LOG_DIR/backend.log"
 echo "  Python:   $LOG_DIR/python-launcher.log"
 echo "Press Ctrl+C to stop React and Spring. Python services can be refreshed with backend/python-api/start_services.sh --restart."
 
-wait "$BACKEND_PID" "$FRONTEND_PID"
+wait "$BACKEND_PID"
