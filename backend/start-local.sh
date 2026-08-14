@@ -21,6 +21,7 @@ export DATABASE_URL="${DATABASE_URL:-jdbc:oracle:thin:@localhost:1521/XEPDB1}"
 export DATABASE_USERNAME="${DATABASE_USERNAME:-zoop}"
 export DATABASE_PASSWORD
 export SPRING_JPA_HIBERNATE_DDL_AUTO="${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}"
+export ZOOP_DEMO_SEED="${ZOOP_DEMO_SEED:-true}"
 export JWT_SECRET="${JWT_SECRET:-local-development-jwt-secret-change-this-before-production-2026}"
 export ZOOP_INTERNAL_API_KEY="${ZOOP_INTERNAL_API_KEY:-local-internal-api-key}"
 export FRONTEND_URL="${FRONTEND_URL:-http://localhost:3100}"
