@@ -26,7 +26,7 @@ public class EmailService {
     private final EmailVerificationRepository repository;
     private final Random random = new Random();
 
-    @Value("${zoop.frontend.url:http://localhost:3000}")
+    @Value("${zoop.frontend.url:http://localhost:3100}")
     private String frontendUrl;
 
     public EmailService(JavaMailSender mailSender, EmailVerificationRepository repository) {

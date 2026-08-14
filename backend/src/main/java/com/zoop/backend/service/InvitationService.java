@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class InvitationService {
 
-    @Value("${zoop.frontend.url:http://localhost:3000}")
+    @Value("${zoop.frontend.url:http://localhost:3100}")
     private String frontendUrl;
 
     private final InvitationRepository invitationRepository;

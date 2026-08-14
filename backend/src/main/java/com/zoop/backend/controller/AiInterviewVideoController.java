@@ -37,7 +37,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/api/interview-videos")
 public class AiInterviewVideoController {
 
-    @Value("${python.questions.api.url:http://localhost:8004}")
+    @Value("${python.questions.api.url:http://localhost:8104}")
     private String pythonQuestionsApiUrl;
 
     private final AiInterviewVideoService aiInterviewVideoService;

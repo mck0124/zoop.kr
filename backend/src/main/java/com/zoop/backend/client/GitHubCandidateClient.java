@@ -22,7 +22,7 @@ public class GitHubCandidateClient {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${python.github.api.url:http://localhost:8000}")
+    @Value("${python.github.api.url:http://localhost:8100}")
     private String githubApiUrl;
 
     public List<CandidateDto> getCandidates(FilterRequestDto dto) {

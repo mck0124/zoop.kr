@@ -14,9 +14,9 @@ import requests
 
 
 SERVICE_URLS = {
-    "github": os.getenv("ZOOP_GITHUB_SERVICE_URL", "http://localhost:8000"),
-    "questions": os.getenv("ZOOP_QUESTIONS_SERVICE_URL", "http://localhost:8004"),
-    "interview": os.getenv("ZOOP_INTERVIEW_SERVICE_URL", "http://localhost:8002"),
+    "github": os.getenv("ZOOP_GITHUB_SERVICE_URL", "http://localhost:8100"),
+    "questions": os.getenv("ZOOP_QUESTIONS_SERVICE_URL", "http://localhost:8104"),
+    "interview": os.getenv("ZOOP_INTERVIEW_SERVICE_URL", "http://localhost:8102"),
 }
 REQUEST_TIMEOUT = float(os.getenv("ZOOP_WORKFLOW_TIMEOUT_SECONDS", "30"))
 

@@ -26,7 +26,7 @@ public class InterviewAnalysisService {
     private final AiInterviewScheduleRepository aiInterviewScheduleRepository;
     private final RestTemplate restTemplate;
     
-    @Value("${python.interview.api.url:${python.api.url:http://localhost:8002}}")
+    @Value("${python.interview.api.url:${python.api.url:http://localhost:8102}}")
     private String pythonApiUrl;
     
     @Autowired

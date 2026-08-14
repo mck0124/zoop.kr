@@ -6,7 +6,7 @@ import {
 
 const DEMO_GITHUB_LOGINS = ['gaearon', 'sindresorhus', 'kentcdodds', 'yyx990803', 'tj'];
 const DEMO_CANDIDATE_CACHE_KEY = 'zoop.demo.githubCandidates';
-const DEMO_GITHUB_SEARCH_URL = (process.env.REACT_APP_GITHUB_SEARCH_URL || 'http://localhost:8000').replace(/\/$/, '');
+const DEMO_GITHUB_SEARCH_URL = (process.env.REACT_APP_GITHUB_SEARCH_URL || 'http://localhost:8100').replace(/\/$/, '');
 const LIVE_ANALYSIS_TIMEOUT_MS = 120000;
 const candidate = { candidateId: 1001, candidateName: 'Minchan Kim', githubLogin: DEMO_GITHUB_LOGINS[0], candidateEmail: 'minchan0124@gmail.com', candidateBio: 'GitHub profile loaded from the public GitHub API.', candidateGithubUrl: `https://github.com/${DEMO_GITHUB_LOGINS[0]}` };
 // Identifiers only while live GitHub collection and AI analysis are running.

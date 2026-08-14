@@ -6,6 +6,7 @@ set -Eeuo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG_DIR="$ROOT_DIR/local-logs"
 BACKEND_ENV_FILE="$ROOT_DIR/backend/.env"
+FRONTEND_PORT=3100
 BACKEND_PID=""
 FRONTEND_PID=""
 
@@ -38,6 +39,7 @@ if [[ -z "${DATABASE_PASSWORD:-}" ]]; then
   exit 1
 fi
 export DATABASE_PASSWORD
+export FRONTEND_URL="${FRONTEND_URL:-http://localhost:$FRONTEND_PORT}"
 
 mkdir -p "$LOG_DIR"
 
@@ -51,10 +53,10 @@ echo "Starting Spring backend (http://localhost:8080)…"
 ) >"$LOG_DIR/backend.log" 2>&1 &
 BACKEND_PID=$!
 
-if lsof -tiTCP:3000 -sTCP:LISTEN >/dev/null 2>&1; then
-  echo "React frontend is already running on http://localhost:3000"
+if lsof -tiTCP:$FRONTEND_PORT -sTCP:LISTEN >/dev/null 2>&1; then
+  echo "React frontend is already running on http://localhost:$FRONTEND_PORT"
 else
-  echo "Starting React frontend (http://localhost:3000)…"
+  echo "Starting React frontend (http://localhost:$FRONTEND_PORT)…"
   (
     cd "$ROOT_DIR/frontend"
     exec npm start

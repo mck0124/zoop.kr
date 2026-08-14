@@ -64,7 +64,7 @@ public class PortfolioService {
                             AiAnalysisResultService aiAnalysisResultService,
                             JobCandProgressService jobCandProgressService,
                             CompanyNotificationService companyNotificationService,
-                            @Value("${python.matching.api.url:${python.api.url:http://localhost:8003}}") String pythonBaseUrl) { // 포트폴리오 분석 전용 서비스
+                            @Value("${python.matching.api.url:${python.api.url:http://localhost:8103}}") String pythonBaseUrl) { // 포트폴리오 분석 전용 서비스
         this.portfolioRepository = portfolioRepository;
         this.s3Service = s3Service;
         this.jobCandProgressRepository = jobCandProgressRepository;

@@ -26,7 +26,7 @@ def get_openai_client():
     return client
 
 app = FastAPI()
-ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",") if origin.strip()]
+ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3100").split(",") if origin.strip()]
 
 app.add_middleware(
     CORSMiddleware,
@@ -487,4 +487,4 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8004)
+    uvicorn.run(app, host="0.0.0.0", port=8104)

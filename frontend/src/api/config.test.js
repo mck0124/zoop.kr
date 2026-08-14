@@ -8,5 +8,5 @@ test('only treats same-origin or configured API URLs as trusted', () => {
 });
 
 test('uses the local chatbot service by default during development', () => {
-  expect(CHATBOT_API_URL).toBe('http://localhost:8001');
+  expect(CHATBOT_API_URL).toBe('http://localhost:8101');
 });

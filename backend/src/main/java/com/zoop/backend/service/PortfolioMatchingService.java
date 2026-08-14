@@ -41,7 +41,7 @@ public class PortfolioMatchingService {
     
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${python.matching.api.url:http://localhost:8003}")
+    @Value("${python.matching.api.url:http://localhost:8103}")
     private String pythonMatchingApiUrl;
     
     /**

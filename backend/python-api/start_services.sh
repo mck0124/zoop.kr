@@ -48,7 +48,7 @@ stop_port() {
 }
 
 if [[ "$RESTART" == true ]]; then
-  for port in 8000 8001 8002 8003 8004 5003; do
+  for port in 8100 8101 8102 8103 8104 5103; do
     stop_port "$port"
   done
   sleep 2
@@ -75,12 +75,12 @@ start_service() {
 }
 
 echo "Starting ZOOP Python services…"
-start_service "github-search" "$SCRIPT_DIR/github_search" "main:app" 8000
-start_service "chatbot" "$SCRIPT_DIR/chatbot" "chatbot_api:app" 8001
-start_service "interview-analysis" "$SCRIPT_DIR/interview_analysis" "interview_analysis_api:app" 8002
-start_service "portfolio-matching" "$SCRIPT_DIR/portfolio_matching" "portfolio_matching_api:app" 8003
-start_service "interview-questions" "$SCRIPT_DIR/interview_questions" "interview_questions_api:app" 8004
-start_service "ocr" "$SCRIPT_DIR/../ocr" "ocr_api:app" 5003
+start_service "github-search" "$SCRIPT_DIR/github_search" "main:app" 8100
+start_service "chatbot" "$SCRIPT_DIR/chatbot" "chatbot_api:app" 8101
+start_service "interview-analysis" "$SCRIPT_DIR/interview_analysis" "interview_analysis_api:app" 8102
+start_service "portfolio-matching" "$SCRIPT_DIR/portfolio_matching" "portfolio_matching_api:app" 8103
+start_service "interview-questions" "$SCRIPT_DIR/interview_questions" "interview_questions_api:app" 8104
+start_service "ocr" "$SCRIPT_DIR/../ocr" "ocr_api:app" 5103
 
 echo
 echo "Done. Re-run with --restart to stop and refresh only these local service ports."

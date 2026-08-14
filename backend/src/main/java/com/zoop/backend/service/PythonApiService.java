@@ -19,12 +19,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PythonApiService {
 
-    @Value("${python.chatbot.api.url:http://localhost:8001}")
+    @Value("${python.chatbot.api.url:http://localhost:8101}")
     private String pythonApiUrl;
 
     // Interview-question generation is a separate service from portfolio matching.
     // Keep the local default aligned with start_services.sh and the documented 8004 port.
-    @Value("${python.questions.api.url:http://localhost:8004}")
+    @Value("${python.questions.api.url:http://localhost:8104}")
     private String pythonInterviewApiUrl;
 
     private final RestTemplate restTemplate;

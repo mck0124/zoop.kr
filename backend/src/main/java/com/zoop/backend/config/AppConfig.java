@@ -20,7 +20,7 @@ public class AppConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
-    @Value("${zoop.frontend.url:http://localhost:3000}")
+    @Value("${zoop.frontend.url:http://localhost:3100}")
     private String frontendUrl;
 
     // 🔐 비밀번호 인코더 Bean 등록

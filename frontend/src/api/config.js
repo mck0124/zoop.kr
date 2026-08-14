@@ -3,10 +3,10 @@
 export const API_BASE_URL = (process.env.REACT_APP_API_URL || '').replace(/\/$/, '');
 const localDefaults = process.env.NODE_ENV !== 'production' ? {
   core: 'http://localhost:8081',
-  chatbot: 'http://localhost:8001',
-  interview: 'http://localhost:8002',
-  matching: 'http://localhost:8003',
-  ocr: 'http://localhost:5003',
+  chatbot: 'http://localhost:8101',
+  interview: 'http://localhost:8102',
+  matching: 'http://localhost:8103',
+  ocr: 'http://localhost:5103',
 } : null;
 const serviceUrl = (configured, fallback) => (configured || fallback || API_BASE_URL || '').replace(/\/$/, '');
 
@@ -33,8 +33,8 @@ export function withApiBase(url, baseUrl = API_BASE_URL) {
   if (typeof url !== 'string') return url;
   return url
     .replace(/^http:\/\/localhost:8081/, API_BASE_URL)
-    .replace(/^http:\/\/localhost:8001/, CHATBOT_API_URL)
-    .replace(/^http:\/\/localhost:8002/, INTERVIEW_API_URL)
-    .replace(/^http:\/\/localhost:8003/, MATCHING_API_URL)
-    .replace(/^http:\/\/localhost:5003/, OCR_API_URL);
+    .replace(/^http:\/\/localhost:8101/, CHATBOT_API_URL)
+    .replace(/^http:\/\/localhost:8102/, INTERVIEW_API_URL)
+    .replace(/^http:\/\/localhost:8103/, MATCHING_API_URL)
+    .replace(/^http:\/\/localhost:5103/, OCR_API_URL);
 }

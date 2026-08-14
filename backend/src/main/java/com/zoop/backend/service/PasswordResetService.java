@@ -27,7 +27,7 @@ public class PasswordResetService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${zoop.frontend.url:http://localhost:3000}")
+    @Value("${zoop.frontend.url:http://localhost:3100}")
     private String frontendUrl;
 
 
