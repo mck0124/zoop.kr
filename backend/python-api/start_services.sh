@@ -1,138 +1,86 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# ZOOP Backend Services Startup Script
-
-echo "🚀 ZOOP Backend Services를 시작합니다..."
+# Starts the optional ZOOP Python services used in local development.
+# A second run is safe: services whose ports are already occupied are left alone.
+set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ENV_FILE="$SCRIPT_DIR/.env"
+LOG_DIR="$SCRIPT_DIR/logs"
+RESTART=false
+
+if [[ "${1:-}" == "--restart" ]]; then
+  RESTART=true
+elif [[ $# -gt 0 ]]; then
+  echo "Usage: ./start_services.sh [--restart]"
+  exit 1
+fi
+
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "Missing $ENV_FILE. Copy .env.example and add the required API keys first."
+  exit 1
+fi
+
+set -a
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+set +a
+
 UVICORN_CMD="uvicorn"
-if [ -x "$SCRIPT_DIR/.venv/bin/uvicorn" ]; then
-    UVICORN_CMD="$SCRIPT_DIR/.venv/bin/uvicorn"
+if [[ -x "$SCRIPT_DIR/.venv/bin/uvicorn" ]]; then
+  UVICORN_CMD="$SCRIPT_DIR/.venv/bin/uvicorn"
 fi
 
-if [ ! -f ".env" ]; then
-    echo "⚠️  공통 환경파일이 없습니다: backend/python-api/.env"
-    echo "DeepSeek API 키와 OPENAI_BASE_URL을 먼저 설정해주세요."
+mkdir -p "$LOG_DIR"
+
+port_pids() {
+  lsof -tiTCP:"$1" -sTCP:LISTEN 2>/dev/null || true
+}
+
+stop_port() {
+  local port="$1"
+  local pids
+  pids="$(port_pids "$port")"
+  if [[ -n "$pids" ]]; then
+    echo "Stopping the existing local service on port $port ($pids)"
+    kill $pids
+  fi
+}
+
+if [[ "$RESTART" == true ]]; then
+  for port in 8000 8001 8002 8003 8004 5003; do
+    stop_port "$port"
+  done
+  sleep 2
 fi
 
-# GitHub Search Service (Port 8000)
-echo "🔍 GitHub Search Service 시작 중... (Port 8000)"
-cd github_search
-if [ ! -f ".env" ]; then
-    echo "⚠️  .env 파일이 없습니다. github_search/.env 파일을 생성해주세요."
-    echo "예시:"
-    echo "OPENAI_API_KEY=your_api_key_here"
-fi
+start_service() {
+  local label="$1"
+  local directory="$2"
+  local application="$3"
+  local port="$4"
+  local log_file="$LOG_DIR/$label.log"
 
-# 백그라운드에서 github search 서비스 시작
-$UVICORN_CMD main:app --host 0.0.0.0 --port 8000 --reload &
-GITHUB_PID=$!
-echo "✅ GitHub Search Service 시작됨 (PID: $GITHUB_PID)"
+  if [[ -n "$(port_pids "$port")" ]]; then
+    echo "• $label is already running on http://localhost:$port"
+    return
+  fi
 
-# Chatbot Service (Port 8001)
-echo "📱 Chatbot Service 시작 중... (Port 8001)"
-cd ../chatbot
-if [ ! -f ".env" ]; then
-    echo "⚠️  .env 파일이 없습니다. chatbot/.env 파일을 생성해주세요."
-    echo "예시:"
-    echo "OPENAI_API_KEY=your_api_key_here"
-    echo "PDF_PATH=채용_관리자_가이드.pdf"
-    echo "OPENAI_MODEL=gpt-4o-mini"
-fi
+  echo "Starting $label on http://localhost:$port"
+  (
+    cd "$directory"
+    exec nohup "$UVICORN_CMD" "$application" --host 127.0.0.1 --port "$port"
+  ) >"$log_file" 2>&1 &
+  echo "  log: $log_file"
+}
 
-# 백그라운드에서 chatbot 서비스 시작
-$UVICORN_CMD chatbot_api:app --host 0.0.0.0 --port 8001 --reload &
-CHATBOT_PID=$!
-echo "✅ Chatbot Service 시작됨 (PID: $CHATBOT_PID)"
+echo "Starting ZOOP Python services…"
+start_service "github-search" "$SCRIPT_DIR/github_search" "main:app" 8000
+start_service "chatbot" "$SCRIPT_DIR/chatbot" "chatbot_api:app" 8001
+start_service "interview-analysis" "$SCRIPT_DIR/interview_analysis" "interview_analysis_api:app" 8002
+start_service "portfolio-matching" "$SCRIPT_DIR/portfolio_matching" "portfolio_matching_api:app" 8003
+start_service "interview-questions" "$SCRIPT_DIR/interview_questions" "interview_questions_api:app" 8004
+start_service "ocr" "$SCRIPT_DIR/../ocr" "ocr_api:app" 5003
 
-# Interview Analysis Service (Port 8002)
-echo "🎥 Interview Analysis Service 시작 중... (Port 8002)"
-cd ../interview_analysis
-if [ ! -f ".env" ]; then
-    echo "⚠️  .env 파일이 없습니다. interview_analysis/.env 파일을 생성해주세요."
-    echo "예시:"
-    echo "OPENAI_API_KEY=your_api_key_here"
-    echo "SPRING_API_URL=http://localhost:8081"
-fi
-
-# 백그라운드에서 interview analysis 서비스 시작
-$UVICORN_CMD interview_analysis_api:app --host 0.0.0.0 --port 8002 --reload &
-INTERVIEW_PID=$!
-echo "✅ Interview Analysis Service 시작됨 (PID: $INTERVIEW_PID)"
-
-# Portfolio Matching Service (Port 8003)
-echo "📊 Portfolio Matching Service 시작 중... (Port 8003)"
-cd ../portfolio_matching
-if [ ! -f ".env" ]; then
-    echo "⚠️  .env 파일이 없습니다. portfolio_matching/.env 파일을 생성해주세요."
-    echo "예시:"
-    echo "OPENAI_API_KEY=your_api_key_here"
-    echo "SPRING_API_URL=http://localhost:8081"
-fi
-
-# 백그라운드에서 portfolio matching 서비스 시작
-$UVICORN_CMD portfolio_matching_api:app --host 0.0.0.0 --port 8003 --reload &
-PORTFOLIO_PID=$!
-echo "✅ Portfolio Matching Service 시작됨 (PID: $PORTFOLIO_PID)"
-
-# Interview Questions Service (Port 8004)
-echo "❓ Interview Questions Service 시작 중... (Port 8004)"
-cd ../interview_questions
-if [ ! -f ".env" ]; then
-    echo "⚠️  .env 파일이 없습니다. interview_questions/.env 파일을 생성해주세요."
-    echo "예시:"
-    echo "OPENAI_API_KEY=your_api_key_here"
-    echo "OPENAI_MODEL=gpt-4o-mini"
-fi
-
-# 백그라운드에서 interview questions 서비스 시작
-$UVICORN_CMD interview_questions_api:app --host 0.0.0.0 --port 8004 --reload &
-QUESTIONS_PID=$!
-echo "✅ Interview Questions Service 시작됨 (PID: $QUESTIONS_PID)"
-
-# OCR Service (Port 5003)
-echo "📄 OCR Service 시작 중... (Port 5003)"
-cd ../../ocr
-$UVICORN_CMD ocr_api:app --host 0.0.0.0 --port 5003 --reload &
-OCR_PID=$!
-cd ../python-api/interview_questions
-echo "✅ OCR Service 시작됨 (PID: $OCR_PID)"
-
-echo ""
-echo "🎉 모든 서비스가 시작되었습니다!"
-echo "🔍 GitHub Search Service: http://localhost:8000"
-echo "📱 Chatbot Service: http://localhost:8001"
-echo "🎥 Interview Analysis Service: http://localhost:8002"
-echo "📊 Portfolio Matching Service: http://localhost:8003"
-echo "❓ Interview Questions Service: http://localhost:8004"
-echo ""
-echo "서비스를 중지하려면:"
-echo "kill $GITHUB_PID $CHATBOT_PID $INTERVIEW_PID $PORTFOLIO_PID $QUESTIONS_PID $OCR_PID"
-echo ""
-echo "로그 확인:"
-echo "tail -f github_search/logs.txt chatbot/logs.txt interview_analysis/logs.txt portfolio_matching/logs.txt interview_questions/logs.txt"
-
-# 서비스 상태 모니터링
-while true; do
-    if ! kill -0 $GITHUB_PID 2>/dev/null; then
-        echo "❌ GitHub Search Service가 중단되었습니다."
-        break
-    fi
-    if ! kill -0 $CHATBOT_PID 2>/dev/null; then
-        echo "❌ Chatbot Service가 중단되었습니다."
-        break
-    fi
-    if ! kill -0 $INTERVIEW_PID 2>/dev/null; then
-        echo "❌ Interview Analysis Service가 중단되었습니다."
-        break
-    fi
-    if ! kill -0 $PORTFOLIO_PID 2>/dev/null; then
-        echo "❌ Portfolio Matching Service가 중단되었습니다."
-        break
-    fi
-    if ! kill -0 $QUESTIONS_PID 2>/dev/null; then
-        echo "❌ Interview Questions Service가 중단되었습니다."
-        break
-    fi
-    sleep 5
-done
+echo
+echo "Done. Re-run with --restart to stop and refresh only these local service ports."
