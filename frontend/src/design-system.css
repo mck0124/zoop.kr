@@ -147,11 +147,11 @@ select:focus-visible, textarea:focus-visible {
 .decision-lens {
   margin: 0 0 2rem;
   padding: clamp(1.1rem, 2vw, 1.6rem);
-  border: 1px solid rgba(141, 226, 192, 0.2);
+  border: 1px solid #d5eee5;
   border-radius: 24px;
-  background: linear-gradient(135deg, #0d3028 0%, #154b3d 100%);
-  color: #ecfdf5;
-  box-shadow: 0 18px 42px rgba(15, 41, 35, 0.14);
+  background: linear-gradient(135deg, #f7fcfa 0%, #eff9f5 100%);
+  color: var(--zoop-ink);
+  box-shadow: 0 12px 30px rgba(20, 75, 57, 0.08);
 }
 
 .decision-lens-header {
@@ -166,7 +166,7 @@ select:focus-visible, textarea:focus-visible {
   display: flex;
   align-items: center;
   gap: .5rem;
-  color: #8ef0c4;
+  color: var(--zoop-green-dark);
   font-size: .7rem;
   font-weight: 850;
   letter-spacing: .12em;
@@ -178,7 +178,7 @@ select:focus-visible, textarea:focus-visible {
   width: 22px;
   height: 22px;
   place-items: center;
-  border: 1px solid rgba(142, 240, 196, .45);
+  border: 1px solid #a9ddc9;
   border-radius: 50%;
   font-size: .75rem;
   letter-spacing: 0;
@@ -186,7 +186,7 @@ select:focus-visible, textarea:focus-visible {
 
 .decision-lens h2 {
   margin: .55rem 0 .3rem;
-  color: #fff;
+  color: var(--zoop-ink);
   font-size: clamp(1.25rem, 2vw, 1.65rem);
   letter-spacing: -.035em;
 }
@@ -194,17 +194,17 @@ select:focus-visible, textarea:focus-visible {
 .decision-lens-header p {
   max-width: 680px;
   margin: 0;
-  color: #c6f3de;
+  color: var(--zoop-muted);
   font-size: .84rem;
   line-height: 1.55;
 }
 
 .decision-lens-badge {
   padding: .55rem .8rem;
-  border: 1px solid rgba(167, 243, 208, .3);
+  border: 1px solid #b9e5d5;
   border-radius: 999px;
-  background: rgba(167, 243, 208, .12);
-  color: #d1fae5;
+  background: #e7f7f0;
+  color: var(--zoop-green-dark);
   font-size: .72rem;
   font-weight: 800;
   white-space: nowrap;
@@ -242,9 +242,9 @@ select:focus-visible, textarea:focus-visible {
 .decision-lens-priority {
   margin-top: 1rem;
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, .12);
+  border: 1px solid #d7ebe3;
   border-radius: 17px;
-  background: rgba(255, 255, 255, .075);
+  background: rgba(255, 255, 255, .72);
 }
 
 .decision-lens-priority-heading {
@@ -253,7 +253,7 @@ select:focus-visible, textarea:focus-visible {
   gap: .75rem;
   align-items: baseline;
   margin-bottom: .55rem;
-  color: #c8f4df;
+  color: var(--zoop-green-dark);
   font-size: .72rem;
   font-weight: 850;
   letter-spacing: .08em;
@@ -261,7 +261,7 @@ select:focus-visible, textarea:focus-visible {
 }
 
 .decision-lens-priority-heading small {
-  color: rgba(219, 250, 236, .7);
+  color: var(--zoop-muted);
   font-size: .68rem;
   font-weight: 600;
   letter-spacing: 0;
@@ -280,23 +280,23 @@ select:focus-visible, textarea:focus-visible {
   border-radius: 10px;
 }
 
-.decision-lens-rank-row:hover { background: rgba(255, 255, 255, .07); }
+.decision-lens-rank-row:hover { background: #f0faf6; }
 
 .decision-lens-rank-number {
   display: grid;
   width: 23px;
   height: 23px;
   place-items: center;
-  border: 1px solid rgba(167, 243, 208, .3);
+  border: 1px solid #b9e5d5;
   border-radius: 50%;
-  color: #baf4d8;
+  color: var(--zoop-green-dark);
   font-size: .7rem;
   font-weight: 800;
 }
 
-.decision-lens-rank-name { color: #fff; font-size: .83rem; font-weight: 750; }
-.decision-lens-rank-score { color: #fff; font-size: .8rem; font-weight: 850; }
-.decision-lens-rank-status { color: #c8f4df; font-size: .75rem; text-align: right; }
+.decision-lens-rank-name { color: var(--zoop-ink); font-size: .83rem; font-weight: 750; }
+.decision-lens-rank-score { color: var(--zoop-green-dark); font-size: .8rem; font-weight: 850; }
+.decision-lens-rank-status { color: var(--zoop-muted); font-size: .75rem; text-align: right; }
 
 @media (max-width: 900px) {
   .company-dashboard .dashboard-container {
