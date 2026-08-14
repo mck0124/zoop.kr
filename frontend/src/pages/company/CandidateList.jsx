@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import Navbar from '../../components/Navbar';
-import { FaTimes } from 'react-icons/fa';
+import { FaGithub, FaTimes } from 'react-icons/fa';
 import SEO from '../../components/SEO';
 import { apiUrl } from '../../api/config';
 import AIAnalysisSummary from '../../components/AIAnalysisSummary';
@@ -898,6 +898,18 @@ const CandidateComparisonModal = ({ candidates, aiAnalysisResults, selectedLogin
 
   if (!rows.length) return null;
   const decisionLabel = { strong_match: 'Strong match', review: 'Review recommended', not_enough_evidence: 'Insufficient evidence' };
+  const dimensionLabel = {
+    '팔로워 수': 'Followers',
+    '공개 저장소 수': 'Public repositories',
+    '언어 다양성': 'Language breadth',
+    '최근 활동성': 'Recent activity',
+    '프로젝트 품질': 'Project quality',
+    '기술적 깊이': 'Technical depth',
+    '기술 스택': 'Technology stack',
+    '활동 신호': 'Activity signals',
+    '문제 해결 깊이': 'Problem-solving depth',
+    '커뮤니티·협업 신호': 'Community and collaboration signals',
+  };
   const getDimension = (row, name) => {
     const { root } = parseCandidateAnalysis(row.analysisText);
     return Array.isArray(root?.dimensions) ? root.dimensions.find(item => item.name === name) : null;
@@ -924,7 +936,7 @@ const CandidateComparisonModal = ({ candidates, aiAnalysisResults, selectedLogin
               <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>Evidence coverage</div>
               {rows.map(row => <div key={`coverage-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: row.coverage !== null && row.coverage >= 70 ? '#047857' : '#b45309', fontWeight: 800 }}>{row.coverage === null ? 'Check needed' : `${row.coverage}%`} {row.evidenceCount ? `· ${row.evidenceCount} evidence items` : ''}</div>)}
               {dimensions.map(dimension => <React.Fragment key={dimension}>
-                <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>{dimension}</div>
+                <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>{dimensionLabel[dimension] || dimension}</div>
                 {rows.map(row => { const item = getDimension(row, dimension); return <div key={`${dimension}-${row.candidate.githubLogin || row.candidate.login}`} style={{ padding: 14, background: '#fff', color: '#334155', fontSize: 13 }}><strong>{item?.score ?? '—'}</strong>{item?.max ? `/${item.max}` : ''}<div style={{ marginTop: 4, color: '#64748b', lineHeight: 1.45 }}>{item?.evidence?.find(evidence => evidence.verification_state === 'grounded' || evidence.verification_state === 'verified')?.claim || 'No evidence detail available'}</div></div>; })}
               </React.Fragment>)}
               <div style={{ padding: 14, background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 800 }}>Next verification</div>
@@ -1577,8 +1589,12 @@ export default function CandidateList({ activeTab = 'all' }) {
                     <TossCandidateCard
                       candidate={candidate}
                       analysisResult={analysisResult}
-                      selected={selected.includes(candidate.githubLogin || candidate.login)}
-                      onClick={() => toggleSelect(candidate.githubLogin || candidate.login)}
+                      selected={compareSelected.includes(candidate.githubLogin || candidate.login)}
+                      onClick={() => {
+                        const login = candidate.githubLogin || candidate.login;
+                        toggleSelect(login);
+                        toggleCompare(login);
+                      }}
                       openAnalysisModal={openAnalysisModal}
                       toggleSelect={toggleSelect}
                       compareSelected={compareSelected.includes(candidate.githubLogin || candidate.login)}
@@ -2241,7 +2257,7 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
     <TossCard
       key={login}
       selected={selected}
-      onClick={() => toggleSelect(login)}
+      onClick={onClick}
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between',
         paddingTop: '1.25rem', paddingBottom: '1rem',
@@ -2256,20 +2272,17 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
       {/* 이름(깃허브ID) 중앙 정렬로 표시 */}
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 0%', minHeight: 0 }}>
         <div style={{ marginBottom: '0.5rem', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <span style={{ color: '#263249', fontSize: '1.1rem', fontWeight: 800, textAlign: 'center' }}>{candidate.candidateName || login || <span>&nbsp;</span>}</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <span style={{ color: '#263249', fontSize: '1.1rem', fontWeight: 800, textAlign: 'center' }}>{candidate.candidateName || login || <span>&nbsp;</span>}</span>
+            {githubUrl && (
+              <a href={githubUrl} target="_blank" rel="noreferrer" aria-label={`Open ${login || 'candidate'} on GitHub`} onClick={event => event.stopPropagation()} style={{ color: '#24292f', display: 'inline-flex', alignItems: 'center' }}>
+                <FaGithub size={19} />
+              </a>
+            )}
+          </div>
           {login && candidate.candidateName && (
-            <a href={githubUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>
-              @{login} · GitHub profile
-            </a>
+            <span style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>@{login}</span>
           )}
-          <button
-            type="button"
-            aria-pressed={compareSelected}
-            onClick={event => { event.stopPropagation(); toggleCompare(login); }}
-            style={{ marginTop: 8, border: `1px solid ${compareSelected ? '#0f766e' : '#cbd5e1'}`, borderRadius: 999, padding: '5px 10px', background: compareSelected ? '#ccfbf1' : '#fff', color: compareSelected ? '#0f766e' : '#64748b', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}
-          >
-            {compareSelected ? 'Added to comparison' : 'Add to comparison'}
-          </button>
           {(typeof candidate.followers === 'number' || typeof candidate.publicRepos === 'number') && (
             <div style={{ display: 'flex', gap: 14, marginTop: 8, color: '#64748b', fontSize: 11, fontWeight: 700 }}>
               <span>{candidate.followers ?? 0} followers</span>
