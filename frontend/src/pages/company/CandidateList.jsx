@@ -373,6 +373,7 @@ const ModalActionBtn = styled.button`
 
 
 // Technology Stack Visualization
+// eslint-disable-next-line no-unused-vars
 const TechStackVisual = ({ languages, size = 120 }) => {
   if (!languages || languages.length === 0) return null;
   
@@ -422,6 +423,7 @@ const TechStackVisual = ({ languages, size = 120 }) => {
 };
 
 // Keywords Visualization
+// eslint-disable-next-line no-unused-vars
 const KeywordsVisual = ({ keywords, size = 120 }) => {
   if (!keywords || keywords.length === 0) return null;
   
@@ -666,6 +668,7 @@ const parseGithubEvidence = (analysisText) => {
   }
 };
 
+// eslint-disable-next-line no-unused-vars
 const extractKeywords = (analysisText) => {
   if (!analysisText) return [];
   const structured = parsePortfolioEvidence(analysisText);
@@ -943,7 +946,7 @@ function getStackArray(langs) {
   return [];
 }
 
-// 언어별 색상 반환 함수
+// eslint-disable-next-line no-unused-vars
 function getLanguageColor(language, isDarker = false) {
   const colors = {
     'JavaScript': isDarker ? '#d97706' : '#f59e0b',
@@ -1569,7 +1572,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                   ai => ai.githubSearchResultId === candidate.githubSearchResultId
                 );
                 return (
-                  <div key={candidate.githubLogin || idx} style={{ marginBottom: 24, background: '#fff', borderRadius: 16, boxShadow: '0 2px 8px #e0f7ef44', padding: 24, display: 'flex', alignItems: 'center', gap: 24 }}>
+                  <div key={candidate.githubLogin || idx} style={{ marginBottom: 16 }}>
                     {/* TossCandidateCard 등 기존 후보자 정보 렌더링 */}
                     <TossCandidateCard
                       candidate={candidate}
@@ -1615,7 +1618,7 @@ export default function CandidateList({ activeTab = 'all' }) {
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '28px',
+                    gap: '16px',
                 flexWrap: 'wrap',
                 width: '100%'
               }}>
@@ -1666,13 +1669,13 @@ export default function CandidateList({ activeTab = 'all' }) {
                 }}>
                   {getCandidateLanguages(selectedCandidate).slice(0, 4).map((lang, index) => (
                     <span key={index} style={{
-                      background: `linear-gradient(135deg, ${getLanguageColor(lang)} 0%, ${getLanguageColor(lang, true)} 100%)`,
-                      color: 'white',
-                      padding: '4px 12px',
-                      borderRadius: '12px',
+                      background: '#f1f5f9',
+                      color: '#334155',
+                      padding: '5px 9px',
+                      borderRadius: '999px',
                       fontSize: '12px',
                       fontWeight: '700',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.10)',
+                      border: '1px solid #e2e8f0',
                       whiteSpace: 'nowrap',
                       letterSpacing: '-0.5px'
                     }}>
@@ -1684,10 +1687,10 @@ export default function CandidateList({ activeTab = 'all' }) {
                   marginLeft: 'auto',
                   minWidth: '120px',
                   textAlign: 'right',
-                  fontSize: '48px',
-                  fontWeight: '900',
-                  color: '#10b981',
-                  letterSpacing: '-2.5px',
+                  fontSize: '30px',
+                  fontWeight: '800',
+                  color: '#047857',
+                  letterSpacing: '-1px',
                   alignSelf: 'center',
                   lineHeight: 1.1,
                   flexShrink: 0
@@ -1699,14 +1702,14 @@ export default function CandidateList({ activeTab = 'all' }) {
 
             {/* 스크롤 컨텐츠 */}
             <div style={{ padding: '0 32px 32px 32px', maxHeight: '70vh', overflowY: 'auto' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <EvidenceTrustPanel candidate={selectedCandidate} analysisText={selectedAnalysis} />
                 <AIAnalysisSummary
                   analysis={selectedAnalysis}
                   score={modalScore ?? 0}
                 />
-                {/* 1. 종합 역량 분석 섹션 */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                {/* Core evidence view */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   {/* 왼쪽: 레이더 차트 */}
               <div style={{ 
                     background: 'white',
@@ -1774,8 +1777,8 @@ export default function CandidateList({ activeTab = 'all' }) {
                   </div>
                 </div>
 
-                {/* 2. 상세 분석 섹션 */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                {/* Redundant secondary visualizations are intentionally omitted. */}
+                <div style={{ display: 'none' }}>
                   {/* 항목별 점수 차트 */}
               <div style={{
                 background: 'white',
@@ -1814,8 +1817,8 @@ export default function CandidateList({ activeTab = 'all' }) {
                   </div>
                 </div>
 
-                {/* 3. 강점/약점 분석 및 성장 가능성 섹션 */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                {/* Reviewer takeaways */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
                   {/* 강점/약점 분석 */}
                   <div style={{ 
                     background: 'white',
@@ -1827,7 +1830,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                     <StrengthsWeaknesses analysisText={selectedAnalysis} />
                   </div>
                   {/* 성장 가능성 */}
-                  <div style={{ 
+                  <div style={{ display: 'none',
                     background: 'white',
                     borderRadius: '16px',
                     padding: '24px',
@@ -1843,7 +1846,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                 </div>
 
                 {/* 4. 비교 분석 섹션 */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                <div style={{ display: 'none' }}>
                   {/* 점수 분포 차트 */}
                   <div style={{ 
                     background: 'white',
@@ -1886,38 +1889,27 @@ export default function CandidateList({ activeTab = 'all' }) {
                   background: 'white',
                   borderRadius: '16px',
                   padding: '24px',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+                  boxShadow: 'none',
                   border: '1px solid #e5e7eb'
                 }}>
-                  <h3 style={{ margin: '0 0 32px 0', fontSize: '22px', fontWeight: '800', color: '#1e40af', letterSpacing: '-1px', textAlign: 'center' }}>
+                  <h3 style={{ margin: '0 0 18px 0', fontSize: '18px', fontWeight: '750', color: '#172033', letterSpacing: '-0.3px' }}>
                     Featured projects
                   </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {(Array.isArray(selectedCandidate?.topRepos) ? selectedCandidate.topRepos :
                       Array.isArray(selectedCandidate?.repositories) ? selectedCandidate.repositories : []).map((project, index) => (
                       <div key={index} style={{
-                padding: '20px',
-                        borderRadius: '16px',
-                        background: 'linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 100%)',
-                        boxShadow: '0 2px 12px rgba(80,120,255,0.07)',
-                        border: 'none',
-                        transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
-                        cursor: 'pointer',
+                padding: '16px',
+                        borderRadius: '10px',
+                        background: '#fff',
+                        boxShadow: 'none',
+                        border: '1px solid #e2e8f0',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '10px',
-                      }}
-                        onMouseEnter={e => {
-                          e.currentTarget.style.transform = 'scale(1.025)';
-                          e.currentTarget.style.boxShadow = '0 8px 24px #60a5fa22';
-                        }}
-                        onMouseLeave={e => {
-                          e.currentTarget.style.transform = 'none';
-                          e.currentTarget.style.boxShadow = '0 2px 12px rgba(80,120,255,0.07)';
-                        }}
-                      >
+                      }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                          <h4 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#2563eb', letterSpacing: '-0.5px' }}>
+                          <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '750', color: '#172033', letterSpacing: '-0.2px' }}>
                             {project.name}
                           </h4>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1925,16 +1917,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                             </svg>
                             <span style={{ fontSize: '15px', color: '#fbbf24', fontWeight: 700 }}>{project.stars}</span>
-                            <span style={{ 
-                              padding: '4px 12px', 
-                              background: '#3b82f6', 
-                              color: 'white', 
-                              borderRadius: '8px',
-                              fontSize: '13px',
-                              fontWeight: '700',
-                              letterSpacing: '-0.5px',
-                              boxShadow: '0 1px 4px #3b82f622'
-                            }}>
+                            <span style={{ padding: '4px 8px', background: '#f1f5f9', color: '#475569', borderRadius: '999px', fontSize: '12px', fontWeight: '700', border: '1px solid #e2e8f0' }}>
                               {project.language}
                             </span>
                           </div>
@@ -1946,7 +1929,7 @@ export default function CandidateList({ activeTab = 'all' }) {
                 ))}
                 {!(Array.isArray(selectedCandidate?.topRepos) && selectedCandidate.topRepos.length) &&
                  !(Array.isArray(selectedCandidate?.repositories) && selectedCandidate.repositories.length) && (
-                  <div style={{ padding: '24px', textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: '12px' }}>
+                  <div style={{ padding: '16px', textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: '10px' }}>
                     No featured project data was saved. Review the original GitHub profile for details.
                   </div>
                 )}
@@ -1965,17 +1948,17 @@ export default function CandidateList({ activeTab = 'all' }) {
                 bottom: '32px',
                 fontSize: '1.08rem',
                 padding: '0.85rem 2rem',
-                borderRadius: '16px',
+                borderRadius: '10px',
                 minWidth: '120px',
                 fontWeight: 700,
-                background: 'linear-gradient(90deg, #30c59b 0%, #10b981 100%)',
-                boxShadow: '0 8px 32px rgba(48,197,155,0.18)',
+                background: '#0f766e',
+                boxShadow: '0 4px 12px rgba(15,118,110,0.18)',
                 zIndex: 20,
                 border: 'none',
                 color: '#fff',
                 outline: 'none',
                 cursor: 'pointer',
-                transition: 'background 0.18s, box-shadow 0.18s',
+                transition: 'background 0.18s',
                 display: 'block'
               }}
             >
@@ -2211,49 +2194,11 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
   const analysisText = analysisResult?.analysisData || candidate.portfolioAnalysis || candidate.analysis || '';
   const analysisPayload = getAnalysisPayload(candidate, analysisResult);
   const score = analysisPayload.score ?? 0;
-  const keywords = extractKeywords(analysisText);
   const langsArr = getStackArray(candidate.candidateLanguages || candidate.languages);
   const login = candidate.githubLogin || candidate.login;
   const avatarUrl = candidate.avatarUrl || (login ? `https://github.com/${login}.png?size=160` : undefined);
   const githubUrl = candidate.githubProfileUrl || candidate.candidateGithubUrl || (login ? `https://github.com/${login}` : undefined);
   const portfolioEvidence = parsePortfolioEvidence(analysisText);
-
-  // 3D hover + animated graph + dynamic lighting
-  const [, setHoverTransform] = React.useState('');
-  const [graphTransform, setGraphTransform] = React.useState('');
-  const handleMouseMove = e => {
-    const card = e.currentTarget;
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const rotateY = ((x / rect.width) - 0.5) * 18; // -9deg ~ +9deg
-    const rotateX = ((y / rect.height) - 0.5) * -14; // -7deg ~ +7deg
-    
-    // Set 3D transform for card
-    setHoverTransform(`rotateY(${rotateY}deg) rotateX(${rotateX}deg)`);
-    
-    // Enhanced 3D transform for graph with more dramatic effect
-    setGraphTransform(`perspective(600px) rotateY(${rotateY * 1.5}deg) rotateX(${rotateX * 1.5}deg) scale(1.1) translateZ(30px)`);
-    
-    card.style.setProperty('--hover-rotateY', `${rotateY}deg`);
-    card.style.setProperty('--hover-rotateX', `${rotateX}deg`);
-    
-    // Set dynamic lighting position
-    const mouseXPercent = (x / rect.width) * 100;
-    const mouseYPercent = (y / rect.height) * 100;
-    card.style.setProperty('--mouse-x', `${mouseXPercent}%`);
-    card.style.setProperty('--mouse-y', `${mouseYPercent}%`);
-  };
-  const handleMouseLeave = e => {
-    setHoverTransform('');
-    setGraphTransform('');
-    e.currentTarget.style.setProperty('--hover-rotateY', '0deg');
-    e.currentTarget.style.setProperty('--hover-rotateX', '0deg');
-    e.currentTarget.style.setProperty('--mouse-x', '50%');
-    e.currentTarget.style.setProperty('--mouse-y', '50%');
-  };
-
-  const [, setIsHovered] = React.useState(false);
 
   // Use analysisResult.analysisData if present
   let radarScores, realScore;
@@ -2297,15 +2242,13 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
       key={login}
       selected={selected}
       onClick={() => toggleSelect(login)}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={e => { handleMouseLeave(e); setIsHovered(false); }}
-      onMouseEnter={() => setIsHovered(true)}
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between',
-        paddingTop: '1.2rem', paddingBottom: '1rem',
+        paddingTop: '1.25rem', paddingBottom: '1rem',
         width: 340, minWidth: 340,
-        overflow: 'visible',
-        height: '480px'
+        overflow: 'hidden',
+        height: '455px',
+        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)'
       }}
     >
       {/* 프로필 사진을 카드 맨 위 중앙에 크게 배치 */}
@@ -2334,66 +2277,29 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
             </div>
           )}
         </div>
-        {/* TossMetaTag(이메일 있음/없음)는 완전히 제거 */}
-        {/* 시각화 요소들로 대체 */}
         <div style={{ 
           display: 'flex', 
           flexDirection: 'column', 
           alignItems: 'center', 
-          gap: '1rem',
+          gap: '0.75rem',
           width: '100%',
           padding: '0 0.5rem',
           flex: 1
         }}>
-                  {/* 3D Radar Chart with Score */}
         <div style={{ 
           display: 'flex', 
           flexDirection: 'column', 
           alignItems: 'center',
-          gap: '0.5rem',
-          position: 'relative',
-          perspective: '1000px'
+          gap: '0.5rem'
         }}>
-
-            <div style={{ 
-              transform: graphTransform, 
-              transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-              position: 'relative',
-              zIndex: 3,
-              transformStyle: 'preserve-3d'
-            }}>
-              {/* 3D Shadow Effect */}
-              <div style={{
-                position: 'absolute',
-                top: '12px',
-                left: '12px',
-                width: '130px',
-                height: '130px',
-                background: 'rgba(0, 0, 0, 0.15)',
-                borderRadius: '50%',
-                filter: 'blur(12px)',
-                zIndex: 1,
-                transform: 'translateZ(-30px)',
-                transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-              }} />
-              
-              {/* Main Chart with 3D Effect */}
-              <div style={{
-                position: 'relative',
-                zIndex: 2,
-                transform: 'translateZ(40px)',
-                filter: 'drop-shadow(0 12px 24px rgba(48, 197, 155, 0.25))',
-                transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-              }}>
-                <RadarChartSVG 
-                  scores={safeRadarScores}
-                  size={130} 
-                  totalScore={hasVerifiedScore ? displayScore : undefined}
-                  showLabels={true}
-                  showScores={false}
-                />
-              </div>
-        </div>
+          <div style={{ borderRadius: '50%', background: '#f8fafc', padding: 8, border: '1px solid #e2e8f0' }}>
+            <RadarChartSVG
+              scores={safeRadarScores}
+              size={124}
+              totalScore={hasVerifiedScore ? displayScore : undefined}
+              showLabels={true}
+              showScores={false}
+            />
           </div>
 
           {!hasVerifiedScore && (
@@ -2433,27 +2339,17 @@ const TossCandidateCard = ({ candidate, analysisResult, selected, onClick, openA
               <div style={{ fontSize: '12px', color: '#30c59b', fontWeight: '600' }}>
                 Technology stack
               </div>
-              <TechStackVisual languages={langsArr} size={100} />
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 6, flexWrap: 'wrap' }}>
+                {langsArr.slice(0, 4).map(language => <span key={language} style={{ color: '#334155', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 999, padding: '4px 8px', fontSize: 11, fontWeight: 700 }}>{language}</span>)}
+              </div>
             </div>
           )}
           
-          {/* 핵심 키워드 시각화 */}
-          {keywords.length > 0 && (
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center',
-              gap: '0.5rem',
-              width: '100%',
-              marginTop: '0.5rem'
-            }}>
-              <KeywordsVisual keywords={keywords} size={100} />
-            </div>
-          )}
         </div>
         <TossAnalysisButton style={{ width: '100%', marginTop: 'auto', marginBottom: 0 }} onClick={e => { e.stopPropagation(); openAnalysisModal((analysisResult && analysisResult.analysisData) ? analysisResult.analysisData : analysisText, score, candidate); }}>
           View full analysis
         </TossAnalysisButton>
+      </div>
       </div>
     </TossCard>
   );
