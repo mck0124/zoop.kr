@@ -2,7 +2,7 @@
 // copying an env file, while production still requires explicit public URLs.
 export const API_BASE_URL = (process.env.REACT_APP_API_URL || '').replace(/\/$/, '');
 const localDefaults = process.env.NODE_ENV !== 'production' ? {
-  core: 'http://localhost:8081',
+  core: 'http://localhost:8080',
   chatbot: 'http://localhost:8101',
   interview: 'http://localhost:8102',
   matching: 'http://localhost:8103',
@@ -32,7 +32,7 @@ export function isTrustedApiUrl(url, baseUrl = API_BASE_URL) {
 export function withApiBase(url, baseUrl = API_BASE_URL) {
   if (typeof url !== 'string') return url;
   return url
-    .replace(/^http:\/\/localhost:8081/, API_BASE_URL)
+    .replace(/^http:\/\/localhost:8080/, API_BASE_URL)
     .replace(/^http:\/\/localhost:8101/, CHATBOT_API_URL)
     .replace(/^http:\/\/localhost:8102/, INTERVIEW_API_URL)
     .replace(/^http:\/\/localhost:8103/, MATCHING_API_URL)
