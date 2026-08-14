@@ -1,0 +1,203 @@
+:root {
+  --zoop-ink: #13252f;
+  --zoop-muted: #667781;
+  --zoop-subtle: #8a9aa1;
+  --zoop-green: #16a77f;
+  --zoop-green-dark: #087153;
+  --zoop-mint: #dff7ed;
+  --zoop-canvas: #f5f8f7;
+  --zoop-surface: #ffffff;
+  --zoop-border: #dfeae6;
+  --zoop-shadow-sm: 0 8px 24px rgba(20, 55, 45, 0.06);
+  --zoop-radius-lg: 24px;
+}
+
+html { background: var(--zoop-canvas); }
+
+body {
+  background: var(--zoop-canvas);
+  color: var(--zoop-ink);
+  font-family: 'SUIT', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+}
+
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button, input, select, textarea { font-family: inherit; }
+input, select, textarea { color: var(--zoop-ink); }
+input::placeholder, textarea::placeholder { color: #a1afb4; }
+
+button:focus-visible, a:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible {
+  outline: 3px solid rgba(22, 167, 127, 0.25);
+  outline-offset: 2px;
+}
+
+.company-dashboard, .candidate-dashboard {
+  background: var(--zoop-canvas) !important;
+}
+
+.company-dashboard .dashboard-container {
+  gap: 1.5rem;
+  max-width: 1480px;
+  margin: 5.25rem auto 0 !important;
+  padding: 0 1.5rem 3rem;
+}
+
+.company-dashboard .dashboard-container > main {
+  min-width: 0;
+  border: 1px solid rgba(223, 234, 230, 0.8);
+  border-radius: var(--zoop-radius-lg);
+  background: rgba(255, 255, 255, 0.82) !important;
+  box-shadow: var(--zoop-shadow-sm);
+}
+
+.company-dashboard .dashboard-container > aside.sticky {
+  flex: 0 0 248px;
+  width: 248px;
+  margin: 0 !important;
+  padding: 1.15rem !important;
+  border: 1px solid var(--zoop-border);
+  border-radius: var(--zoop-radius-lg) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: var(--zoop-shadow-sm) !important;
+}
+
+.company-dashboard .dashboard-container > aside.sticky h3 {
+  margin: 0 0 1rem !important;
+  color: var(--zoop-ink) !important;
+  letter-spacing: -0.02em;
+}
+
+.company-dashboard .dashboard-container > aside.sticky button {
+  background: var(--zoop-ink) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+
+.company-dashboard .dashboard-container > aside.sticky button:hover {
+  background: var(--zoop-green-dark) !important;
+}
+
+.company-dashboard .dashboard-container > aside.sticky [class*="rounded-md"] {
+  border-radius: 12px;
+}
+
+.company-dashboard .dashboard-container > aside.sticky [class*="bg-emerald-100"] {
+  background: var(--zoop-mint) !important;
+  color: var(--zoop-green-dark) !important;
+  border-left-color: var(--zoop-green) !important;
+}
+
+/* Candidate workspace: use the same quiet canvas, cards, and hierarchy. */
+.candidate-dashboard-wrapper {
+  background: var(--zoop-canvas) !important;
+}
+
+.candidate-dashboard-wrapper .main-content-area {
+  max-width: 1480px;
+  margin-right: auto;
+  padding: 5.25rem 2rem 3rem;
+}
+
+.candidate-dashboard-wrapper .dashboard-page .page-title {
+  color: var(--zoop-ink) !important;
+  font-size: clamp(1.65rem, 2.4vw, 2.25rem) !important;
+  letter-spacing: -0.04em !important;
+}
+
+.candidate-dashboard-wrapper .filter-section,
+.candidate-dashboard-wrapper .info-box,
+.candidate-dashboard-wrapper .dashboard-state-card {
+  border: 1px solid var(--zoop-border);
+  border-radius: 18px;
+  box-shadow: var(--zoop-shadow-sm);
+}
+
+.candidate-dashboard-wrapper .filter-section {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.candidate-dashboard-wrapper .info-box {
+  background: var(--zoop-mint);
+  border-color: rgba(22, 167, 127, 0.25);
+  box-shadow: none;
+}
+
+.candidate-dashboard-wrapper .highlight-button,
+.candidate-dashboard-wrapper .dashboard-state-card.error button {
+  background: var(--zoop-green) !important;
+  border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(22, 167, 127, 0.18);
+}
+
+.candidate-dashboard-wrapper .highlight-button:hover,
+.candidate-dashboard-wrapper .dashboard-state-card.error button:hover {
+  background: var(--zoop-green-dark) !important;
+}
+
+/* Small auth utility pages should feel like the primary auth experience. */
+.min-h-screen.bg-gray-100 {
+  background: var(--zoop-canvas) !important;
+}
+
+.min-h-screen.bg-gray-100 > .bg-white {
+  border: 1px solid var(--zoop-border);
+  border-radius: var(--zoop-radius-lg);
+  box-shadow: 0 24px 70px rgba(24, 61, 48, 0.1) !important;
+}
+
+.min-h-screen.bg-gray-100 h2 {
+  color: var(--zoop-green-dark) !important;
+  letter-spacing: -0.03em;
+}
+
+.min-h-screen.bg-gray-100 button.bg-green-600,
+.min-h-screen.bg-gray-100 button.bg-blue-600 {
+  background: var(--zoop-green) !important;
+  border-radius: 12px !important;
+}
+
+.min-h-screen.bg-gray-100 button.bg-green-600:hover,
+.min-h-screen.bg-gray-100 button.bg-blue-600:hover {
+  background: var(--zoop-green-dark) !important;
+}
+
+.company-dashboard input, .company-dashboard select, .company-dashboard textarea,
+.login-page-wrapper input, .login-page-wrapper select, .login-page-wrapper textarea,
+.signup-wrapper input, .signup-wrapper select, .signup-wrapper textarea {
+  border-color: var(--zoop-border);
+  border-radius: 12px;
+  background: #fbfdfc;
+}
+
+.company-dashboard input:focus, .company-dashboard select:focus,
+.company-dashboard textarea:focus, .signup-wrapper input:focus,
+.signup-wrapper select:focus, .signup-wrapper textarea:focus {
+  border-color: var(--zoop-green);
+  box-shadow: 0 0 0 4px rgba(22, 167, 127, 0.11);
+  outline: none;
+}
+
+@media (max-width: 900px) {
+  .company-dashboard .dashboard-container {
+    display: block !important;
+    margin-top: 4.75rem !important;
+    padding: 0 .9rem 2rem;
+  }
+  .company-dashboard .dashboard-container > aside.sticky {
+    width: 100%;
+    margin-bottom: 1rem !important;
+  }
+  .company-dashboard .dashboard-container > main { border-radius: 18px; }
+  .candidate-dashboard-wrapper .main-content-area {
+    padding: 4.75rem .9rem 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -670,6 +670,38 @@
     }
   }
 
+  /* Shared product header treatment. Keep the menu centered and the account
+     controls in their own right-side zone on every authenticated screen. */
+  .zoop-navbar {
+    min-height: 72px;
+    padding: 0.75rem clamp(1rem, 3vw, 2.75rem);
+    background: rgba(255, 255, 255, 0.88);
+    border-bottom: 1px solid rgba(223, 234, 230, 0.72);
+    backdrop-filter: blur(18px);
+  }
+
+  .zoop-navbar .logo-img { height: 38px; }
+
+  .zoop-navbar .nav-links,
+  .zoop-navbar .auth-buttons { gap: clamp(0.3rem, 1.2vw, 1rem); }
+
+  .zoop-navbar .nav-links a,
+  .zoop-navbar .auth-buttons a,
+  .zoop-navbar .auth-buttons button {
+    color: #51636a;
+    font-size: 0.88rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+  }
+
+  .zoop-navbar .nav-links a:hover,
+  .zoop-navbar .auth-buttons a:hover,
+  .zoop-navbar .auth-buttons button:hover { color: #087153; }
+
+  @media screen and (max-width: 900px) {
+    .zoop-navbar { min-height: 64px; padding: 0.65rem 1rem; }
+  }
+
   /* Stable desktop layout: keep the logo, menu, language switcher, and account cluster in separate flex regions. */
   @media screen and (min-width: 901px) {
     .zoop-navbar {

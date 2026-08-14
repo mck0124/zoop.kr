@@ -14,7 +14,7 @@ const SEO = ({
 
   useEffect(() => {
     // 페이지 제목 설정
-    document.title = title || 'ZOOP - AI 기반 채용 플랫폼';
+    document.title = title || 'ZOOP - Evidence-first hiring platform';
     
     // 메타 태그 업데이트
     updateMetaTag('description', description);
@@ -101,4 +101,4 @@ const SEO = ({
   return null; // 이 컴포넌트는 UI를 렌더링하지 않음
 };
 
-export default SEO; 
+export default SEO;

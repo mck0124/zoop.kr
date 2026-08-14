@@ -5,6 +5,7 @@ import './index.css';
 import './pages/candidate/Portfolio/PortfolioNavbar.css';
 import './pages/candidate/Sidebar/Sidebar.css';
 import './pages/candidate/Sidebar/Header.css';
+import './design-system.css';
 import App from './App';
 import AppErrorBoundary from './components/AppErrorBoundary';
 import reportWebVitals from './reportWebVitals';
