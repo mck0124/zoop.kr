@@ -755,7 +755,8 @@
        switcher and account controls out of the centered public navigation. */
     .zoop-navbar.company-dashboard > .lang-toggle {
       position: absolute !important;
-      right: 19rem !important;
+      /* Reserve a dedicated lane before the notification/profile cluster. */
+      right: clamp(20rem, 24vw, 24rem) !important;
       top: 50%;
       transform: translateY(-50%) !important;
       margin: 0 !important;
@@ -770,7 +771,12 @@
       z-index: 5;
       display: flex;
       align-items: center;
+      gap: 0.75rem;
       white-space: nowrap;
+    }
+
+    .zoop-navbar.company-dashboard .notification-button {
+      margin-right: 0.25rem;
     }
   }
 
