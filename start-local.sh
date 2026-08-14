@@ -5,6 +5,7 @@ set -Eeuo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG_DIR="$ROOT_DIR/local-logs"
+BACKEND_ENV_FILE="$ROOT_DIR/backend/.env"
 BACKEND_PID=""
 FRONTEND_PID=""
 
@@ -24,8 +25,18 @@ if ! docker exec zoop-oracle healthcheck.sh >/dev/null 2>&1; then
   exit 1
 fi
 
-read -r -s -p "Oracle password for local user 'zoop': " DATABASE_PASSWORD
-echo
+if [[ -f "$BACKEND_ENV_FILE" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$BACKEND_ENV_FILE"
+  set +a
+fi
+
+if [[ -z "${DATABASE_PASSWORD:-}" ]]; then
+  echo "Missing DATABASE_PASSWORD in backend/.env"
+  echo "Add it once, then rerun this command."
+  exit 1
+fi
 export DATABASE_PASSWORD
 
 mkdir -p "$LOG_DIR"
