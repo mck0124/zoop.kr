@@ -9,64 +9,25 @@ const DEMO_CANDIDATE_CACHE_KEY = 'zoop.demo.githubCandidates';
 const DEMO_GITHUB_SEARCH_URL = (process.env.REACT_APP_GITHUB_SEARCH_URL || 'http://localhost:8000').replace(/\/$/, '');
 const LIVE_ANALYSIS_TIMEOUT_MS = 120000;
 const candidate = { candidateId: 1001, candidateName: 'Minchan Kim', githubLogin: DEMO_GITHUB_LOGINS[0], candidateEmail: 'minchan0124@gmail.com', candidateBio: 'GitHub profile loaded from the public GitHub API.', candidateGithubUrl: `https://github.com/${DEMO_GITHUB_LOGINS[0]}` };
-const applicants = DEMO_GITHUB_LOGINS.map((login, index) => ({
-  ...candidate,
+// Identifiers only while live GitHub collection and AI analysis are running.
+// No profile metrics, contact details, or scores are fabricated in this state.
+const pendingApplicants = DEMO_GITHUB_LOGINS.map((login, index) => ({
   candidateId: 1001 + index,
+  githubSearchResultId: 6001 + index,
   candidateName: login,
   login,
   githubLogin: login,
+  candidateBio: 'Public GitHub profile is being collected and analyzed.',
   candidateGithubUrl: `https://github.com/${login}`,
   githubProfileUrl: `https://github.com/${login}`,
-  candidateLanguages: index % 2 ? 'JavaScript, TypeScript, Node.js' : 'JavaScript, TypeScript, React',
-  languages: index % 2 ? ['JavaScript', 'TypeScript', 'Node.js'] : ['JavaScript', 'TypeScript', 'React'],
   avatarUrl: `https://github.com/${login}.png?size=160`,
-  followers: 120 + index * 80,
-  publicRepos: 24 + index * 9,
-  repositoriesCount: 24 + index * 9,
-  followerScore: 7 + (index % 3),
-  repoScore: 11 + (index % 4),
-  languageScore: 9 + (index % 3),
-  activityScore: 14 + (index % 5),
-  projectQualityScore: 13 + (index % 5),
-  technicalDepthScore: 14 + (index % 4),
-  analysisScore: 78 + index * 3,
-  score: 78 + index * 3,
-  githubSearchResultId: 6001 + index,
-  analysis: {
-    version: 'github-evidence-v1',
-    score: 78 + index * 3,
-    summary: 'Public GitHub profile signals are ready for review while a live AI refresh runs in the background.',
-    evidence_coverage: 100,
-    confidence: 0.78,
-    decision: 'review',
-    dimensions: [
-      { name: 'Followers', score: 7 + (index % 3), max: 10, evidence: [{ verification_state: 'verified', source: 'GitHub public profile', claim: 'Public follower count was observed.' }] },
-      { name: 'Public repositories', score: 11 + (index % 4), max: 15, evidence: [{ verification_state: 'verified', source: 'GitHub public profile', claim: 'Public repository count was observed.' }] },
-      { name: 'Language breadth', score: 9 + (index % 3), max: 15, evidence: [{ verification_state: 'verified', source: 'GitHub public repositories', claim: 'Languages were observed across public repositories.' }] },
-      { name: 'Recent activity', score: 14 + (index % 5), max: 20, evidence: [{ verification_state: 'verified', source: 'GitHub public repositories', claim: 'Recent repository activity was observed.' }] },
-      { name: 'Project quality', score: 13 + (index % 5), max: 20, evidence: [{ verification_state: 'verified', source: 'GitHub public repositories', claim: 'Public project signals were observed.' }] },
-      { name: 'Technical depth', score: 14 + (index % 4), max: 20, evidence: [{ verification_state: 'verified', source: 'GitHub public repositories', claim: 'Technical breadth and repository history were observed.' }] },
-    ],
-    evidence: [{ verification_state: 'verified', source: 'GitHub public API', claim: 'Public GitHub profile signals were collected for review.' }],
-    gaps: ['Verify ownership and design decisions in a representative project.'],
-  },
-}));
-// These only make the screen usable while the live request is running. They are
-// deliberately not scored, not treated as analyzed, and do not invent contact
-// details. The real GitHub + model response replaces them when it arrives.
-const pendingApplicants = applicants.map(({ analysis, ...applicant }) => ({
-  ...applicant,
   candidateEmail: null,
+  candidateLanguages: '',
+  languages: [],
   analysisScore: null,
   score: null,
-  followerScore: 0,
-  repoScore: 0,
-  languageScore: 0,
-  activityScore: 0,
-  projectQualityScore: 0,
-  technicalDepthScore: 0,
+  source: 'pending-live-github',
 }));
-const analysis = { version: 'github-evidence-v1', score: 92, summary: 'Strong evidence of frontend product ownership and reliable delivery.', evidence: [{ verification_state: 'verified', claim: 'Built production React interfaces', source: 'GitHub activity' }], dimensions: [{ name: 'Product engineering', score: 92, evidence: [{ verification_state: 'verified', source: 'Repository history' }] }] };
 
 const DEMO_DASHBOARD_CANDIDATES = [
   { login: 'gaearon', stage: '2y', score: 94, email: 'gaearon@demo.example', searched: '2026-08-08T09:20:00Z', interviewDate: '2026-08-21T14:00:00Z' },
@@ -374,7 +335,9 @@ export function demoFetch(input, init = {}) {
   }
   if (path.includes('/api/notifications/unread-count')) return Promise.resolve(jsonResponse({ count: DEMO_NOTIFICATIONS.filter(item => !item.isRead).length }));
   if (path.includes('/api/notifications')) return Promise.resolve(jsonResponse(DEMO_NOTIFICATIONS));
-  if (path.includes('/api/ai-analysis') || path.includes('/api/analysis')) return Promise.resolve(jsonResponse(analysis));
+  if (path.includes('/api/ai-analysis') || path.includes('/api/analysis')) {
+    return Promise.resolve(jsonResponse({ status: 'PENDING', message: 'Live GitHub analysis is still in progress.' }));
+  }
   if (path.includes('/api/interviews') || path.includes('/api/interview-schedules')) return Promise.resolve(jsonResponse({ interviewId: 7001, postId: 9001, candidateId: 1001, status: 'SCHEDULED', scheduledAt: '2026-08-20T10:00:00' }));
   if (path.includes('/api/bookmarks')) return Promise.resolve(jsonResponse(method === 'GET' ? [{ postId: 9001 }] : { success: true }));
   if (path.includes('/api/resumes') || path.includes('/api/portfolios')) return Promise.resolve(jsonResponse({ success: true, portfolioUrl: 'https://github.com/demo-candidate', status: 'SUBMITTED' }));
