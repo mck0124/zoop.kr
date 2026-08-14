@@ -169,6 +169,14 @@ public class GithubBridgeService {
                 String githubLogin = (String) user.get("login");
                 Optional<Candidate> candidateOpt = candidateRepository.findByGithubLogin(githubLogin);
                 Candidate candidate = candidateOpt.orElse(null);
+
+                // Public GitHub search results are not necessarily registered ZOOP candidates.
+                // JOB_CAND_PROGRESS requires a non-null candidate_id, so keep the public
+                // evidence result and analysis but only create a pipeline row for members.
+                if (candidate == null) {
+                    System.out.println("[INFO] 공개 GitHub 계정은 분석 결과만 저장합니다: " + githubLogin);
+                    continue;
+                }
                 
                 // postId + githubLogin 조합으로 중복 체크
                 Optional<JobCandProgress> existing = jobCandProgressRepository.findByPost_PostIdAndGithubLogin(post.getPostId(), githubLogin);
