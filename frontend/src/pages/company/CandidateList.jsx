@@ -850,34 +850,34 @@ const DecisionLens = ({ candidates, aiAnalysisResults }) => {
   if (!rows.length) return null;
 
   const badge = (label, value, tone) => (
-    <div style={{ flex: '1 1 150px', minWidth: 145, padding: '14px 16px', borderRadius: 14, background: tone.background, border: `1px solid ${tone.border}` }}>
-      <div style={{ color: tone.label, fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{label}</div>
-      <div style={{ color: '#172033', fontSize: 24, fontWeight: 850, marginTop: 3 }}>{value}</div>
+    <div className="decision-lens-stat" style={{ background: tone.background, borderColor: tone.border }}>
+      <div className="decision-lens-stat-label" style={{ color: tone.label }}>{label}</div>
+      <div className="decision-lens-stat-value">{value}</div>
     </div>
   );
 
   return (
-    <section aria-labelledby="decision-lens-title" style={{ margin: '0 0 2rem', padding: '1.35rem', borderRadius: 22, background: 'linear-gradient(135deg, #102c25 0%, #174438 100%)', color: '#ecfdf5', boxShadow: '0 14px 34px rgba(15, 41, 35, 0.16)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+    <section className="decision-lens" aria-labelledby="decision-lens-title">
+      <div className="decision-lens-header">
         <div>
-          <div style={{ color: '#86efac', fontSize: 11, fontWeight: 850, letterSpacing: '0.12em' }}>EVIDENCE LEDGER · DECISION LENS</div>
-          <h2 id="decision-lens-title" style={{ color: '#fff', margin: '6px 0 5px', fontSize: '1.35rem' }}>Review evidence before the score</h2>
-          <p style={{ margin: 0, color: '#c7f9df', lineHeight: 1.55, fontSize: 13 }}>Scores set review priority. Candidates with limited evidence are routed to the next verification step instead of being rejected automatically.</p>
+          <div className="decision-lens-kicker"><span className="decision-lens-kicker-mark">✓</span>Evidence-backed review</div>
+          <h2 id="decision-lens-title">Make every candidate decision explainable</h2>
+          <p>Review source coverage and verification status before relying on a score.</p>
         </div>
-        <span style={{ padding: '7px 11px', borderRadius: 999, background: 'rgba(167,243,208,.13)', border: '1px solid rgba(167,243,208,.3)', color: '#d1fae5', fontSize: 12, fontWeight: 800 }}>AI-assisted decision support</span>
+        <span className="decision-lens-badge">AI-assisted · explainable</span>
       </div>
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
+      <div className="decision-lens-stats">
         {badge('Analyzed', `${scored.length}/${rows.length}`, { background: '#ecfdf5', border: '#a7f3d0', label: '#047857' })}
         {badge('Grounded evidence', `${grounded.length}`, { background: '#eff6ff', border: '#bfdbfe', label: '#1d4ed8' })}
         {badge('Needs review', `${needsReview.length}`, { background: '#fffbeb', border: '#fde68a', label: '#b45309' })}
       </div>
-      <div style={{ marginTop: 16, padding: '12px 14px', borderRadius: 14, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)' }}>
-        <div style={{ color: '#bbf7d0', fontSize: 11, fontWeight: 850, letterSpacing: '0.06em', marginBottom: 8 }}>REVIEW PRIORITY</div>
-        <div style={{ display: 'grid', gap: 7 }}>
+      <div className="decision-lens-priority">
+        <div className="decision-lens-priority-heading"><span>Review priority</span><small>Highest evidence-backed signals first</small></div>
+        <div className="decision-lens-ranking">
           {ranked.map((row, index) => {
             const name = row.candidate.githubLogin || row.candidate.login || 'Unknown candidate';
             const status = row.coverage === null ? 'Evidence check needed' : row.coverage < 70 ? `${row.coverage}% coverage · Verify further` : `${row.coverage}% evidence coverage`;
-            return <div key={`${name}-${index}`} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap', fontSize: 13 }}><span style={{ color: '#fff', fontWeight: 750 }}>{index + 1}. {name}</span><span style={{ color: '#d1fae5' }}>{row.score === null ? 'Score pending' : `${row.score}`} · {status}</span></div>;
+            return <div className="decision-lens-rank-row" key={`${name}-${index}`}><span className="decision-lens-rank-number">{index + 1}</span><span className="decision-lens-rank-name">{name}</span><span className="decision-lens-rank-score">{row.score === null ? 'Score pending' : `${row.score} pts`}</span><span className="decision-lens-rank-status">{status}</span></div>;
           })}
         </div>
       </div>

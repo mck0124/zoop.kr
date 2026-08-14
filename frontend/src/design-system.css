@@ -143,6 +143,161 @@ select:focus-visible, textarea:focus-visible {
   outline: none;
 }
 
+/* Decision lens: a compact review widget instead of a heavy dashboard block. */
+.decision-lens {
+  margin: 0 0 2rem;
+  padding: clamp(1.1rem, 2vw, 1.6rem);
+  border: 1px solid rgba(141, 226, 192, 0.2);
+  border-radius: 24px;
+  background: linear-gradient(135deg, #0d3028 0%, #154b3d 100%);
+  color: #ecfdf5;
+  box-shadow: 0 18px 42px rgba(15, 41, 35, 0.14);
+}
+
+.decision-lens-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.decision-lens-kicker {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  color: #8ef0c4;
+  font-size: .7rem;
+  font-weight: 850;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.decision-lens-kicker-mark {
+  display: inline-grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border: 1px solid rgba(142, 240, 196, .45);
+  border-radius: 50%;
+  font-size: .75rem;
+  letter-spacing: 0;
+}
+
+.decision-lens h2 {
+  margin: .55rem 0 .3rem;
+  color: #fff;
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+  letter-spacing: -.035em;
+}
+
+.decision-lens-header p {
+  max-width: 680px;
+  margin: 0;
+  color: #c6f3de;
+  font-size: .84rem;
+  line-height: 1.55;
+}
+
+.decision-lens-badge {
+  padding: .55rem .8rem;
+  border: 1px solid rgba(167, 243, 208, .3);
+  border-radius: 999px;
+  background: rgba(167, 243, 208, .12);
+  color: #d1fae5;
+  font-size: .72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.decision-lens-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+  margin-top: 1.25rem;
+}
+
+.decision-lens-stat {
+  min-width: 0;
+  padding: .9rem 1rem;
+  border: 1px solid;
+  border-radius: 16px;
+}
+
+.decision-lens-stat-label {
+  font-size: .66rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.decision-lens-stat-value {
+  margin-top: .15rem;
+  color: #172033;
+  font-size: 1.55rem;
+  font-weight: 850;
+  letter-spacing: -.04em;
+}
+
+.decision-lens-priority {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, .075);
+}
+
+.decision-lens-priority-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+  align-items: baseline;
+  margin-bottom: .55rem;
+  color: #c8f4df;
+  font-size: .72rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.decision-lens-priority-heading small {
+  color: rgba(219, 250, 236, .7);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.decision-lens-ranking { display: grid; gap: .4rem; }
+
+.decision-lens-rank-row {
+  display: grid;
+  grid-template-columns: 24px minmax(120px, 1fr) auto minmax(170px, auto);
+  gap: .65rem;
+  align-items: center;
+  min-height: 38px;
+  padding: .35rem .45rem;
+  border-radius: 10px;
+}
+
+.decision-lens-rank-row:hover { background: rgba(255, 255, 255, .07); }
+
+.decision-lens-rank-number {
+  display: grid;
+  width: 23px;
+  height: 23px;
+  place-items: center;
+  border: 1px solid rgba(167, 243, 208, .3);
+  border-radius: 50%;
+  color: #baf4d8;
+  font-size: .7rem;
+  font-weight: 800;
+}
+
+.decision-lens-rank-name { color: #fff; font-size: .83rem; font-weight: 750; }
+.decision-lens-rank-score { color: #fff; font-size: .8rem; font-weight: 850; }
+.decision-lens-rank-status { color: #c8f4df; font-size: .75rem; text-align: right; }
+
 @media (max-width: 900px) {
   .company-dashboard .dashboard-container {
     display: block !important;
@@ -152,6 +307,10 @@ select:focus-visible, textarea:focus-visible {
   .company-dashboard .dashboard-container > aside.sticky { width: 100%; margin-bottom: 1rem !important; }
   .company-dashboard .dashboard-container > main { border-radius: 18px; }
   .candidate-dashboard-wrapper .main-content-area { padding: 4.75rem .9rem 2rem; }
+  .decision-lens-stats { grid-template-columns: 1fr; }
+  .decision-lens-rank-row { grid-template-columns: 24px minmax(0, 1fr) auto; }
+  .decision-lens-rank-status { grid-column: 2 / -1; text-align: left; }
+  .decision-lens-priority-heading { align-items: flex-start; flex-direction: column; gap: .2rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
