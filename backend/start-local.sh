@@ -11,8 +11,10 @@ if [[ -f .env ]]; then
   set +a
 fi
 
-read -r -s -p "Oracle password for local user 'zoop': " DATABASE_PASSWORD
-echo
+if [[ -z "${DATABASE_PASSWORD:-}" ]]; then
+  read -r -s -p "Oracle password for local user 'zoop': " DATABASE_PASSWORD
+  echo
+fi
 
 export SPRING_PROFILES_ACTIVE=prod
 export DATABASE_URL="${DATABASE_URL:-jdbc:oracle:thin:@localhost:1521/XEPDB1}"
