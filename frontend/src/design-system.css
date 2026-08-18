@@ -53,6 +53,8 @@ select:focus-visible, textarea:focus-visible {
   flex: 0 0 248px;
   width: 248px;
   margin: 0 !important;
+  align-self: flex-start;
+  min-height: 0 !important;
   padding: 1.15rem !important;
   border: 1px solid var(--zoop-border);
   border-radius: var(--zoop-radius-lg) !important;

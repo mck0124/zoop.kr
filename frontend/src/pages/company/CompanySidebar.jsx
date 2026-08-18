@@ -160,7 +160,8 @@ export default function CompanySidebar({
     <aside
       style={{
         ...hoverBoxStyle,
-        marginTop: '9.0rem',
+        // Keep the sidebar aligned with the main dashboard content.
+        marginTop: 0,
         marginLeft: '3rem',
         padding: '2rem',
         width: '360px',
@@ -171,7 +172,7 @@ export default function CompanySidebar({
         color: '#222',
         background: '#ffffff',
         border: '1px solid #f1f3f4',
-        minHeight: '1500px',
+        minHeight: 0,
         overflow: 'visible',
       }}
       onMouseEnter={handleMouseEnter}
