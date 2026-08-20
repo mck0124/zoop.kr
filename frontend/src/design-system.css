@@ -34,6 +34,10 @@ select:focus-visible, textarea:focus-visible {
 
 .company-dashboard, .candidate-dashboard { background: var(--zoop-canvas) !important; }
 
+/* Navbar reuses the company-dashboard class for its account layout.
+   Keep the navigation itself transparent; only the page canvas gets the dashboard background. */
+.zoop-navbar.company-dashboard { background: transparent !important; }
+
 .company-dashboard .dashboard-container {
   gap: 1.5rem;
   max-width: 1480px;
