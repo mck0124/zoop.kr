@@ -731,18 +731,26 @@
     }
 
     .zoop-navbar > .lang-toggle {
-      position: static !important;
+      position: absolute !important;
+      right: clamp(7rem, 12vw, 12rem) !important;
+      top: 50%;
       flex: 0 0 auto;
       margin: 0 !important;
-      transform: none !important;
+      transform: translateY(-50%) !important;
       white-space: nowrap;
+      z-index: 4;
     }
 
     .zoop-navbar > .auth-buttons {
+      position: absolute;
+      right: clamp(1rem, 2vw, 2rem);
+      top: 50%;
+      transform: translateY(-50%);
       flex: 0 0 auto;
       min-width: 0;
       padding-left: 0;
       margin: 0;
+      z-index: 5;
     }
 
     /* Keep the company dashboard's public links centered in the viewport,
