@@ -480,6 +480,7 @@ export default function RecruitCreate() {
             "Ruby",
             "Kotlin",
             "TypeScript",
+            "React",
           ].map((lang) => {
             const langToFile = {
               Python: "python.svg",
@@ -490,6 +491,7 @@ export default function RecruitCreate() {
               Ruby: "ruby.svg",
               Kotlin: "kotlin.svg",
               TypeScript: "typescript.svg",
+              React: "react.svg",
             };
             const iconSrc = `/languages/${langToFile[lang]}`;
             return (
