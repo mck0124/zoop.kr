@@ -675,9 +675,9 @@
   .zoop-navbar {
     min-height: 72px;
     padding: 0.75rem clamp(1rem, 3vw, 2.75rem);
-    background: rgba(255, 255, 255, 0.88);
-    border-bottom: 1px solid rgba(223, 234, 230, 0.72);
-    backdrop-filter: blur(18px);
+    background: transparent;
+    border-bottom: none;
+    backdrop-filter: none;
   }
 
   .zoop-navbar .logo-img { height: 38px; }
