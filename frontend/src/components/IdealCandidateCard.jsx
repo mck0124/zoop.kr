@@ -3,6 +3,15 @@ import React from "react";
 export default function IdealCandidateCard({ summary, onEditSummary, isEditing, setIsEditing, forceCleanSummary }) {
   const [editValue, setEditValue] = React.useState(summary || "");
 
+  const sectionTitles = [
+    "Role mission",
+    "Must-have capabilities",
+    "Nice-to-have signals",
+    "Evidence to look for",
+    "Interview verification focus",
+    "Fairness guard",
+  ];
+
   // summary가 바뀌면 textarea 값도 반영
   React.useEffect(() => {
     setEditValue(summary || "");
@@ -15,18 +24,6 @@ export default function IdealCandidateCard({ summary, onEditSummary, isEditing, 
     }
   }, [forceCleanSummary, summary]);
 
-  let sections = [];
-  if (summary && typeof summary === "string") {
-    sections = summary
-      .split(/\n|<br\s*\/?>/)
-      .map(line => line.trim())
-      .filter(line => line && /:/.test(line))
-      .map(line => {
-        const [title, ...rest] = line.split(":");
-        return { title: title.trim(), content: rest.join(":").trim() };
-      });
-  }
-
   // <EXAMPLES>~<END> 혹은 "examples:" 라인 자동 제거
   function cleanSummary(text) {
     if (!text) return "";
@@ -38,6 +35,39 @@ export default function IdealCandidateCard({ summary, onEditSummary, isEditing, 
     cleaned = cleaned.trim();
     return cleaned;
   }
+
+  // Parse the model's structured brief without losing heading-only sections
+  // or bullet items such as "- To verify: ...".
+  const parseSections = (text) => {
+    if (!text || typeof text !== "string") return [];
+    const cleaned = cleanSummary(text);
+    const sections = [];
+    let current = null;
+    const headingPattern = new RegExp(`^(${sectionTitles.map(title => title.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")).join("|")})\\s*:?[ \\t]*(.*)$`, "i");
+
+    cleaned.split(/\r?\n/).map(line => line.trim()).filter(Boolean).forEach((line) => {
+      const heading = line.match(headingPattern);
+      if (heading) {
+        if (current) sections.push(current);
+        current = { title: heading[1], items: heading[2] ? [heading[2].trim()] : [] };
+        return;
+      }
+
+      if (!current) return;
+      const item = line.replace(/^[-*•]\s*/, "").trim();
+      if (!item) return;
+      if (/^[-*•]\s*/.test(line) || current.items.length === 0) {
+        current.items.push(item);
+      } else {
+        current.items[current.items.length - 1] = `${current.items[current.items.length - 1]} ${item}`;
+      }
+    });
+
+    if (current) sections.push(current);
+    return sections;
+  };
+
+  const sections = parseSections(summary);
 
   // 저장 버튼 클릭 시
   const handleSave = () => {
@@ -135,12 +165,24 @@ export default function IdealCandidateCard({ summary, onEditSummary, isEditing, 
                   marginBottom: "0.5rem",
                   letterSpacing: "-0.01em"
                 }}>{sec.title}</div>
-                <div style={{
-                  fontWeight: 400,
-                  fontSize: "1.04rem",
-                  lineHeight: 1.7,
-                  whiteSpace: "pre-line"
-                }}>{sec.content}</div>
+                {sec.items.length > 0 ? (
+                  <ul style={{
+                    margin: 0,
+                    paddingLeft: "1.2rem",
+                    color: "#34444b",
+                    fontWeight: 400,
+                    fontSize: "1.04rem",
+                    lineHeight: 1.7,
+                  }}>
+                    {sec.items.map((item, itemIndex) => (
+                      <li key={itemIndex} style={{ marginBottom: itemIndex === sec.items.length - 1 ? 0 : "0.45rem" }}>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div style={{ color: "#8a9aa1", fontSize: "0.98rem" }}>No additional signals provided yet.</div>
+                )}
               </div>
             ))}
           </div>

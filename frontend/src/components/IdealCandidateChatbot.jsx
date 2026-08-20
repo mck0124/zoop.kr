@@ -247,7 +247,7 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
       });
       if (!response.ok) throw new Error("API 호출 실패");
       const data = await response.json();
-      let aiResponse = typeof data.answer === "string" ? data.answer : "요청을 처리할 수 있는 AI 응답이 없습니다.";
+      let aiResponse = typeof data.answer === "string" ? data.answer : copy.error;
       // <SUMMARY> 파싱 및 제거 (닫는 태그가 없어도 <SUMMARY> 이후는 모두 제거)
       const summaryMatch = aiResponse.match(/<SUMMARY>([\s\S]*?)(<\/SUMMARY>|$)/);
       if (summaryMatch) {
@@ -259,6 +259,8 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
         }
       } else {
         guide = aiResponse;
+        // Keep a useful editable result even if a model response misses the tags.
+        summary = aiResponse.trim();
       }
       // <EXAMPLES> 태그 파싱 및 제거
       let parsedExamples = [];
@@ -427,7 +429,9 @@ export default function IdealCandidateChatbot({ recruitFilters, onIdealCandidate
                   : "0 2.5px 9px #caf6e525"
               }}
             >
-              {typeof msg.content === "string" ? msg.content : msg.content}
+              <span style={{ whiteSpace: "pre-line", wordBreak: "break-word" }}>
+                {typeof msg.content === "string" ? msg.content : msg.content}
+              </span>
             </div>
           </div>
         ))}

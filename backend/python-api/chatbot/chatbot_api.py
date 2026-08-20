@@ -166,6 +166,26 @@ def build_messages(system_prompt, history, user_input):
     messages.append({"role": "user", "content": user_input})
     return messages
 
+def fallback_ideal_candidate_brief(req):
+    """Keep the hiring flow usable when the model provider returns no content."""
+    filters = req.recruit_filters or {}
+    roles = filters.get("roles") or filters.get("role") or []
+    languages = filters.get("languages") or []
+    regions = filters.get("regions") or []
+    role_text = ", ".join(map(str, roles)) if isinstance(roles, list) else str(roles)
+    language_text = ", ".join(map(str, languages)) if isinstance(languages, list) else str(languages)
+    region_text = ", ".join(map(str, regions)) if isinstance(regions, list) else str(regions)
+    role_text = role_text or "the open role"
+    preference = str(req.user_input or "").strip().replace("\n", " ")[:360]
+    must_have = [
+        f"Relevant experience for {role_text}.",
+        f"Practical experience with {language_text}." if language_text else "Demonstrable experience with the role's core technologies.",
+        "Ability to explain individual contributions, decisions, and outcomes.",
+    ]
+    if preference:
+        must_have.append(f"Recruiter preference to review: {preference}")
+    return "I drafted an evidence-first brief from the available job context.\n\n<SUMMARY>\nRole mission\n- Define the outcomes and responsibilities expected for the {role_text} role.\n\nMust-have capabilities\n- " + "\n- ".join(must_have) + "\n\nNice-to-have signals\n- Evidence of maintained projects, thoughtful implementation, and clear technical communication.\n\nEvidence to look for\n- Public work artifacts, repository history, documentation, tests, and concrete project outcomes.\n- To verify: the candidate's individual contribution and collaboration context.\n\nInterview verification focus\n- Ask the candidate to walk through one representative project and explain their decisions.\n- Use the same role-relevant questions and rubric for every candidate.\n\nFairness guard\n- Evaluate demonstrated skills and evidence only; do not use school, age, gender, appearance, or unrelated personal attributes.\n</SUMMARY>\n\n<EXAMPLES>\nClarify the most important technical skill. || Add a collaboration requirement. || Focus on ownership and delivery.\n<END>"
+
 # -------------------------------------
 
 class ChatRequest(BaseModel):
@@ -269,9 +289,13 @@ Output contract:
 2. Inside <SUMMARY>, produce a concise, editable brief with exactly these
    headings: Role mission; Must-have capabilities; Nice-to-have signals;
    Evidence to look for; Interview verification focus; Fairness guard.
-3. Separate items with bullets. Mark unknown details as "To verify" instead of
-   guessing. Evidence to look for must describe observable artifacts or
-   outcomes, not personality labels.
+3. Put each heading on its own line and put every item beneath it on a line
+   beginning with "- ". Use the recruiter's explicit role, technologies,
+   experience, and collaboration requirements as must-have capabilities.
+   Do not turn explicit requirements into "To verify" items. Mark only
+   genuinely missing details as "To verify" instead of guessing. Evidence to
+   look for must describe observable artifacts or outcomes, not personality
+   labels.
 4. Inside <EXAMPLES> and before <END>, provide 3-6 short refinement phrases
    in the requested language, separated by ||. They must be preferences, not
    questions.
@@ -296,6 +320,9 @@ Output contract:
         prompt = prompt.replace("{latest_request}", req.user_input[:2000])
         messages = build_messages(prompt, [], "Generate the hiring brief now.")
         answer = call_openai_chat(messages, max_tokens=1200, temperature=0.2)
+        if answer.startswith("AI did not return a usable response"):
+            print("[ideal-candidate-chat] model returned no content; using structured fallback")
+            answer = fallback_ideal_candidate_brief(req)
         return {"answer": answer}
         
     except Exception as e:
