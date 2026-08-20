@@ -719,8 +719,13 @@
     }
 
     .zoop-navbar .nav-links {
-      flex: 1 1 auto;
-      min-width: 0;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      flex: none;
+      width: max-content;
+      max-width: calc(100% - 420px);
       justify-content: center;
       gap: clamp(.75rem, 1.5vw, 1.5rem);
     }
@@ -745,7 +750,8 @@
     .zoop-navbar.company-dashboard .nav-links {
       position: absolute;
       left: 50%;
-      transform: translateX(-50%);
+      top: 50%;
+      transform: translate(-50%, -50%);
       flex: none;
       width: max-content;
       max-width: calc(100% - 420px);
